@@ -1,0 +1,1650 @@
+<!doctype html>
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>qa-helper-plugin — UX Design Directions</title>
+    <style>
+      :root {
+        --primary-50: #eff6ff;
+        --primary-100: #dbeafe;
+        --primary-500: #3b82f6;
+        --primary-600: #2563eb;
+        --primary-700: #1d4ed8;
+        --success-50: #f0fdf4;
+        --success-500: #22c55e;
+        --success-600: #16a34a;
+        --danger-50: #fef2f2;
+        --danger-500: #ef4444;
+        --warning-50: #fffbeb;
+        --warning-500: #f59e0b;
+        --neutral-50: #f9fafb;
+        --neutral-100: #f3f4f6;
+        --neutral-200: #e5e7eb;
+        --neutral-300: #d1d5db;
+        --neutral-400: #9ca3af;
+        --neutral-500: #6b7280;
+        --neutral-700: #374151;
+        --neutral-900: #111827;
+        --white: #ffffff;
+        --radius-sm: 6px;
+        --radius-md: 8px;
+        --radius-lg: 12px;
+        --font:
+          system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          sans-serif;
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        font-family: var(--font);
+        background: #f0f2f5;
+        color: var(--neutral-700);
+      }
+
+      /* Page Layout */
+      .page-header {
+        background: var(--white);
+        border-bottom: 1px solid var(--neutral-200);
+        padding: 24px 32px;
+        position: sticky;
+        top: 0;
+        z-index: 100;
+      }
+      .page-header h1 {
+        font-size: 20px;
+        font-weight: 700;
+        color: var(--neutral-900);
+      }
+      .page-header p {
+        font-size: 13px;
+        color: var(--neutral-500);
+        margin-top: 4px;
+      }
+
+      .nav-tabs {
+        display: flex;
+        gap: 4px;
+        margin-top: 16px;
+        border-bottom: 1px solid var(--neutral-200);
+        margin-bottom: -1px;
+      }
+      .nav-tab {
+        padding: 8px 16px;
+        font-size: 13px;
+        font-weight: 500;
+        cursor: pointer;
+        border: none;
+        background: none;
+        color: var(--neutral-500);
+        border-bottom: 2px solid transparent;
+        transition: all 0.2s;
+      }
+      .nav-tab:hover {
+        color: var(--neutral-700);
+      }
+      .nav-tab.active {
+        color: var(--primary-600);
+        border-bottom-color: var(--primary-600);
+      }
+
+      .content {
+        padding: 32px;
+        max-width: 1400px;
+        margin: 0 auto;
+      }
+
+      .section-title {
+        font-size: 16px;
+        font-weight: 600;
+        color: var(--neutral-900);
+        margin-bottom: 8px;
+      }
+      .section-desc {
+        font-size: 13px;
+        color: var(--neutral-500);
+        margin-bottom: 24px;
+      }
+
+      .directions-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
+        gap: 32px;
+      }
+
+      .direction-card {
+        background: var(--white);
+        border-radius: var(--radius-lg);
+        border: 2px solid var(--neutral-200);
+        overflow: hidden;
+        transition: border-color 0.2s;
+        cursor: pointer;
+      }
+      .direction-card:hover {
+        border-color: var(--primary-500);
+      }
+      .direction-card.selected {
+        border-color: var(--primary-500);
+        box-shadow: 0 0 0 3px var(--primary-100);
+      }
+
+      .direction-label {
+        padding: 12px 16px;
+        background: var(--neutral-50);
+        border-bottom: 1px solid var(--neutral-200);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .direction-label h3 {
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--neutral-900);
+      }
+      .direction-label span {
+        font-size: 11px;
+        color: var(--neutral-500);
+        background: var(--neutral-100);
+        padding: 2px 8px;
+        border-radius: 10px;
+      }
+
+      .direction-body {
+        padding: 16px;
+        display: flex;
+        justify-content: center;
+      }
+
+      /* Tab panels */
+      .tab-panel {
+        display: none;
+      }
+      .tab-panel.active {
+        display: block;
+      }
+
+      /* ========== POPUP MOCKUPS ========== */
+      .popup-frame {
+        width: 380px;
+        background: var(--white);
+        border-radius: var(--radius-md);
+        border: 1px solid var(--neutral-200);
+        box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+        overflow: hidden;
+        font-family: var(--font);
+      }
+
+      /* --- Direction A: Compact Dashboard --- */
+      .dir-a .popup-header {
+        padding: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        border-bottom: 1px solid var(--neutral-200);
+      }
+      .dir-a .popup-header .logo {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .dir-a .popup-header .logo-icon {
+        width: 24px;
+        height: 24px;
+        background: var(--primary-500);
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 12px;
+        font-weight: 700;
+      }
+      .dir-a .popup-header .logo-text {
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--neutral-900);
+      }
+      .dir-a .popup-header .settings-btn {
+        width: 28px;
+        height: 28px;
+        border-radius: 6px;
+        border: none;
+        background: var(--neutral-100);
+        cursor: pointer;
+        font-size: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--neutral-500);
+      }
+
+      .dir-a .session-toggle {
+        margin: 12px;
+        padding: 12px;
+        background: var(--neutral-50);
+        border-radius: var(--radius-md);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .dir-a .session-toggle .left {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .dir-a .session-toggle .status-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+      }
+      .dir-a .session-toggle .status-dot.active {
+        background: var(--success-500);
+        box-shadow: 0 0 6px rgba(34, 197, 94, 0.4);
+      }
+      .dir-a .session-toggle .status-dot.inactive {
+        background: var(--neutral-300);
+      }
+      .dir-a .session-toggle .status-text {
+        font-size: 13px;
+        font-weight: 500;
+      }
+      .dir-a .toggle-switch {
+        width: 40px;
+        height: 22px;
+        border-radius: 11px;
+        position: relative;
+        cursor: pointer;
+        border: none;
+      }
+      .dir-a .toggle-switch.on {
+        background: var(--success-500);
+      }
+      .dir-a .toggle-switch.off {
+        background: var(--neutral-300);
+      }
+      .dir-a .toggle-switch::after {
+        content: "";
+        position: absolute;
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        background: white;
+        top: 2px;
+        transition: left 0.2s;
+      }
+      .dir-a .toggle-switch.on::after {
+        left: 20px;
+      }
+      .dir-a .toggle-switch.off::after {
+        left: 2px;
+      }
+
+      .dir-a .stats-row {
+        display: flex;
+        gap: 8px;
+        margin: 0 12px;
+        margin-bottom: 12px;
+      }
+      .dir-a .stat-chip {
+        flex: 1;
+        padding: 8px;
+        background: var(--neutral-50);
+        border-radius: 6px;
+        text-align: center;
+        border: 1px solid var(--neutral-100);
+      }
+      .dir-a .stat-chip .num {
+        font-size: 16px;
+        font-weight: 700;
+        color: var(--neutral-900);
+      }
+      .dir-a .stat-chip .label {
+        font-size: 10px;
+        color: var(--neutral-500);
+        margin-top: 2px;
+      }
+      .dir-a .stat-chip.error .num {
+        color: var(--danger-500);
+      }
+
+      .dir-a .config-section {
+        margin: 0 12px;
+        margin-bottom: 12px;
+        padding: 10px;
+        background: var(--neutral-50);
+        border-radius: var(--radius-md);
+        font-size: 12px;
+      }
+      .dir-a .config-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 4px 0;
+        color: var(--neutral-500);
+      }
+      .dir-a .config-row span:last-child {
+        color: var(--neutral-700);
+        font-weight: 500;
+      }
+
+      .dir-a .bug-btn {
+        margin: 0 12px;
+        margin-bottom: 12px;
+        width: calc(100% - 24px);
+        padding: 10px;
+        background: var(--primary-500);
+        color: white;
+        border: none;
+        border-radius: var(--radius-sm);
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+      }
+      .dir-a .bug-btn:hover {
+        background: var(--primary-600);
+      }
+
+      .dir-a .popup-footer {
+        padding: 8px 12px;
+        border-top: 1px solid var(--neutral-200);
+        font-size: 11px;
+        color: var(--neutral-400);
+        display: flex;
+        align-items: center;
+        gap: 4px;
+      }
+
+      /* --- Direction B: Card-Based --- */
+      .dir-b .popup-header {
+        padding: 14px 12px 10px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .dir-b .popup-header .title {
+        font-size: 15px;
+        font-weight: 700;
+        color: var(--neutral-900);
+      }
+      .dir-b .popup-header .badge {
+        font-size: 10px;
+        font-weight: 600;
+        padding: 3px 8px;
+        border-radius: 10px;
+        color: white;
+      }
+      .dir-b .popup-header .badge.active {
+        background: var(--success-500);
+      }
+      .dir-b .popup-header .badge.inactive {
+        background: var(--neutral-400);
+      }
+
+      .dir-b .card {
+        margin: 0 12px 10px;
+        padding: 12px;
+        border-radius: var(--radius-md);
+        border: 1px solid var(--neutral-200);
+      }
+      .dir-b .card-title {
+        font-size: 11px;
+        font-weight: 600;
+        color: var(--neutral-500);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 8px;
+      }
+
+      .dir-b .session-card {
+        background: var(--success-50);
+        border-color: var(--success-500);
+        border-width: 1.5px;
+      }
+      .dir-b .session-info {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .dir-b .session-time {
+        font-size: 20px;
+        font-weight: 700;
+        color: var(--neutral-900);
+      }
+      .dir-b .session-actions {
+        display: flex;
+        gap: 6px;
+      }
+      .dir-b .session-actions button {
+        padding: 6px 10px;
+        border-radius: 6px;
+        font-size: 11px;
+        font-weight: 500;
+        cursor: pointer;
+        border: none;
+      }
+      .dir-b .btn-pause {
+        background: var(--neutral-200);
+        color: var(--neutral-700);
+      }
+      .dir-b .btn-stop {
+        background: var(--danger-500);
+        color: white;
+      }
+
+      .dir-b .stats-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+      }
+      .dir-b .stat-item {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 12px;
+      }
+      .dir-b .stat-icon {
+        font-size: 14px;
+      }
+      .dir-b .stat-value {
+        font-weight: 600;
+        color: var(--neutral-900);
+      }
+      .dir-b .stat-label {
+        color: var(--neutral-500);
+      }
+
+      .dir-b .config-card .config-pills {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+      }
+      .dir-b .config-pill {
+        font-size: 11px;
+        padding: 4px 10px;
+        background: var(--primary-50);
+        color: var(--primary-600);
+        border-radius: 10px;
+        font-weight: 500;
+      }
+
+      .dir-b .bug-btn {
+        margin: 0 12px;
+        margin-bottom: 10px;
+        width: calc(100% - 24px);
+        padding: 12px;
+        background: var(--danger-500);
+        color: white;
+        border: none;
+        border-radius: var(--radius-md);
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+      }
+
+      .dir-b .popup-footer {
+        padding: 8px 12px;
+        border-top: 1px solid var(--neutral-200);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .dir-b .footer-left {
+        font-size: 11px;
+        color: var(--neutral-400);
+        display: flex;
+        align-items: center;
+        gap: 4px;
+      }
+      .dir-b .footer-right a {
+        font-size: 11px;
+        color: var(--primary-500);
+        text-decoration: none;
+        font-weight: 500;
+      }
+
+      /* --- Direction C: Minimal Toggle-First --- */
+      .dir-c .popup-top {
+        padding: 20px 16px;
+        text-align: center;
+        border-bottom: 1px solid var(--neutral-200);
+      }
+      .dir-c .big-toggle {
+        width: 64px;
+        height: 64px;
+        border-radius: 50%;
+        border: 3px solid var(--neutral-200);
+        margin: 0 auto;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        cursor: pointer;
+        transition: all 0.3s;
+      }
+      .dir-c .big-toggle.active {
+        background: var(--success-50);
+        border-color: var(--success-500);
+        box-shadow: 0 0 20px rgba(34, 197, 94, 0.2);
+      }
+      .dir-c .big-toggle.inactive {
+        background: var(--neutral-50);
+      }
+      .dir-c .toggle-label {
+        margin-top: 8px;
+        font-size: 13px;
+        font-weight: 600;
+      }
+      .dir-c .toggle-label.active {
+        color: var(--success-600);
+      }
+      .dir-c .toggle-label.inactive {
+        color: var(--neutral-500);
+      }
+      .dir-c .session-timer {
+        margin-top: 4px;
+        font-size: 11px;
+        color: var(--neutral-400);
+      }
+
+      .dir-c .mini-stats {
+        display: flex;
+        justify-content: center;
+        gap: 16px;
+        padding: 10px;
+        font-size: 12px;
+        color: var(--neutral-500);
+        border-bottom: 1px solid var(--neutral-100);
+      }
+      .dir-c .mini-stats span {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+      }
+      .dir-c .mini-stats strong {
+        color: var(--neutral-700);
+      }
+
+      .dir-c .action-list {
+        padding: 8px 12px;
+      }
+      .dir-c .action-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 10px 8px;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: background 0.15s;
+      }
+      .dir-c .action-item:hover {
+        background: var(--neutral-50);
+      }
+      .dir-c .action-item .left {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .dir-c .action-item .icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 16px;
+      }
+      .dir-c .action-item .icon.bug {
+        background: var(--danger-50);
+      }
+      .dir-c .action-item .icon.config {
+        background: var(--primary-50);
+      }
+      .dir-c .action-item .icon.settings {
+        background: var(--neutral-100);
+      }
+      .dir-c .action-item .text {
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--neutral-700);
+      }
+      .dir-c .action-item .arrow {
+        color: var(--neutral-300);
+        font-size: 16px;
+      }
+
+      .dir-c .popup-footer {
+        padding: 8px 16px;
+        border-top: 1px solid var(--neutral-200);
+        font-size: 11px;
+        color: var(--neutral-400);
+        text-align: center;
+      }
+
+      /* ========== BUG REPORT MOCKUPS ========== */
+      /* --- Direction D: Vertical Flow --- */
+      .dir-d .report-header {
+        padding: 12px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        border-bottom: 1px solid var(--neutral-200);
+      }
+      .dir-d .report-header .back {
+        cursor: pointer;
+        font-size: 16px;
+        color: var(--neutral-500);
+      }
+      .dir-d .report-header h2 {
+        font-size: 15px;
+        font-weight: 600;
+        color: var(--neutral-900);
+      }
+
+      .dir-d .report-content {
+        padding: 12px;
+        max-height: 480px;
+        overflow-y: auto;
+      }
+
+      .dir-d .screenshot-preview {
+        background: var(--neutral-100);
+        border-radius: var(--radius-md);
+        height: 100px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 12px;
+        position: relative;
+        overflow: hidden;
+        border: 1px solid var(--neutral-200);
+      }
+      .dir-d .screenshot-preview .placeholder {
+        color: var(--neutral-400);
+        font-size: 12px;
+      }
+      .dir-d .retake-btn {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        padding: 4px 8px;
+        background: rgba(0, 0, 0, 0.5);
+        color: white;
+        border: none;
+        border-radius: 4px;
+        font-size: 11px;
+        cursor: pointer;
+      }
+
+      .dir-d .form-group {
+        margin-bottom: 10px;
+      }
+      .dir-d .form-label {
+        font-size: 12px;
+        font-weight: 500;
+        color: var(--neutral-700);
+        margin-bottom: 4px;
+        display: block;
+      }
+      .dir-d .form-input {
+        width: 100%;
+        padding: 8px 10px;
+        border: 1px solid var(--neutral-200);
+        border-radius: var(--radius-sm);
+        font-size: 13px;
+        font-family: var(--font);
+        background: var(--neutral-50);
+        resize: vertical;
+      }
+      .dir-d .form-input:focus {
+        outline: 2px solid var(--primary-500);
+        outline-offset: -1px;
+        border-color: var(--primary-500);
+      }
+      .dir-d .form-select {
+        width: 100%;
+        padding: 8px 10px;
+        border: 1px solid var(--neutral-200);
+        border-radius: var(--radius-sm);
+        font-size: 13px;
+        font-family: var(--font);
+        background: var(--neutral-50);
+        appearance: auto;
+      }
+
+      .dir-d .collapsible {
+        margin-bottom: 12px;
+        border: 1px solid var(--neutral-200);
+        border-radius: var(--radius-sm);
+      }
+      .dir-d .collapsible-header {
+        padding: 8px 10px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        cursor: pointer;
+        font-size: 12px;
+        font-weight: 500;
+        color: var(--neutral-500);
+        background: var(--neutral-50);
+        border-radius: var(--radius-sm);
+      }
+      .dir-d .collapsible-header:hover {
+        color: var(--neutral-700);
+      }
+
+      .dir-d .data-summary {
+        background: var(--neutral-50);
+        border-radius: var(--radius-md);
+        padding: 10px;
+        margin-bottom: 12px;
+        border: 1px solid var(--neutral-200);
+      }
+      .dir-d .data-summary .title {
+        font-size: 11px;
+        font-weight: 600;
+        color: var(--neutral-500);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 6px;
+      }
+      .dir-d .data-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 4px;
+      }
+      .dir-d .data-item {
+        font-size: 12px;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        padding: 3px 0;
+      }
+      .dir-d .data-item .check {
+        color: var(--success-500);
+        font-weight: 700;
+      }
+      .dir-d .data-item .value {
+        font-weight: 600;
+        color: var(--neutral-700);
+      }
+      .dir-d .data-item .label {
+        color: var(--neutral-500);
+      }
+
+      .dir-d .export-row {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 8px;
+      }
+      .dir-d .export-btn {
+        flex: 1;
+        padding: 10px;
+        border-radius: var(--radius-sm);
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+      }
+      .dir-d .btn-zip {
+        background: var(--primary-500);
+        color: white;
+        border: none;
+      }
+      .dir-d .btn-zip:hover {
+        background: var(--primary-600);
+      }
+      .dir-d .btn-jira {
+        background: white;
+        color: var(--primary-600);
+        border: 1.5px solid var(--primary-500);
+      }
+      .dir-d .btn-jira:hover {
+        background: var(--primary-50);
+      }
+
+      .dir-d .popup-footer {
+        padding: 6px 12px;
+        text-align: center;
+        font-size: 11px;
+        color: var(--neutral-400);
+      }
+
+      /* --- Direction E: Two-Tone Bug Report --- */
+      .dir-e .report-header {
+        padding: 14px 12px;
+        background: var(--primary-500);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .dir-e .report-header .back {
+        cursor: pointer;
+        font-size: 16px;
+        color: rgba(255, 255, 255, 0.8);
+      }
+      .dir-e .report-header h2 {
+        font-size: 15px;
+        font-weight: 600;
+        color: white;
+      }
+
+      .dir-e .screenshot-banner {
+        background: var(--neutral-900);
+        height: 90px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+      }
+      .dir-e .screenshot-banner .placeholder {
+        color: var(--neutral-500);
+        font-size: 12px;
+      }
+      .dir-e .retake-btn {
+        position: absolute;
+        bottom: 8px;
+        right: 8px;
+        padding: 4px 10px;
+        background: rgba(255, 255, 255, 0.15);
+        color: white;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 4px;
+        font-size: 11px;
+        cursor: pointer;
+        backdrop-filter: blur(4px);
+      }
+
+      .dir-e .report-content {
+        padding: 12px;
+      }
+
+      .dir-e .form-group {
+        margin-bottom: 10px;
+      }
+      .dir-e .form-label {
+        font-size: 12px;
+        font-weight: 500;
+        color: var(--neutral-700);
+        margin-bottom: 4px;
+        display: block;
+      }
+      .dir-e .form-input {
+        width: 100%;
+        padding: 8px 10px;
+        border: 1px solid var(--neutral-200);
+        border-radius: var(--radius-sm);
+        font-size: 13px;
+        font-family: var(--font);
+      }
+      .dir-e .form-select {
+        width: 100%;
+        padding: 8px 10px;
+        border: 1px solid var(--neutral-200);
+        border-radius: var(--radius-sm);
+        font-size: 13px;
+        font-family: var(--font);
+      }
+
+      .dir-e .collapsible {
+        margin-bottom: 12px;
+        border: 1px solid var(--neutral-200);
+        border-radius: var(--radius-sm);
+      }
+      .dir-e .collapsible-header {
+        padding: 8px 10px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        font-size: 12px;
+        font-weight: 500;
+        color: var(--neutral-500);
+        cursor: pointer;
+      }
+
+      .dir-e .data-bar {
+        background: var(--neutral-50);
+        margin: 0 -12px;
+        padding: 10px 12px;
+        border-top: 1px solid var(--neutral-200);
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-bottom: 12px;
+      }
+      .dir-e .data-chip {
+        font-size: 11px;
+        padding: 4px 8px;
+        border-radius: 10px;
+        background: var(--success-50);
+        color: var(--success-600);
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 3px;
+      }
+      .dir-e .data-chip .icon {
+        font-size: 12px;
+      }
+
+      .dir-e .export-row {
+        display: flex;
+        gap: 8px;
+        padding: 12px;
+      }
+      .dir-e .export-btn {
+        flex: 1;
+        padding: 10px;
+        border-radius: var(--radius-sm);
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+      }
+      .dir-e .btn-zip {
+        background: var(--primary-500);
+        color: white;
+        border: none;
+      }
+      .dir-e .btn-jira {
+        background: white;
+        color: var(--primary-600);
+        border: 1.5px solid var(--primary-500);
+      }
+
+      .dir-e .popup-footer {
+        padding: 6px 12px;
+        text-align: center;
+        font-size: 11px;
+        color: var(--neutral-400);
+        border-top: 1px solid var(--neutral-200);
+      }
+
+      /* --- Direction F: Compact Report --- */
+      .dir-f .report-header {
+        padding: 10px 12px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        border-bottom: 1px solid var(--neutral-200);
+      }
+      .dir-f .report-header .left {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .dir-f .report-header .back {
+        cursor: pointer;
+        font-size: 14px;
+        color: var(--neutral-500);
+      }
+      .dir-f .report-header h2 {
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--neutral-900);
+      }
+      .dir-f .report-header .data-count {
+        font-size: 11px;
+        color: var(--success-600);
+        background: var(--success-50);
+        padding: 2px 8px;
+        border-radius: 10px;
+        font-weight: 600;
+      }
+
+      .dir-f .report-content {
+        padding: 10px 12px;
+      }
+
+      .dir-f .screenshot-row {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 10px;
+        align-items: center;
+      }
+      .dir-f .screenshot-thumb {
+        width: 80px;
+        height: 50px;
+        background: var(--neutral-100);
+        border-radius: 4px;
+        border: 1px solid var(--neutral-200);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 10px;
+        color: var(--neutral-400);
+        flex-shrink: 0;
+      }
+      .dir-f .screenshot-info {
+        flex: 1;
+      }
+      .dir-f .screenshot-info .name {
+        font-size: 12px;
+        font-weight: 500;
+        color: var(--neutral-700);
+      }
+      .dir-f .screenshot-info .meta {
+        font-size: 10px;
+        color: var(--neutral-400);
+        margin-top: 2px;
+      }
+      .dir-f .screenshot-info .retake {
+        font-size: 11px;
+        color: var(--primary-500);
+        cursor: pointer;
+        margin-top: 2px;
+        background: none;
+        border: none;
+        padding: 0;
+        font-family: var(--font);
+        font-weight: 500;
+      }
+
+      .dir-f .compact-form {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        margin-bottom: 10px;
+      }
+      .dir-f .form-input {
+        width: 100%;
+        padding: 7px 10px;
+        border: 1px solid var(--neutral-200);
+        border-radius: var(--radius-sm);
+        font-size: 12px;
+        font-family: var(--font);
+      }
+      .dir-f .form-input::placeholder {
+        color: var(--neutral-400);
+      }
+
+      .dir-f .inline-select-row {
+        display: flex;
+        gap: 6px;
+      }
+      .dir-f .inline-select {
+        flex: 1;
+        padding: 7px 8px;
+        border: 1px solid var(--neutral-200);
+        border-radius: var(--radius-sm);
+        font-size: 12px;
+        font-family: var(--font);
+      }
+
+      .dir-f .collapsible {
+        margin-bottom: 10px;
+        border: 1px solid var(--neutral-100);
+        border-radius: var(--radius-sm);
+      }
+      .dir-f .collapsible-header {
+        padding: 6px 8px;
+        font-size: 11px;
+        color: var(--neutral-400);
+        cursor: pointer;
+      }
+
+      .dir-f .data-inline {
+        font-size: 11px;
+        color: var(--neutral-500);
+        padding: 8px;
+        background: var(--neutral-50);
+        border-radius: var(--radius-sm);
+        margin-bottom: 10px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px 12px;
+      }
+      .dir-f .data-inline .item {
+        display: flex;
+        align-items: center;
+        gap: 3px;
+      }
+      .dir-f .data-inline .check {
+        color: var(--success-500);
+      }
+
+      .dir-f .export-row {
+        display: flex;
+        gap: 6px;
+        margin-bottom: 8px;
+      }
+      .dir-f .export-btn {
+        flex: 1;
+        padding: 9px;
+        border-radius: var(--radius-sm);
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+      }
+      .dir-f .btn-zip {
+        background: var(--primary-500);
+        color: white;
+        border: none;
+      }
+      .dir-f .btn-jira {
+        background: white;
+        color: var(--primary-600);
+        border: 1.5px solid var(--primary-500);
+      }
+      .dir-f .btn-clipboard {
+        width: 36px;
+        flex: none;
+        background: var(--neutral-100);
+        border: 1px solid var(--neutral-200);
+        color: var(--neutral-600);
+        font-size: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: var(--radius-sm);
+        cursor: pointer;
+      }
+
+      .dir-f .popup-footer {
+        padding: 6px 12px;
+        text-align: center;
+        font-size: 10px;
+        color: var(--neutral-400);
+        border-top: 1px solid var(--neutral-100);
+      }
+
+      /* Comparison section */
+      .comparison {
+        margin-top: 40px;
+      }
+      .comparison-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+      }
+      .compare-note {
+        font-size: 12px;
+        color: var(--neutral-500);
+        font-style: italic;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page-header">
+      <h1>🎨 qa-helper-plugin — UX Design Directions</h1>
+      <p>
+        Farklı görsel yaklaşımları keşfedin. Her mockup gerçek renk paleti,
+        tipografi ve spacing ile tasarlandı.
+      </p>
+      <div class="nav-tabs">
+        <button class="nav-tab active" onclick="showTab('main')">
+          Ana Ekran (Popup)
+        </button>
+        <button class="nav-tab" onclick="showTab('report')">
+          Bug Raporlama
+        </button>
+      </div>
+    </div>
+
+    <div class="content">
+      <!-- TAB 1: Main Screen Directions -->
+      <div id="tab-main" class="tab-panel active">
+        <div class="section-title">Popup Ana Ekran — 3 Yön</div>
+        <div class="section-desc">
+          Session yönetimi, canlı sayaçlar, konfigürasyon ve bug raporlama
+          erişimi
+        </div>
+
+        <div class="directions-grid">
+          <!-- Direction A: Compact Dashboard -->
+          <div class="direction-card" onclick="toggleSelect(this)">
+            <div class="direction-label">
+              <h3>A — Compact Dashboard</h3>
+              <span>Bilgi Yoğun</span>
+            </div>
+            <div class="direction-body">
+              <div class="popup-frame dir-a">
+                <div class="popup-header">
+                  <div class="logo">
+                    <div class="logo-icon">Q</div>
+                    <div class="logo-text">QA Helper</div>
+                  </div>
+                  <button class="settings-btn">⚙</button>
+                </div>
+                <div class="session-toggle">
+                  <div class="left">
+                    <div class="status-dot active"></div>
+                    <span class="status-text" style="color: var(--success-600)"
+                      >Session Aktif — 04:23</span
+                    >
+                  </div>
+                  <button class="toggle-switch on"></button>
+                </div>
+                <div class="stats-row">
+                  <div class="stat-chip">
+                    <div class="num">12</div>
+                    <div class="label">XHR</div>
+                  </div>
+                  <div class="stat-chip">
+                    <div class="num">5</div>
+                    <div class="label">Sayfa</div>
+                  </div>
+                  <div class="stat-chip error">
+                    <div class="num">3</div>
+                    <div class="label">Error</div>
+                  </div>
+                  <div class="stat-chip">
+                    <div class="num">47</div>
+                    <div class="label">Olay</div>
+                  </div>
+                </div>
+                <div class="config-section">
+                  <div class="config-row">
+                    <span>Environment</span><span>Staging</span>
+                  </div>
+                  <div class="config-row">
+                    <span>Proje</span><span>E-Ticaret v2</span>
+                  </div>
+                  <div class="config-row">
+                    <span>Sprint</span><span>Sprint 14</span>
+                  </div>
+                </div>
+                <button class="bug-btn">🐛 Bug Raporla</button>
+                <div class="popup-footer">🔒 Tüm veriler cihazınızda</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Direction B: Card-Based -->
+          <div class="direction-card" onclick="toggleSelect(this)">
+            <div class="direction-label">
+              <h3>B — Card-Based</h3>
+              <span>Organize & Gruplu</span>
+            </div>
+            <div class="direction-body">
+              <div class="popup-frame dir-b">
+                <div class="popup-header">
+                  <div class="title">QA Helper</div>
+                  <div class="badge active">● Aktif</div>
+                </div>
+                <div class="card session-card">
+                  <div class="card-title">Session</div>
+                  <div class="session-info">
+                    <div class="session-time">04:23</div>
+                    <div class="session-actions">
+                      <button class="btn-pause">⏸ Duraklat</button>
+                      <button class="btn-stop">⏹ Durdur</button>
+                    </div>
+                  </div>
+                </div>
+                <div class="card">
+                  <div class="card-title">Toplanan Veriler</div>
+                  <div class="stats-grid">
+                    <div class="stat-item">
+                      <span class="stat-icon">📡</span
+                      ><span class="stat-value">12</span
+                      ><span class="stat-label">XHR</span>
+                    </div>
+                    <div class="stat-item">
+                      <span class="stat-icon">📄</span
+                      ><span class="stat-value">5</span
+                      ><span class="stat-label">Sayfa</span>
+                    </div>
+                    <div class="stat-item">
+                      <span class="stat-icon">⚠️</span
+                      ><span class="stat-value" style="color: var(--danger-500)"
+                        >3</span
+                      ><span class="stat-label">Error</span>
+                    </div>
+                    <div class="stat-item">
+                      <span class="stat-icon">📊</span
+                      ><span class="stat-value">47</span
+                      ><span class="stat-label">Olay</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="card config-card">
+                  <div class="card-title">Konfigürasyon</div>
+                  <div class="config-pills">
+                    <span class="config-pill">Staging</span>
+                    <span class="config-pill">E-Ticaret v2</span>
+                    <span class="config-pill">Sprint 14</span>
+                  </div>
+                </div>
+                <button class="bug-btn">🐛 Bug Raporla</button>
+                <div class="popup-footer">
+                  <span class="footer-left">🔒 Tüm veriler cihazınızda</span>
+                  <a class="footer-right" href="#">Ayarlar →</a>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Direction C: Minimal Toggle-First -->
+          <div class="direction-card" onclick="toggleSelect(this)">
+            <div class="direction-label">
+              <h3>C — Minimal Toggle-First</h3>
+              <span>Odaklı & Sade</span>
+            </div>
+            <div class="direction-body">
+              <div class="popup-frame dir-c">
+                <div class="popup-top">
+                  <div class="big-toggle active">▶</div>
+                  <div class="toggle-label active">Session Aktif</div>
+                  <div class="session-timer">
+                    04:23 · 5 sayfa ziyaret edildi
+                  </div>
+                </div>
+                <div class="mini-stats">
+                  <span>📡 <strong>12</strong> XHR</span>
+                  <span
+                    >⚠️
+                    <strong style="color: var(--danger-500)">3</strong>
+                    Error</span
+                  >
+                  <span>📊 <strong>47</strong> Olay</span>
+                </div>
+                <div class="action-list">
+                  <div class="action-item">
+                    <div class="left">
+                      <div class="icon bug">🐛</div>
+                      <span class="text">Bug Raporla</span>
+                    </div>
+                    <span class="arrow">›</span>
+                  </div>
+                  <div class="action-item">
+                    <div class="left">
+                      <div class="icon config">⚙</div>
+                      <span class="text">Konfigürasyon</span>
+                    </div>
+                    <span class="arrow">›</span>
+                  </div>
+                  <div class="action-item">
+                    <div class="left">
+                      <div class="icon settings">☰</div>
+                      <span class="text">Ayarlar</span>
+                    </div>
+                    <span class="arrow">›</span>
+                  </div>
+                </div>
+                <div class="popup-footer">🔒 Tüm veriler cihazınızda</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 2: Bug Report Directions -->
+      <div id="tab-report" class="tab-panel">
+        <div class="section-title">Bug Raporlama Ekranı — 3 Yön</div>
+        <div class="section-desc">
+          Form + veri özeti + export butonları — dikey scroll akışı
+        </div>
+
+        <div class="directions-grid">
+          <!-- Direction D: Vertical Flow -->
+          <div class="direction-card" onclick="toggleSelect(this)">
+            <div class="direction-label">
+              <h3>D — Vertical Flow</h3>
+              <span>Standart Akış</span>
+            </div>
+            <div class="direction-body">
+              <div class="popup-frame dir-d">
+                <div class="report-header">
+                  <span class="back">←</span>
+                  <h2>🐛 Bug Raporla</h2>
+                </div>
+                <div class="report-content">
+                  <div class="screenshot-preview">
+                    <span class="placeholder">📸 Screenshot önizleme</span>
+                    <button class="retake-btn">↻ Tekrar Al</button>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Beklenen Sonuç</label>
+                    <textarea
+                      class="form-input"
+                      rows="2"
+                      placeholder="Ne olmasını bekliyordunuz?"
+                    ></textarea>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Neden Bug?</label>
+                    <textarea
+                      class="form-input"
+                      rows="2"
+                      placeholder="Ne oldu? Sorun ne?"
+                    ></textarea>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Priority</label>
+                    <select class="form-select">
+                      <option>Critical</option>
+                      <option selected>High</option>
+                      <option>Medium</option>
+                      <option>Low</option>
+                    </select>
+                  </div>
+                  <div class="collapsible">
+                    <div class="collapsible-header">
+                      <span>▶ Steps to Reproduce (otomatik — 5 adım)</span>
+                    </div>
+                  </div>
+                  <div class="data-summary">
+                    <div class="title">Toplanan Veriler</div>
+                    <div class="data-grid">
+                      <div class="data-item">
+                        <span class="check">✓</span><span class="value">1</span
+                        ><span class="label">Screenshot</span>
+                      </div>
+                      <div class="data-item">
+                        <span class="check">✓</span><span class="value">1</span
+                        ><span class="label">DOM</span>
+                      </div>
+                      <div class="data-item">
+                        <span class="check">✓</span><span class="value">12</span
+                        ><span class="label">XHR</span>
+                      </div>
+                      <div class="data-item">
+                        <span class="check">✓</span><span class="value">3</span
+                        ><span class="label">Error</span>
+                      </div>
+                      <div class="data-item">
+                        <span class="check">✓</span><span class="value">✓</span
+                        ><span class="label">localStorage</span>
+                      </div>
+                      <div class="data-item">
+                        <span class="check">✓</span><span class="value">✓</span
+                        ><span class="label">sessionStorage</span>
+                      </div>
+                      <div class="data-item">
+                        <span class="check">✓</span><span class="value">47</span
+                        ><span class="label">Timeline</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="export-row">
+                    <button class="export-btn btn-zip">📦 ZIP İndir</button>
+                    <button class="export-btn btn-jira">🔗 Jira Gönder</button>
+                  </div>
+                </div>
+                <div class="popup-footer">🔒 Tüm veriler cihazınızda</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Direction E: Two-Tone -->
+          <div class="direction-card" onclick="toggleSelect(this)">
+            <div class="direction-label">
+              <h3>E — Two-Tone Header</h3>
+              <span>Vurgulu Üst Alan</span>
+            </div>
+            <div class="direction-body">
+              <div class="popup-frame dir-e">
+                <div class="report-header">
+                  <span class="back">←</span>
+                  <h2>Bug Raporla</h2>
+                </div>
+                <div class="screenshot-banner">
+                  <span class="placeholder">📸 Screenshot önizleme</span>
+                  <button class="retake-btn">↻ Tekrar Al</button>
+                </div>
+                <div class="report-content">
+                  <div class="form-group">
+                    <label class="form-label">Beklenen Sonuç</label>
+                    <input
+                      class="form-input"
+                      placeholder="Ne olmasını bekliyordunuz?"
+                    />
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Neden Bug?</label>
+                    <input class="form-input" placeholder="Ne oldu?" />
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Priority</label>
+                    <select class="form-select">
+                      <option>Critical</option>
+                      <option selected>High</option>
+                      <option>Medium</option>
+                      <option>Low</option>
+                    </select>
+                  </div>
+                  <div class="collapsible">
+                    <div class="collapsible-header">
+                      <span>▶ Steps to Reproduce (5 adım)</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="data-bar">
+                  <div class="data-chip">
+                    <span class="icon">✓</span> Screenshot
+                  </div>
+                  <div class="data-chip"><span class="icon">✓</span> DOM</div>
+                  <div class="data-chip">
+                    <span class="icon">✓</span> 12 XHR
+                  </div>
+                  <div class="data-chip">
+                    <span class="icon">✓</span> 3 Error
+                  </div>
+                  <div class="data-chip">
+                    <span class="icon">✓</span> Storage
+                  </div>
+                  <div class="data-chip">
+                    <span class="icon">✓</span> Timeline
+                  </div>
+                </div>
+                <div class="export-row">
+                  <button class="export-btn btn-zip">📦 ZIP İndir</button>
+                  <button class="export-btn btn-jira">🔗 Jira Gönder</button>
+                </div>
+                <div class="popup-footer">🔒 Tüm veriler cihazınızda</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Direction F: Compact Report -->
+          <div class="direction-card" onclick="toggleSelect(this)">
+            <div class="direction-label">
+              <h3>F — Ultra Compact</h3>
+              <span>Minimal & Hızlı</span>
+            </div>
+            <div class="direction-body">
+              <div class="popup-frame dir-f">
+                <div class="report-header">
+                  <div class="left">
+                    <span class="back">←</span>
+                    <h2>Bug Raporla</h2>
+                  </div>
+                  <span class="data-count">7 veri ✓</span>
+                </div>
+                <div class="report-content">
+                  <div class="screenshot-row">
+                    <div class="screenshot-thumb">📸</div>
+                    <div class="screenshot-info">
+                      <div class="name">screenshot.png</div>
+                      <div class="meta">1920×1080 · 243 KB</div>
+                      <button class="retake">↻ Tekrar al</button>
+                    </div>
+                  </div>
+                  <div class="compact-form">
+                    <input class="form-input" placeholder="Beklenen sonuç..." />
+                    <input class="form-input" placeholder="Neden bug?" />
+                    <div class="inline-select-row">
+                      <select class="inline-select">
+                        <option>Critical</option>
+                        <option selected>High</option>
+                        <option>Medium</option>
+                        <option>Low</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div class="collapsible">
+                    <div class="collapsible-header">
+                      ▶ Steps to Reproduce (5 adım)
+                    </div>
+                  </div>
+                  <div class="data-inline">
+                    <span class="item"
+                      ><span class="check">✓</span> Screenshot</span
+                    >
+                    <span class="item"><span class="check">✓</span> DOM</span>
+                    <span class="item"
+                      ><span class="check">✓</span> 12 XHR</span
+                    >
+                    <span class="item"
+                      ><span class="check">✓</span> 3 Error</span
+                    >
+                    <span class="item"
+                      ><span class="check">✓</span> Storage</span
+                    >
+                    <span class="item"
+                      ><span class="check">✓</span> Timeline</span
+                    >
+                  </div>
+                  <div class="export-row">
+                    <button class="export-btn btn-zip">📦 ZIP</button>
+                    <button class="export-btn btn-jira">🔗 Jira</button>
+                    <button class="btn-clipboard">📋</button>
+                  </div>
+                </div>
+                <div class="popup-footer">🔒 Tüm veriler cihazınızda</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      function showTab(tab) {
+        document
+          .querySelectorAll(".tab-panel")
+          .forEach((p) => p.classList.remove("active"));
+        document
+          .querySelectorAll(".nav-tab")
+          .forEach((t) => t.classList.remove("active"));
+        document.getElementById("tab-" + tab).classList.add("active");
+        event.target.classList.add("active");
+      }
+      function toggleSelect(card) {
+        card.classList.toggle("selected");
+      }
+    </script>
+  </body>
+</html>
