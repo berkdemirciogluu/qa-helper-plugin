@@ -1,7 +1,18 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor, fireEvent } from '@testing-library/preact';
-import { BugReportView } from './BugReportView';
+import { BugReportView, _resetSignalsForTest } from './BugReportView';
 import type { SnapshotData } from '@/lib/types';
+
+vi.mock('@/lib/zip-exporter', () => ({
+  exportBugReportZip: vi.fn().mockResolvedValue({
+    success: true,
+    data: { fileName: 'bug-report-2026-03-08.zip', fileSize: '2.3 MB' },
+  }),
+}));
+
+vi.mock('@/lib/clipboard', () => ({
+  copyToClipboard: vi.fn().mockResolvedValue({ success: true, data: undefined }),
+}));
 
 const mockSnapshotData: SnapshotData = {
   screenshot: {
@@ -40,11 +51,17 @@ vi.stubGlobal('chrome', {
     local: {
       get: vi.fn().mockResolvedValue({}),
       set: vi.fn().mockResolvedValue(undefined),
+      remove: vi.fn().mockResolvedValue(undefined),
     },
   },
 });
 
+vi.stubGlobal('navigator', {
+  clipboard: { writeText: vi.fn().mockResolvedValue(undefined) },
+});
+
 beforeEach(() => {
+  _resetSignalsForTest();
   vi.clearAllMocks();
   (chrome.tabs.query as ReturnType<typeof vi.fn>).mockResolvedValue([
     { id: 42, url: 'https://example.com' },
@@ -55,6 +72,7 @@ beforeEach(() => {
   });
   (chrome.storage.local.get as ReturnType<typeof vi.fn>).mockResolvedValue({});
   (chrome.storage.local.set as ReturnType<typeof vi.fn>).mockResolvedValue(undefined);
+  (chrome.storage.local.remove as ReturnType<typeof vi.fn>).mockResolvedValue(undefined);
 });
 
 describe('BugReportView', () => {
@@ -139,14 +157,78 @@ describe('BugReportView', () => {
     expect(textarea.placeholder).toContain('Session kaydı yok');
   });
 
-  it('export butonları disabled', async () => {
+  it('Jira butonu disabled, ZIP ve Kopyala aktif (snapshot sonrası)', async () => {
     render(<BugReportView hasSession={true} />);
     await waitFor(() => {
-      const zipBtn = screen.getByText('ZIP İndir').closest('button')! as HTMLButtonElement;
-      const jiraBtn = screen.getByText("Jira'ya Gönder").closest('button')! as HTMLButtonElement;
-      expect(zipBtn.disabled).toBe(true);
-      expect(jiraBtn.disabled).toBe(true);
+      expect(screen.getByAltText('Sayfa ekran görüntüsü')).toBeTruthy();
     });
+    const zipBtn = screen.getByText('ZIP İndir').closest('button')! as HTMLButtonElement;
+    const jiraBtn = screen.getByText("Jira'ya Gönder").closest('button')! as HTMLButtonElement;
+    const copyBtn = screen.getByText('Kopyala').closest('button')! as HTMLButtonElement;
+    expect(zipBtn.disabled).toBe(false);
+    expect(copyBtn.disabled).toBe(false);
+    expect(jiraBtn.disabled).toBe(true);
+    expect(jiraBtn.title).toBe("Ayarlardan Jira'yı kurun");
+  });
+
+  it('ZIP İndir tıklandığında export tetiklenir ve başarı post-export UI gösterir', async () => {
+    const { exportBugReportZip } = await import('@/lib/zip-exporter');
+    render(<BugReportView hasSession={true} />);
+    await waitFor(() => {
+      expect(screen.getByAltText('Sayfa ekran görüntüsü')).toBeTruthy();
+    });
+    const zipBtn = screen.getByText('ZIP İndir').closest('button')!;
+    fireEvent.click(zipBtn);
+    await waitFor(() => {
+      expect(exportBugReportZip).toHaveBeenCalled();
+    });
+    await waitFor(() => {
+      expect(screen.getByText('ZIP indirildi')).toBeTruthy();
+      expect(screen.getByText('Session verilerini temizlemek ister misiniz?')).toBeTruthy();
+    });
+  });
+
+  it('Kopyala tıklandığında clipboard kopyalama tetiklenir', async () => {
+    const { copyToClipboard } = await import('@/lib/clipboard');
+    render(<BugReportView hasSession={true} />);
+    await waitFor(() => {
+      expect(screen.getByAltText('Sayfa ekran görüntüsü')).toBeTruthy();
+    });
+    const copyBtn = screen.getByText('Kopyala').closest('button')!;
+    fireEvent.click(copyBtn);
+    await waitFor(() => {
+      expect(copyToClipboard).toHaveBeenCalled();
+    });
+  });
+
+  it('post-export UI: Temizle butonuna tıklandığında session temizlenir', async () => {
+    render(<BugReportView hasSession={true} />);
+    await waitFor(() => {
+      expect(screen.getByAltText('Sayfa ekran görüntüsü')).toBeTruthy();
+    });
+    const zipBtn = screen.getByText('ZIP İndir').closest('button')!;
+    fireEvent.click(zipBtn);
+    await waitFor(() => {
+      expect(screen.getByText('Temizle')).toBeTruthy();
+    });
+    fireEvent.click(screen.getByText('Temizle'));
+    await waitFor(() => {
+      expect(chrome.storage.local.get).toHaveBeenCalled();
+    });
+  });
+
+  it('post-export UI: Koru butonuna tıklandığında dashboard\'a döner', async () => {
+    render(<BugReportView hasSession={true} />);
+    await waitFor(() => {
+      expect(screen.getByAltText('Sayfa ekran görüntüsü')).toBeTruthy();
+    });
+    const zipBtn = screen.getByText('ZIP İndir').closest('button')!;
+    fireEvent.click(zipBtn);
+    await waitFor(() => {
+      expect(screen.getByText('Koru')).toBeTruthy();
+    });
+    fireEvent.click(screen.getByText('Koru'));
+    // Koru tıklandığında form resetlenir
   });
 
   it('Konfigürasyon alanları render edilir', async () => {

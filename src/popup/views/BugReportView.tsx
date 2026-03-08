@@ -1,6 +1,6 @@
 import { signal } from '@preact/signals';
 import { useEffect, useRef } from 'preact/hooks';
-import { ArrowLeft, RefreshCw, ChevronDown, ChevronRight, AlertCircle } from 'lucide-preact';
+import { ArrowLeft, RefreshCw, ChevronDown, ChevronRight, AlertCircle, Download, Copy, Send, Loader2 } from 'lucide-preact';
 
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
@@ -8,10 +8,14 @@ import { DataSummary } from '@/components/domain/DataSummary';
 import { ConfigFields } from '@/components/domain/ConfigFields';
 
 import { sendMessage } from '@/lib/messaging';
-import { storageGet } from '@/lib/storage';
+import { storageGet, storageClearSessions } from '@/lib/storage';
 import { MESSAGE_ACTIONS, STORAGE_KEYS, DEFAULT_PRIORITY } from '@/lib/constants';
 import { showToast } from '@/components/ui/Toast';
 import { buildStepsToReproduce } from '@/lib/steps-builder';
+import { buildTimeline } from '@/lib/timeline-builder';
+import { buildDescription } from '@/lib/description-builder';
+import { exportBugReportZip } from '@/lib/zip-exporter';
+import { copyToClipboard } from '@/lib/clipboard';
 
 import { currentView, slideDirection } from '@/popup/view-state';
 import type {
@@ -25,6 +29,7 @@ import type {
 } from '@/lib/types';
 
 type SnapshotStatus = 'loading' | 'success' | 'error';
+type ExportStatus = 'idle' | 'loading' | 'success' | 'error';
 
 // Module-level signals — component unmount/remount'ta korunur
 const snapshotStatus = signal<SnapshotStatus>('loading');
@@ -42,6 +47,26 @@ const configFields = signal<ConfigFieldsType>({
   agileTeam: '',
   project: '',
 });
+const exportStatus = signal<ExportStatus>('idle');
+const exportFileName = signal('');
+const exportFileSize = signal('');
+
+/** Test helper — module-level signal'ları sıfırlar */
+export function _resetSignalsForTest() {
+  snapshotStatus.value = 'loading';
+  snapshotData.value = null;
+  formExpected.value = '';
+  formReason.value = '';
+  formPriority.value = DEFAULT_PRIORITY;
+  stepsText.value = '';
+  isStepsOpen.value = false;
+  sessionXhrCount.value = 0;
+  sessionClickCount.value = 0;
+  configFields.value = { environment: '', testCycle: '', agileTeam: '', project: '' };
+  exportStatus.value = 'idle';
+  exportFileName.value = '';
+  exportFileSize.value = '';
+}
 
 export function BugReportView({ hasSession }: { hasSession: boolean }) {
   const tabIdRef = useRef<number | null>(null);
@@ -108,6 +133,139 @@ export function BugReportView({ hasSession }: { hasSession: boolean }) {
   }
 
   function handleGoBack() {
+    slideDirection.value = 'left';
+    currentView.value = 'dashboard';
+  }
+
+  function resetFormSignals() {
+    formExpected.value = '';
+    formReason.value = '';
+    formPriority.value = DEFAULT_PRIORITY;
+    stepsText.value = '';
+    isStepsOpen.value = false;
+    exportStatus.value = 'idle';
+    exportFileName.value = '';
+    exportFileSize.value = '';
+  }
+
+  async function handleZipExport() {
+    const data = snapshotData.value;
+    if (!data) {
+      showToast('error', 'Snapshot verisi mevcut değil.');
+      return;
+    }
+
+    exportStatus.value = 'loading';
+
+    const tabId = tabIdRef.current;
+    // Session verilerini storage'dan oku (timeline için tam diziler gerekli)
+    const [clicksResult, navsResult, xhrResult] = await Promise.all([
+      tabId !== null ? storageGet<ClickEvent[]>(`${STORAGE_KEYS.SESSION_CLICKS}_${tabId}`) : Promise.resolve({ success: true as const, data: [] as ClickEvent[] }),
+      tabId !== null ? storageGet<NavEvent[]>(`${STORAGE_KEYS.SESSION_NAV}_${tabId}`) : Promise.resolve({ success: true as const, data: [] as NavEvent[] }),
+      tabId !== null ? storageGet<XhrEvent[]>(`${STORAGE_KEYS.SESSION_XHR}_${tabId}`) : Promise.resolve({ success: true as const, data: [] as XhrEvent[] }),
+    ]);
+
+    const clicks = clicksResult.success && clicksResult.data ? clicksResult.data : [];
+    const navs = navsResult.success && navsResult.data ? navsResult.data : [];
+    const xhrs = xhrResult.success && xhrResult.data ? xhrResult.data : [];
+
+    const meta = data.screenshot.metadata;
+    const environment = {
+      browser: meta.browserVersion,
+      os: meta.os,
+      viewport: `${meta.viewport.width}x${meta.viewport.height}`,
+      pixelRatio: meta.pixelRatio,
+      language: meta.language,
+      url: meta.url,
+    };
+
+    const form = {
+      expectedResult: formExpected.value,
+      reason: formReason.value,
+      priority: formPriority.value,
+    };
+
+    const timeline = buildTimeline({
+      snapshotData: data,
+      clicks,
+      navs,
+      xhrs,
+      consoleLogs: data.consoleLogs,
+      form,
+      configFields: configFields.value,
+    });
+
+    const description = buildDescription({
+      form,
+      stepsText: stepsText.value,
+      environment,
+      configFields: configFields.value,
+    });
+
+    const result = await exportBugReportZip({
+      snapshotData: data,
+      timeline,
+      description,
+      xhrs,
+    });
+
+    if (result.success) {
+      exportStatus.value = 'success';
+      exportFileName.value = result.data.fileName;
+      exportFileSize.value = result.data.fileSize;
+      showToast('success', `ZIP indirildi — ${result.data.fileName} (${result.data.fileSize})`);
+    } else {
+      exportStatus.value = 'error';
+      showToast('error', `ZIP oluşturulamadı: ${result.error}`);
+    }
+  }
+
+  async function handleClipboardCopy() {
+    const data = snapshotData.value;
+    if (!data) {
+      showToast('error', 'Snapshot verisi mevcut değil.');
+      return;
+    }
+
+    const meta = data.screenshot.metadata;
+    const environment = {
+      browser: meta.browserVersion,
+      os: meta.os,
+      viewport: `${meta.viewport.width}x${meta.viewport.height}`,
+      pixelRatio: meta.pixelRatio,
+      language: meta.language,
+      url: meta.url,
+    };
+
+    const description = buildDescription({
+      form: {
+        expectedResult: formExpected.value,
+        reason: formReason.value,
+        priority: formPriority.value,
+      },
+      stepsText: stepsText.value,
+      environment,
+      configFields: configFields.value,
+    });
+
+    const result = await copyToClipboard(description);
+    if (result.success) {
+      showToast('success', 'Description kopyalandı');
+    } else {
+      showToast('error', `Kopyalama başarısız: ${result.error}`);
+    }
+  }
+
+  async function handleClearSession() {
+    await storageClearSessions();
+    await sendMessage({ action: MESSAGE_ACTIONS.STOP_SESSION, payload: {} });
+    resetFormSignals();
+    slideDirection.value = 'left';
+    currentView.value = 'dashboard';
+  }
+
+  function handleKeepSession() {
+    resetFormSignals();
     slideDirection.value = 'left';
     currentView.value = 'dashboard';
   }
@@ -295,15 +453,74 @@ export function BugReportView({ hasSession }: { hasSession: boolean }) {
           </div>
         </Card>
 
-        {/* Export butonları */}
-        <div class="flex flex-col gap-2">
-          <Button variant="secondary" size="md" disabled class="w-full">
-            ZIP İndir
-          </Button>
-          <Button variant="secondary" size="md" disabled class="w-full">
-            Jira'ya Gönder
-          </Button>
-        </div>
+        {/* Export butonları / Post-export UI */}
+        {exportStatus.value === 'success' ? (
+          <Card>
+            <div class="flex flex-col gap-3 text-center" aria-live="polite">
+              <div>
+                <p class="text-sm font-medium text-gray-900">ZIP indirildi</p>
+                <p class="text-xs text-gray-500">{exportFileName.value}</p>
+                <p class="text-xs text-gray-400">({exportFileSize.value})</p>
+              </div>
+              <p class="text-sm text-gray-700">Session verilerini temizlemek ister misiniz?</p>
+              <div class="flex gap-2">
+                <Button
+                  variant="danger"
+                  size="md"
+                  class="flex-1"
+                  onClick={() => void handleClearSession()}
+                >
+                  Temizle
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="md"
+                  class="flex-1"
+                  onClick={handleKeepSession}
+                >
+                  Koru
+                </Button>
+              </div>
+            </div>
+          </Card>
+        ) : (
+          <div class="flex flex-col gap-2">
+            <Button
+              variant="primary"
+              size="md"
+              class="w-full"
+              disabled={snapshotStatus.value !== 'success'}
+              loading={exportStatus.value === 'loading'}
+              iconLeft={exportStatus.value === 'loading' ? <Loader2 size={14} class="animate-spin" /> : <Download size={14} />}
+              onClick={() => void handleZipExport()}
+              aria-busy={exportStatus.value === 'loading'}
+            >
+              {exportStatus.value === 'loading' ? 'Hazırlanıyor...' : 'ZIP İndir'}
+            </Button>
+            <Button
+              variant="ghost"
+              size="md"
+              class="w-full"
+              disabled={snapshotStatus.value !== 'success'}
+              iconLeft={<Copy size={14} />}
+              onClick={() => void handleClipboardCopy()}
+              aria-label="Description'ı clipboard'a kopyala"
+            >
+              Kopyala
+            </Button>
+            <Button
+              variant="secondary"
+              size="md"
+              class="w-full"
+              disabled
+              iconLeft={<Send size={14} />}
+              title="Ayarlardan Jira'yı kurun"
+              aria-disabled="true"
+            >
+              Jira'ya Gönder
+            </Button>
+          </div>
+        )}
       </main>
 
       {/* Footer */}
