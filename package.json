@@ -30,6 +30,7 @@
     "eslint-config-preact": "^2.0.0",
     "jsdom": "^28.1.0",
     "prettier": "^3.5.3",
+    "sharp": "^0.34.5",
     "tailwindcss": "^4.2.1",
     "typescript": "^5.7.0",
     "typescript-eslint": "^8.56.1",
