@@ -1,1 +1,26 @@
 @import "tailwindcss";
+
+/* Slide animasyonları — popup view geçişleri */
+.slide-enter-right {
+  animation: slideInRight 200ms ease forwards;
+}
+.slide-enter-left {
+  animation: slideInLeft 200ms ease forwards;
+}
+
+@keyframes slideInRight {
+  from { transform: translateX(100%); }
+  to   { transform: translateX(0); }
+}
+
+@keyframes slideInLeft {
+  from { transform: translateX(-100%); }
+  to   { transform: translateX(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .slide-enter-right,
+  .slide-enter-left {
+    animation: none;
+  }
+}

@@ -7,6 +7,7 @@ vi.stubGlobal('chrome', {
     local: {
       get: vi.fn(() => Promise.resolve({})),
       set: vi.fn(() => Promise.resolve()),
+      getBytesInUse: vi.fn(() => Promise.resolve(0)),
     },
   },
   runtime: {
@@ -64,7 +65,7 @@ describe('Options App', () => {
     fireEvent.click(navButton || configButtons[0]);
 
     await waitFor(() => {
-      expect(screen.getByText('Konfigürasyon ayarları yakında eklenecek.')).toBeTruthy();
+      expect(screen.getByText('Konfigürasyon Alanları')).toBeTruthy();
     });
   });
 
@@ -76,7 +77,7 @@ describe('Options App', () => {
     fireEvent.click(navButton || dmButtons[0]);
 
     await waitFor(() => {
-      expect(screen.getByText('Veri yönetimi ayarları yakında eklenecek.')).toBeTruthy();
+      expect(screen.getByText('Depolama Durumu')).toBeTruthy();
     });
   });
 

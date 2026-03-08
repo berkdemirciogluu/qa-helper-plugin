@@ -113,6 +113,53 @@ export interface RecorderCommandPayload {
   tabId: number;
 }
 
+/** Bug rapor form verisi */
+export interface BugReportFormData {
+  expectedResult: string;
+  reason: string;
+  priority: 'low' | 'medium' | 'high' | 'critical';
+  stepsToReproduce: string;
+  configFields: ConfigFields;
+}
+
+/** Konfigürasyon alanları — bug rapora eklenen bağlam bilgileri */
+export interface ConfigFields {
+  environment: string;
+  testCycle: string;
+  agileTeam: string;
+  project: string;
+}
+
+/** Ortam bilgisi — otomatik toplanan */
+export interface EnvironmentInfo {
+  browser: string;
+  os: string;
+  viewport: string;
+  pixelRatio: number;
+  language: string;
+  url: string;
+}
+
+/** Steps to reproduce — otomatik oluşturulan adım */
+export interface StepItem {
+  index: number;
+  description: string;
+  timestamp: number;
+}
+
+/** Depolama kullanım bilgisi */
+export interface StorageUsageInfo {
+  totalBytes: number;
+  sessionCount: number;
+  sessions: {
+    tabId: number;
+    url: string;
+    startTime: number;
+    status: SessionStatus;
+    eventCount: number;
+  }[];
+}
+
 // Veri kaynağı toggle konfigürasyonu
 export interface SessionConfig {
   toggles: {
@@ -122,6 +169,7 @@ export interface SessionConfig {
     localStorage: boolean;
     sessionStorage: boolean;
   };
+  configFields?: ConfigFields;
 }
 
 // Snapshot tipleri

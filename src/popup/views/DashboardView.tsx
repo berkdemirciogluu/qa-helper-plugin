@@ -12,7 +12,6 @@ import { sendMessage } from '@/lib/messaging';
 import { MESSAGE_ACTIONS, STORAGE_KEYS } from '@/lib/constants';
 import { storageGet, storageSet } from '@/lib/storage';
 import { showToast } from '@/components/ui/Toast';
-import { currentView } from '@/popup/App';
 import type { SessionMeta, SessionConfig, StartSessionPayload, StopSessionPayload, GetSessionStatusPayload } from '@/lib/types';
 
 const DEFAULT_TOGGLES: SessionConfig['toggles'] = {
@@ -37,7 +36,11 @@ const toggles = signal<SessionConfig['toggles']>({ ...DEFAULT_TOGGLES });
 const isActionLoading = signal(false);
 const isTogglesOpen = signal(false);
 
-export function DashboardView() {
+interface DashboardViewProps {
+  onOpenBugReport: () => void;
+}
+
+export function DashboardView({ onOpenBugReport }: DashboardViewProps) {
   const tabIdRef = useRef<number | null>(null);
   const tabUrlRef = useRef<string>('');
   const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -50,6 +53,7 @@ export function DashboardView() {
       stopPolling();
       stopDurationTimer();
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   async function init() {
@@ -297,7 +301,7 @@ export function DashboardView() {
         <Button
           variant="primary"
           size="md"
-          onClick={() => { currentView.value = 'bugReport'; }}
+          onClick={onOpenBugReport}
           iconLeft={<Bug size={14} />}
           aria-label="Bug raporla"
           class="w-full"

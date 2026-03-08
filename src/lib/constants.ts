@@ -14,7 +14,11 @@ export const STORAGE_KEYS = {
   SESSION_CONFIG: 'session_config',
   SESSION_SNAPSHOT: 'session_snapshot',
   JIRA_CREDENTIALS: 'jira_credentials',
+  BUG_REPORT_CONFIG: 'bug_report_config',
 } as const;
+
+/** Varsayılan bug raporu önceliği */
+export const DEFAULT_PRIORITY = 'medium' as const;
 
 /** Snapshot işlemi maksimum timeout süresi (3 saniye) */
 export const MAX_SNAPSHOT_TIMEOUT_MS = 3000;
