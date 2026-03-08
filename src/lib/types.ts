@@ -169,7 +169,18 @@ export interface SessionConfig {
 export interface JiraCredentials {
   platform: 'cloud' | 'server' | '';
   url: string;
-  token: string;
+  token: string; // PAT for Server, access_token for Cloud
+
+  // Cloud OAuth ek alanlar
+  refreshToken?: string;
+  accessTokenExpiresAt?: number; // Unix timestamp (ms)
+  cloudId?: string;
+  siteName?: string; // Jira site adı (ör. "myteam.atlassian.net")
+
+  // Ortak
+  displayName?: string; // Bağlantı testi sonrası kullanıcı adı
+  defaultProjectKey?: string; // Varsayılan proje key'i
+  connected?: boolean; // Bağlantı durumu
 }
 
 // Snapshot tipleri

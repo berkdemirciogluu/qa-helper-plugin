@@ -4,7 +4,10 @@ import { Select } from '@/components/ui/Select';
 import { Button } from '@/components/ui/Button';
 import { storageSet } from '@/lib/storage';
 import { STORAGE_KEYS } from '@/lib/constants';
+import { testConnection } from '@/lib/jira/jira-client';
 import type { JiraCredentials } from '@/lib/types';
+
+type TestStatus = 'idle' | 'loading' | 'success' | 'error';
 
 const platformOptions = [
   { value: '', label: 'Seçiniz...' },
@@ -16,6 +19,8 @@ export function JiraStep() {
   const [platform, setPlatform] = useState<JiraCredentials['platform']>('');
   const [url, setUrl] = useState('');
   const [token, setToken] = useState('');
+  const [testStatus, setTestStatus] = useState<TestStatus>('idle');
+  const [testMessage, setTestMessage] = useState('');
   const writeTimerRef = useRef<ReturnType<typeof setTimeout>>();
 
   const urlPlaceholder =
@@ -42,7 +47,8 @@ export function JiraStep() {
   function handlePlatformChange(value: string) {
     const p = value as JiraCredentials['platform'];
     setPlatform(p);
-    // Select değişikliği anında kaydedilir (debounce yok)
+    setTestStatus('idle');
+    setTestMessage('');
     void saveCredentials({ platform: p });
   }
 
@@ -55,6 +61,25 @@ export function JiraStep() {
     setToken(value);
     debouncedSave({ token: value });
   }
+
+  async function handleTestConnection() {
+    if (!url || !token) return;
+    setTestStatus('loading');
+    setTestMessage('');
+
+    const creds: JiraCredentials = { platform, url, token };
+    const result = await testConnection(creds);
+    if (result.success) {
+      setTestStatus('success');
+      setTestMessage(`Bağlantı başarılı — ${result.data.displayName}`);
+      await saveCredentials({ displayName: result.data.displayName, connected: true });
+    } else {
+      setTestStatus('error');
+      setTestMessage(result.error);
+    }
+  }
+
+  const isServerWithCredentials = platform === 'server' && url && token;
 
   return (
     <div class="flex flex-col gap-4">
@@ -69,37 +94,50 @@ export function JiraStep() {
         onChange={handlePlatformChange}
         aria-label="Jira platform seçimi"
       />
-      <Input
-        label="Jira URL"
-        htmlFor="jira-url"
-        value={url}
-        onChange={handleUrlChange}
-        placeholder={urlPlaceholder}
-        aria-label="Jira URL adresi"
-      />
-      <Input
-        label="API Token"
-        htmlFor="jira-token"
-        type="password"
-        value={token}
-        onChange={handleTokenChange}
-        placeholder="API Token"
-        aria-label="Jira API token"
-      />
-      <div>
-        <Button
-          variant="secondary"
-          size="md"
-          disabled
-          aria-label="Bağlantıyı test et"
-          aria-describedby="jira-test-tooltip"
-        >
-          Bağlantıyı Test Et
-        </Button>
-        <span id="jira-test-tooltip" class="sr-only">
-          Jira entegrasyonu yakında
-        </span>
-      </div>
+      {platform === 'cloud' && (
+        <p class="text-xs text-gray-400">
+          Jira Cloud bağlantısı için Ayarlar sayfasını kullanın.
+        </p>
+      )}
+      {platform === 'server' && (
+        <>
+          <Input
+            label="Jira URL"
+            htmlFor="jira-url"
+            value={url}
+            onChange={handleUrlChange}
+            placeholder={urlPlaceholder}
+            aria-label="Jira URL adresi"
+          />
+          <Input
+            label="API Token"
+            htmlFor="jira-token"
+            type="password"
+            value={token}
+            onChange={handleTokenChange}
+            placeholder="API Token"
+            aria-label="Jira API token"
+          />
+          <div>
+            <Button
+              variant="secondary"
+              size="md"
+              disabled={!isServerWithCredentials}
+              loading={testStatus === 'loading'}
+              onClick={handleTestConnection}
+              aria-label="Bağlantıyı test et"
+            >
+              Bağlantıyı Test Et
+            </Button>
+          </div>
+        </>
+      )}
+      {testStatus === 'success' && testMessage && (
+        <p class="text-xs text-green-600" aria-live="polite">{testMessage}</p>
+      )}
+      {testStatus === 'error' && testMessage && (
+        <p class="text-xs text-red-600" role="alert">{testMessage}</p>
+      )}
     </div>
   );
 }

@@ -9,7 +9,17 @@
     "storage",
     "unlimitedStorage",
     "tabs",
-    "scripting"
+    "scripting",
+    "identity"
+  ],
+
+  "host_permissions": [
+    "https://auth.atlassian.com/*",
+    "https://api.atlassian.com/*"
+  ],
+
+  "optional_host_permissions": [
+    "https://*/*"
   ],
 
   "background": {

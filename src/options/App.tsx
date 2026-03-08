@@ -1,15 +1,16 @@
 import type { JSX } from 'preact';
 import { signal } from '@preact/signals';
-import { Settings, ClipboardList, Database, Info, Menu, X } from 'lucide-preact';
+import { Settings, ClipboardList, Database, Info, Menu, X, Link2 } from 'lucide-preact';
 
 import { SidebarNav } from '@/components/layout/SidebarNav';
 import { GeneralSettingsPage } from '@/options/pages/GeneralSettingsPage';
 import { ConfigurationPage } from '@/options/pages/ConfigurationPage';
+import { JiraSetupPage } from '@/options/pages/JiraSetupPage';
 import { DataManagementPage } from '@/options/pages/DataManagementPage';
 import { AboutPage } from '@/options/pages/AboutPage';
 import { ToastContainer } from '@/components/ui/Toast';
 
-type PageKey = 'general' | 'configuration' | 'data-management' | 'about';
+type PageKey = 'general' | 'configuration' | 'jira' | 'data-management' | 'about';
 
 export const currentPage = signal<PageKey>('general');
 const isMenuOpen = signal(false);
@@ -17,6 +18,7 @@ const isMenuOpen = signal(false);
 const navItems = [
   { key: 'general' as const, label: 'Genel', icon: Settings },
   { key: 'configuration' as const, label: 'Konfigürasyon', icon: ClipboardList },
+  { key: 'jira' as const, label: 'Jira Entegrasyonu', icon: Link2 },
   { key: 'data-management' as const, label: 'Veri Yönetimi', icon: Database },
   { key: 'about' as const, label: 'Hakkında', icon: Info },
 ];
@@ -24,6 +26,7 @@ const navItems = [
 const pages: Record<PageKey, () => JSX.Element> = {
   general: GeneralSettingsPage,
   configuration: ConfigurationPage,
+  jira: JiraSetupPage,
   'data-management': DataManagementPage,
   about: AboutPage,
 };
