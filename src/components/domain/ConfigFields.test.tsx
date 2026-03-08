@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/preact';
+import { render, screen, fireEvent, waitFor } from '@testing-library/preact';
 import { ConfigFields } from './ConfigFields';
 import type { ConfigFields as ConfigFieldsType } from '@/lib/types';
 
@@ -66,5 +66,23 @@ describe('ConfigFields', () => {
     expect((screen.getByLabelText('Test Cycle') as HTMLInputElement).value).toBe('Sprint 1');
     expect((screen.getByLabelText('Agile Team') as HTMLInputElement).value).toBe('Team Alpha');
     expect((screen.getByLabelText('Proje') as HTMLInputElement).value).toBe('CRM');
+  });
+
+  it('değişiklikte session_config storage\'a merge pattern ile yazılır', async () => {
+    const existingConfig = { session_config: { toggles: { har: true, console: true, dom: true, localStorage: true, sessionStorage: true } } };
+    mockStorageGet.mockResolvedValue(existingConfig);
+
+    render(<ConfigFields value={defaultValue} onChange={() => undefined} />);
+    const select = screen.getByLabelText('Environment') as HTMLSelectElement;
+    fireEvent.change(select, { target: { value: 'staging' } });
+
+    await waitFor(() => {
+      expect(mockStorageSet).toHaveBeenCalledWith({
+        session_config: {
+          toggles: { har: true, console: true, dom: true, localStorage: true, sessionStorage: true },
+          configFields: { ...defaultValue, environment: 'staging' },
+        },
+      });
+    });
   });
 });

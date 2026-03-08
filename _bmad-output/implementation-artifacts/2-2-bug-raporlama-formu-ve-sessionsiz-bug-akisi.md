@@ -1,6 +1,6 @@
 # Story 2.2: Bug Raporlama Formu ve Session'sız Bug Akışı
 
-Status: review
+Status: done
 
 <!-- Note: Validation is optional. Run validate-create-story for quality check before dev-story. -->
 
@@ -552,23 +552,23 @@ Claude Sonnet 4.5 (GitHub Copilot)
 
 ### Completion Notes List
 
-- **Task 1**: `BugReportFormData`, `ConfigFields`, `EnvironmentInfo`, `StepItem` interface'leri types.ts'e eklendi; `SessionConfig.configFields` optional property olarak genişletildi. `STORAGE_KEYS.BUG_REPORT_CONFIG` ve `DEFAULT_PRIORITY` constants.ts'e eklendi.
-- **Task 2**: `collectEnvironmentInfo()` environment.ts'te implement edildi — Chrome versiyonu regex ile ayrıştırılıyor, OS user-agent'tan tespit ediliyor, popup context kısıtlaması (window.location → popup URL) dökümante edildi. 8 test yeşil.
+- **Task 1**: `BugReportFormData`, `ConfigFields`, `EnvironmentInfo` interface'leri types.ts'e eklendi; `SessionConfig.configFields` optional property olarak genişletildi. `DEFAULT_PRIORITY` constants.ts'e eklendi.
+- **Task 2**: `collectEnvironmentInfo()` environment.ts'te implement edildi — Chrome versiyonu regex ile ayrıştırılıyor, OS user-agent'tan tespit ediliyor, popup context kısıtlaması (window.location → popup URL) dökümante edildi. 8 test yeşil. NOT: Fonksiyon henüz BugReportView'da kullanılmıyor — ortam bilgisi snapshotData.screenshot.metadata üzerinden mevcut. Export story'sinde (2.3) entegre edilecek.
 - **Task 3**: `buildStepsToReproduce()` steps-builder.ts'te implement edildi — tüm olaylar timestamp sırasına göre sıralanıyor, 50 karakter kırpma template literal ile uygulandı. 7 test yeşil.
 - **Task 4**: `ConfigFields.tsx` — environment Select + testCycle/agileTeam/project Input alanları; her değişiklikte `session_config` storage'ına merge pattern ile yazıyor (mevcut toggles korunuyor). 5 test yeşil.
-- **Task 5**: `DataSummary.tsx` — Check/X Lucide ikonları + semantik ul/li; `hasSession=false` durumunda XHR ve Timeline xmark + `text-gray-300` ile gösteriliyor. 5 test yeşil.
-- **Task 6**: `Modal.tsx` — focus trap (Tab/Shift+Tab), ESC kapatma, overlay click kapatma, triggerRef ile focus dönüşü, `role="dialog"` + `aria-modal`. 6 test yeşil.
+- **Task 5**: `DataSummary.tsx` — Check/X Lucide ikonları + semantik ul/li; `hasSession=false` durumunda XHR ve Timeline xmark + `text-gray-300` ile gösteriliyor; session aktifken veri kaynağı mevcut (yeşil check, 0 count olsa bile). 5 test yeşil.
+- **Task 6**: `Modal.tsx` — focus trap (Tab/Shift+Tab), ESC kapatma, overlay pointer-events-none ile container click kapatma, triggerRef ile focus dönüşü, `role="dialog"` + `aria-modal`. 6 test yeşil.
 - **Task 7**: `BugReportView.tsx` tamamen yeniden yazıldı — hasSession prop'u App.tsx'ten geçiyor; session kontrolü App.tsx seviyesinde yapılıyor; module-level signals form verisini persist ediyor; dikey akış UX spec'e uygun.
-- **Task 8**: `App.tsx` — session kontrolü `handleOpenBugReport()` içinde yapılıyor; `slideDirection` signal'ı ile CSS animasyon class'ı belirleniyor; `DashboardView` `onOpenBugReport` prop'u ile güncellendi. CSS keyframes `tailwind.css`'e eklendi (prefers-reduced-motion dahil).
+- **Task 8**: `App.tsx` ve `view-state.ts` — signal'lar `popup/view-state.ts`'e taşındı (circular dependency çözüldü); geri navigasyonda `slideDirection='left'` set ediliyor; CSS keyframes `tailwind.css`'e eklendi (prefers-reduced-motion dahil).
 - **Task 9**: `BugReportView.test.tsx` — 13 test: form render, snapshot başarı/hata, steps collapsible, session'sız placeholder, export disabled, konfigürasyon, DataSummary. Tüm testler yeşil.
-- **Regresyon**: 32 test dosyası, 286+ test — tüm yeşil. ESLint tüm değiştirilen dosyalarda temiz.
+- **Regresyon**: 32 test dosyası, 304 test — tüm yeşil. ESLint tüm değiştirilen dosyalarda temiz.
 
 ### File List
 
 <!-- Oluşturulan / Değiştirilen dosyalar -->
-- `src/lib/types.ts` — MODIFY: BugReportFormData, ConfigFields, EnvironmentInfo, StepItem eklendi; SessionConfig.configFields genişletildi
-- `src/lib/constants.ts` — MODIFY: STORAGE_KEYS.BUG_REPORT_CONFIG, DEFAULT_PRIORITY eklendi
-- `src/lib/environment.ts` — CREATE: collectEnvironmentInfo()
+- `src/lib/types.ts` — MODIFY: BugReportFormData, ConfigFields, EnvironmentInfo eklendi; SessionConfig.configFields genişletildi
+- `src/lib/constants.ts` — MODIFY: DEFAULT_PRIORITY eklendi
+- `src/lib/environment.ts` — CREATE: collectEnvironmentInfo() (export story'sinde entegre edilecek)
 - `src/lib/environment.test.ts` — CREATE: 8 environment test
 - `src/lib/steps-builder.ts` — CREATE: buildStepsToReproduce()
 - `src/lib/steps-builder.test.ts` — CREATE: 7 steps builder test
@@ -578,8 +578,9 @@ Claude Sonnet 4.5 (GitHub Copilot)
 - `src/components/domain/ConfigFields.test.tsx` — CREATE: 5 ConfigFields test
 - `src/components/domain/DataSummary.tsx` — CREATE: check/xmark veri özeti listesi
 - `src/components/domain/DataSummary.test.tsx` — CREATE: 5 DataSummary test
-- `src/popup/App.tsx` — MODIFY: session kontrolü, modal, slide animasyonu, hasSession prop
-- `src/popup/views/BugReportView.tsx` — REWRITE: tam form implementasyonu
+- `src/popup/view-state.ts` — CREATE: currentView ve slideDirection signal'ları (circular dependency çözümü)
+- `src/popup/App.tsx` — MODIFY: session kontrolü, modal, slide animasyonu, hasSession prop, signal import'ları view-state'e taşındı
+- `src/popup/views/BugReportView.tsx` — REWRITE: tam form implementasyonu, geri navigasyonda slideDirection='left' set ediliyor
 - `src/popup/views/BugReportView.test.tsx` — CREATE: 13 BugReportView test
 - `src/popup/views/DashboardView.tsx` — MODIFY: onOpenBugReport prop eklendi, currentView import kaldırıldı
 - `src/styles/tailwind.css` — MODIFY: slide animasyon keyframes (prefers-reduced-motion dahil)
@@ -587,3 +588,4 @@ Claude Sonnet 4.5 (GitHub Copilot)
 ### Change Log
 
 - 2026-03-08: Story 2.2 tamamlandı — Bug Raporlama Formu ve Session'sız Bug Akışı implementasyonu. 9 task / 22 subtask tamamlandı. 286+ test yeşil. ESLint temiz.
+- 2026-03-08: Code review düzeltmeleri — slide geri navigasyon, circular dependency çözümü (view-state.ts), dead code temizliği (StepItem, BUG_REPORT_CONFIG), DataSummary available logic, steps-builder type assertion, ConfigFields storage persist testi eklendi. 304 test yeşil.

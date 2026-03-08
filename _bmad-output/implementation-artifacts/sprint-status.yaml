@@ -51,7 +51,7 @@ development_status:
   # Epic 2: Bug Raporlama ve ZIP Export
   epic-2: in-progress
   2-1-snapshot-motoru-screenshot-dom-ve-storage-toplama: done
-  2-2-bug-raporlama-formu-ve-sessionsiz-bug-akisi: review
+  2-2-bug-raporlama-formu-ve-sessionsiz-bug-akisi: done
   2-3-zip-export-ve-timeline-builder: backlog
   epic-2-retrospective: optional
 
