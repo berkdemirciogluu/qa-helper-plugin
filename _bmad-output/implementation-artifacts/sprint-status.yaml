@@ -65,5 +65,5 @@ development_status:
   # Epic 4: Jira Entegrasyonu
   epic-4: in-progress
   4-1-jira-baglanti-kurulumu-ve-kimlik-dogrulama: done
-  4-2-jira-ticket-olusturma-ve-dosya-ekleme: ready-for-dev
+  4-2-jira-ticket-olusturma-ve-dosya-ekleme: done
   epic-4-retrospective: optional

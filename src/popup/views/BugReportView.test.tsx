@@ -14,6 +14,18 @@ vi.mock('@/lib/clipboard', () => ({
   copyToClipboard: vi.fn().mockResolvedValue({ success: true, data: undefined }),
 }));
 
+vi.mock('@/lib/jira/jira-exporter', () => ({
+  exportToJira: vi.fn().mockResolvedValue({
+    success: true,
+    data: { issueKey: 'PROJ-123', issueUrl: 'https://jira/browse/PROJ-123', attachmentCount: 3 },
+  }),
+}));
+
+vi.mock('@/components/ui/Toast', async (importOriginal) => {
+  const mod = await importOriginal<typeof import('@/components/ui/Toast')>();
+  return { ...mod, showToast: vi.fn() };
+});
+
 const mockSnapshotData: SnapshotData = {
   screenshot: {
     dataUrl: 'data:image/png;base64,abc',
@@ -30,9 +42,7 @@ const mockSnapshotData: SnapshotData = {
   },
   dom: { html: '<html></html>', doctype: '<!DOCTYPE html>', url: 'https://example.com' },
   storage: { localStorage: { key: 'val' }, sessionStorage: {} },
-  consoleLogs: [
-    { timestamp: Date.now(), level: 'error', message: 'Test error' },
-  ],
+  consoleLogs: [{ timestamp: Date.now(), level: 'error', message: 'Test error' }],
   timestamp: Date.now(),
   collectionDurationMs: 100,
 };
@@ -116,7 +126,7 @@ describe('BugReportView', () => {
     });
   });
 
-  it("Steps to Reproduce varsayılan kapalı", async () => {
+  it('Steps to Reproduce varsayılan kapalı', async () => {
     render(<BugReportView hasSession={true} />);
     await waitFor(() => {
       const btn = screen.getByText('Steps to Reproduce');
@@ -126,7 +136,7 @@ describe('BugReportView', () => {
     });
   });
 
-  it("Steps to Reproduce açılıp kapatılabiliyor", async () => {
+  it('Steps to Reproduce açılıp kapatılabiliyor', async () => {
     render(<BugReportView hasSession={true} />);
     await waitFor(() => screen.getByText('Steps to Reproduce'));
     const toggle = screen.getByText('Steps to Reproduce').closest('button')!;
@@ -217,12 +227,12 @@ describe('BugReportView', () => {
     });
     await waitFor(() => {
       expect(chrome.runtime.sendMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ action: 'STOP_SESSION', payload: { tabId: 42 } }),
+        expect.objectContaining({ action: 'STOP_SESSION', payload: { tabId: 42 } })
       );
     });
   });
 
-  it('post-export UI: Koru butonuna tıklandığında dashboard\'a döner', async () => {
+  it("post-export UI: Koru butonuna tıklandığında dashboard'a döner", async () => {
     render(<BugReportView hasSession={true} />);
     await waitFor(() => {
       expect(screen.getByAltText('Sayfa ekran görüntüsü')).toBeTruthy();
@@ -251,6 +261,129 @@ describe('BugReportView', () => {
     render(<BugReportView hasSession={true} />);
     await waitFor(() => {
       expect(screen.getAllByText('Screenshot alınamadı').length).toBeGreaterThan(0);
+    });
+  });
+
+  it('Jira credentials yoksa buton disabled ve tooltip gösterilir', async () => {
+    (chrome.storage.local.get as ReturnType<typeof vi.fn>).mockResolvedValue({});
+    render(<BugReportView hasSession={true} />);
+    await waitFor(() => {
+      expect(screen.getByAltText('Sayfa ekran görüntüsü')).toBeTruthy();
+    });
+    const jiraBtn = screen.getByText("Jira'ya Gönder").closest('button')! as HTMLButtonElement;
+    expect(jiraBtn.disabled).toBe(true);
+    expect(jiraBtn.title).toBe("Ayarlardan Jira'yı kurun");
+  });
+
+  it('Jira credentials varsa buton enabled olur', async () => {
+    (chrome.storage.local.get as ReturnType<typeof vi.fn>).mockResolvedValue({
+      jira_credentials: {
+        platform: 'cloud',
+        url: 'https://mysite.atlassian.net',
+        token: 'token-123',
+        connected: true,
+        defaultProjectKey: 'PROJ',
+      },
+    });
+    render(<BugReportView hasSession={true} />);
+    await waitFor(() => {
+      expect(screen.getByAltText('Sayfa ekran görüntüsü')).toBeTruthy();
+    });
+    await waitFor(() => {
+      const jiraBtn = screen.getByText("Jira'ya Gönder").closest('button')! as HTMLButtonElement;
+      expect(jiraBtn.disabled).toBe(false);
+      expect(jiraBtn.title).toBeFalsy();
+    });
+  });
+
+  it('Jira export başarılı olunca toast gösterilir', async () => {
+    (chrome.storage.local.get as ReturnType<typeof vi.fn>).mockResolvedValue({
+      jira_credentials: {
+        platform: 'cloud',
+        url: 'https://mysite.atlassian.net',
+        token: 'token-123',
+        connected: true,
+        defaultProjectKey: 'PROJ',
+      },
+    });
+    const { exportToJira } = await import('@/lib/jira/jira-exporter');
+    const { showToast } = await import('@/components/ui/Toast');
+    render(<BugReportView hasSession={true} />);
+    await waitFor(() => {
+      expect(screen.getByAltText('Sayfa ekran görüntüsü')).toBeTruthy();
+    });
+    await waitFor(() => {
+      const jiraBtn = screen.getByText("Jira'ya Gönder").closest('button')! as HTMLButtonElement;
+      expect(jiraBtn.disabled).toBe(false);
+    });
+    const jiraBtn = screen.getByText("Jira'ya Gönder").closest('button')!;
+    fireEvent.click(jiraBtn);
+    await waitFor(() => {
+      expect(exportToJira).toHaveBeenCalled();
+    });
+    await waitFor(() => {
+      expect(showToast).toHaveBeenCalledWith('success', expect.stringContaining('PROJ-123'));
+    });
+  });
+
+  it('Jira export başarısız olunca fallback mesajı gösterilir', async () => {
+    const { exportToJira } = await import('@/lib/jira/jira-exporter');
+    const { showToast } = await import('@/components/ui/Toast');
+    (exportToJira as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+      success: false,
+      error: 'Bağlantı hatası',
+    });
+    (chrome.storage.local.get as ReturnType<typeof vi.fn>).mockResolvedValue({
+      jira_credentials: {
+        platform: 'cloud',
+        url: 'https://mysite.atlassian.net',
+        token: 'token-123',
+        connected: true,
+        defaultProjectKey: 'PROJ',
+      },
+    });
+    render(<BugReportView hasSession={true} />);
+    await waitFor(() => {
+      expect(screen.getByAltText('Sayfa ekran görüntüsü')).toBeTruthy();
+    });
+    await waitFor(() => {
+      const jiraBtn = screen.getByText("Jira'ya Gönder").closest('button')! as HTMLButtonElement;
+      expect(jiraBtn.disabled).toBe(false);
+    });
+    const jiraBtn = screen.getByText("Jira'ya Gönder").closest('button')!;
+    fireEvent.click(jiraBtn);
+    await waitFor(() => {
+      expect(exportToJira).toHaveBeenCalled();
+    });
+    await waitFor(() => {
+      expect(showToast).toHaveBeenCalledWith('error', expect.stringContaining('ZIP'));
+    });
+  });
+
+  it('Parent ticket input PROJ-123 formatını kabul eder', async () => {
+    (chrome.storage.local.get as ReturnType<typeof vi.fn>).mockResolvedValue({
+      jira_credentials: {
+        platform: 'cloud',
+        url: 'https://mysite.atlassian.net',
+        token: 'token-123',
+        connected: true,
+        defaultProjectKey: 'PROJ',
+      },
+    });
+    render(<BugReportView hasSession={true} />);
+    await waitFor(() => {
+      expect(screen.getByAltText('Sayfa ekran görüntüsü')).toBeTruthy();
+    });
+    await waitFor(() => {
+      expect(screen.getByText("Mevcut ticket'a bağla")).toBeTruthy();
+    });
+    const checkbox = screen
+      .getByText("Mevcut ticket'a bağla")
+      .closest('label')!
+      .querySelector('input')! as HTMLInputElement;
+    fireEvent.click(checkbox);
+    await waitFor(() => {
+      expect(screen.getByLabelText('Parent ticket key')).toBeTruthy();
     });
   });
 });
