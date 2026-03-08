@@ -12,6 +12,7 @@ import { sendMessage } from '@/lib/messaging';
 import { MESSAGE_ACTIONS, STORAGE_KEYS } from '@/lib/constants';
 import { storageGet, storageSet } from '@/lib/storage';
 import { showToast } from '@/components/ui/Toast';
+import { currentView } from '@/popup/App';
 import type { SessionMeta, SessionConfig, StartSessionPayload, StopSessionPayload, GetSessionStatusPayload } from '@/lib/types';
 
 const DEFAULT_TOGGLES: SessionConfig['toggles'] = {
@@ -292,13 +293,13 @@ export function DashboardView() {
           )}
         </Card>
 
-        {/* Bug Report Button (disabled — Epic 2) */}
+        {/* Bug Report Button */}
         <Button
           variant="primary"
           size="md"
-          disabled
+          onClick={() => { currentView.value = 'bugReport'; }}
           iconLeft={<Bug size={14} />}
-          aria-label="Bug raporla (yakında)"
+          aria-label="Bug raporla"
           class="w-full"
         >
           Bug Raporla

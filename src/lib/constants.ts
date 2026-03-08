@@ -12,8 +12,12 @@ export const STORAGE_KEYS = {
   SESSION_CONSOLE: 'session_console',
   SESSION_NAV: 'session_nav',
   SESSION_CONFIG: 'session_config',
+  SESSION_SNAPSHOT: 'session_snapshot',
   JIRA_CREDENTIALS: 'jira_credentials',
 } as const;
+
+/** Snapshot işlemi maksimum timeout süresi (3 saniye) */
+export const MAX_SNAPSHOT_TIMEOUT_MS = 3000;
 
 /** Content script flush interval (3 saniye) */
 export const RECORDER_FLUSH_INTERVAL_MS = 3000;

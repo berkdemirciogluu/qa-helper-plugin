@@ -8,15 +8,18 @@ import type {
   StopSessionPayload,
   GetSessionStatusPayload,
   RecorderCommandPayload,
+  TakeSnapshotPayload,
 } from '../lib/types';
 import { startSession, stopSession, getSession, updateCounters } from './session-manager';
 import { enqueueFlush } from './flush-manager';
+import { handleTakeSnapshot } from './snapshot-handler';
 
 type KnownPayload =
   | StartSessionPayload
   | StopSessionPayload
   | GetSessionStatusPayload
-  | FlushDataPayload;
+  | FlushDataPayload
+  | TakeSnapshotPayload;
 
 function isValidPayload(payload: unknown, ...requiredKeys: string[]): boolean {
   if (typeof payload !== 'object' || payload === null) return false;
@@ -123,6 +126,18 @@ export function setupMessageHandler(): void {
             const result = await getSession(tabId);
             const recording = result.success && result.data?.status === 'recording';
             return { success: true, data: { recording, tabId } };
+          }
+
+          case MESSAGE_ACTIONS.TAKE_SNAPSHOT: {
+            if (!isValidPayload(payload, 'tabId')) {
+              return { success: false, error: 'Invalid payload: tabId required' };
+            }
+            const p = payload as TakeSnapshotPayload;
+            const result = await handleTakeSnapshot(p.tabId);
+            if (result.success) {
+              return { success: true, data: result.data };
+            }
+            return { success: false, error: result.error };
           }
 
           default:

@@ -123,3 +123,61 @@ export interface SessionConfig {
     sessionStorage: boolean;
   };
 }
+
+// Snapshot tipleri
+export interface ScreenshotMetadata {
+  viewport: { width: number; height: number };
+  browserVersion: string;
+  os: string;
+  zoomLevel: number;
+  pixelRatio: number;
+  language: string;
+  url: string;
+  timestamp: number;
+}
+
+export interface DomSnapshot {
+  html: string;
+  doctype: string;
+  url: string;
+}
+
+export interface StorageDump {
+  localStorage: Record<string, string>;
+  sessionStorage: Record<string, string>;
+}
+
+export interface ConsoleLogEntry {
+  timestamp: number;
+  level: 'log' | 'warn' | 'error' | 'info';
+  message: string;
+  stack?: string;
+  parsedStack?: {
+    fileName: string;
+    lineNumber: number;
+    columnNumber: number;
+    functionName: string;
+  }[];
+}
+
+export interface SnapshotDataPayload {
+  tabId: number;
+  dom: DomSnapshot;
+  storage: StorageDump;
+}
+
+export interface SnapshotData {
+  screenshot: {
+    dataUrl: string;
+    metadata: ScreenshotMetadata;
+  };
+  dom: DomSnapshot;
+  storage: StorageDump;
+  consoleLogs: ConsoleLogEntry[];
+  timestamp: number;
+  collectionDurationMs: number;
+}
+
+export interface TakeSnapshotPayload {
+  tabId: number;
+}

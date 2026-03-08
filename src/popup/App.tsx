@@ -1,5 +1,6 @@
 import { signal } from '@preact/signals';
 import { DashboardView } from './views/DashboardView';
+import { BugReportView } from './views/BugReportView';
 import { ToastContainer } from '@/components/ui/Toast';
 
 type View = 'dashboard' | 'bugReport';
@@ -14,8 +15,7 @@ export function App() {
         <DashboardView />
       )}
       {currentView.value === 'bugReport' && (
-        // Placeholder — BugReportView Epic 2'de implement edilecek
-        <div class="p-4 text-sm text-gray-500">Bug Raporlama yakında...</div>
+        <BugReportView />
       )}
     </div>
   );
