@@ -10,6 +10,7 @@ export const STORAGE_KEYS = {
   SESSION_XHR: 'session_xhr',
   SESSION_CLICKS: 'session_clicks',
   SESSION_CONSOLE: 'session_console',
+  SESSION_NAV: 'session_nav',
   SESSION_CONFIG: 'session_config',
   JIRA_CREDENTIALS: 'jira_credentials',
 } as const;

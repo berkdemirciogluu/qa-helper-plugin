@@ -84,3 +84,24 @@ export type TimelineEvent =
   | XhrEvent
   | ConsoleEvent
   | ErrorEvent;
+
+// Message payload tipleri
+export interface FlushDataPayload {
+  tabId: number;
+  dataType: 'xhr' | 'click' | 'console' | 'nav';
+  events: TimelineEvent[];
+  critical?: boolean;
+}
+
+export interface StartSessionPayload {
+  tabId: number;
+  url: string;
+}
+
+export interface StopSessionPayload {
+  tabId: number;
+}
+
+export interface GetSessionStatusPayload {
+  tabId: number;
+}

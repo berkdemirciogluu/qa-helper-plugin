@@ -1,0 +1,196 @@
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { enqueueFlush, clearFlushQueue } from './flush-manager';
+import type { ConsoleEvent, XhrEvent, ClickEvent } from '../lib/types';
+
+const mockStorageGet = vi.fn();
+const mockStorageSet = vi.fn();
+
+vi.stubGlobal('chrome', {
+  storage: {
+    local: {
+      get: mockStorageGet,
+      set: mockStorageSet,
+    },
+  },
+});
+
+beforeEach(() => {
+  vi.clearAllMocks();
+  vi.useFakeTimers();
+  // Modül-level buffer/timer state'ini sıfırla
+  clearFlushQueue(42);
+  clearFlushQueue(99);
+  mockStorageGet.mockResolvedValue({});
+  mockStorageSet.mockResolvedValue(undefined);
+});
+
+afterEach(() => {
+  vi.useRealTimers();
+});
+
+const makeConsoleEvent = (level: 'log' | 'warn' | 'error' | 'info'): ConsoleEvent => ({
+  type: 'console',
+  timestamp: Date.now(),
+  level,
+  message: 'test message',
+});
+
+const makeXhrEvent = (status: number): XhrEvent => ({
+  type: 'xhr',
+  timestamp: Date.now(),
+  method: 'GET',
+  url: 'https://api.example.com',
+  status,
+  duration: 100,
+});
+
+const makeClickEvent = (): ClickEvent => ({
+  type: 'click',
+  timestamp: Date.now(),
+  selector: 'button',
+  text: 'Click me',
+  x: 100,
+  y: 200,
+});
+
+describe('enqueueFlush — kritik olmayan', () => {
+  it('debounce süresi geçmeden storage\'a yazmaz', async () => {
+    const event = makeClickEvent();
+    await enqueueFlush(42, 'click', [event]);
+
+    expect(mockStorageSet).not.toHaveBeenCalled();
+  });
+
+  it('debounce süresi (2500ms) geçince storage\'a yazar', async () => {
+    const event = makeClickEvent();
+    await enqueueFlush(42, 'click', [event]);
+
+    await vi.advanceTimersByTimeAsync(2500);
+
+    expect(mockStorageSet).toHaveBeenCalledWith({
+      session_clicks_42: [event],
+    });
+  });
+
+  it('birden fazla event debounce ile birleşerek yazılır', async () => {
+    const e1 = makeClickEvent();
+    const e2 = makeClickEvent();
+    await enqueueFlush(42, 'click', [e1]);
+    await enqueueFlush(42, 'click', [e2]);
+
+    await vi.advanceTimersByTimeAsync(2500);
+
+    expect(mockStorageSet).toHaveBeenCalledTimes(1);
+    const stored = (mockStorageSet.mock.calls[0][0] as Record<string, unknown>)['session_clicks_42'] as ClickEvent[];
+    expect(stored).toHaveLength(2);
+  });
+});
+
+describe('enqueueFlush — ConsoleEvent level=error → anında flush', () => {
+  it('console error anında yazar', async () => {
+    const errorEvent = makeConsoleEvent('error');
+    await enqueueFlush(42, 'console', [errorEvent]);
+
+    expect(mockStorageSet).toHaveBeenCalledWith({
+      session_console_42: [errorEvent],
+    });
+  });
+
+  it('console log/warn anında yazmaz', async () => {
+    const logEvent = makeConsoleEvent('log');
+    await enqueueFlush(42, 'console', [logEvent]);
+
+    expect(mockStorageSet).not.toHaveBeenCalled();
+  });
+});
+
+describe('enqueueFlush — XhrEvent status>=400 → anında flush', () => {
+  it('status=500 anında yazar', async () => {
+    const failedXhr = makeXhrEvent(500);
+    await enqueueFlush(42, 'xhr', [failedXhr]);
+
+    expect(mockStorageSet).toHaveBeenCalledWith({
+      session_xhr_42: [failedXhr],
+    });
+  });
+
+  it('status=404 anında yazar', async () => {
+    const notFound = makeXhrEvent(404);
+    await enqueueFlush(42, 'xhr', [notFound]);
+
+    expect(mockStorageSet).toHaveBeenCalled();
+  });
+
+  it('status=200 anında yazmaz', async () => {
+    const okXhr = makeXhrEvent(200);
+    await enqueueFlush(42, 'xhr', [okXhr]);
+
+    expect(mockStorageSet).not.toHaveBeenCalled();
+  });
+});
+
+describe('enqueueFlush — critical=true → anında flush', () => {
+  it('critical flag ile anında yazar', async () => {
+    const event = makeClickEvent();
+    await enqueueFlush(42, 'click', [event], true);
+
+    expect(mockStorageSet).toHaveBeenCalledWith({
+      session_clicks_42: [event],
+    });
+  });
+});
+
+describe('flushBuffer — storage append pattern', () => {
+  it('mevcut storage verisiyle merge eder (append, overwrite değil)', async () => {
+    const existingEvent = makeClickEvent();
+    const newEvent = makeClickEvent();
+
+    mockStorageGet.mockResolvedValue({ session_clicks_42: [existingEvent] });
+
+    await enqueueFlush(42, 'click', [newEvent]);
+    await vi.advanceTimersByTimeAsync(2500);
+
+    const stored = (mockStorageSet.mock.calls[0][0] as Record<string, unknown>)['session_clicks_42'] as ClickEvent[];
+    expect(stored).toHaveLength(2);
+    expect(stored[0]).toEqual(existingEvent);
+    expect(stored[1]).toEqual(newEvent);
+  });
+
+  it('storage boşsa sadece yeni eventleri yazar', async () => {
+    mockStorageGet.mockResolvedValue({});
+    const event = makeClickEvent();
+
+    await enqueueFlush(42, 'click', [event]);
+    await vi.advanceTimersByTimeAsync(2500);
+
+    const stored = (mockStorageSet.mock.calls[0][0] as Record<string, unknown>)['session_clicks_42'] as ClickEvent[];
+    expect(stored).toHaveLength(1);
+  });
+});
+
+describe('clearFlushQueue', () => {
+  it('timer iptal edilir — debounce süresi geçse bile yazılmaz', async () => {
+    const event = makeClickEvent();
+    await enqueueFlush(42, 'click', [event]);
+
+    clearFlushQueue(42);
+    await vi.advanceTimersByTimeAsync(2500);
+
+    expect(mockStorageSet).not.toHaveBeenCalled();
+  });
+
+  it('buffer temizlenir — immediate flush sonrası buffer boş kalır', async () => {
+    const event = makeClickEvent();
+    await enqueueFlush(42, 'click', [event]);
+
+    clearFlushQueue(42);
+
+    // Başka bir critical event gelirse, buffer boş olmalı (sadece yeni event yazılmalı)
+    const criticalEvent = makeConsoleEvent('error');
+    await enqueueFlush(42, 'console', [criticalEvent]);
+
+    // Sadece console event yazılmış olmalı, önceki click event değil
+    expect(mockStorageSet).toHaveBeenCalledTimes(1);
+    expect(mockStorageSet.mock.calls[0][0]).toHaveProperty('session_console_42');
+  });
+});

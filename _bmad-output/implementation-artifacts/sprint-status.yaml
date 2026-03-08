@@ -43,7 +43,7 @@ development_status:
   # Epic 1: Proje Kurulumu ve Session Kayit Motoru
   epic-1: in-progress
   1-1-proje-kurulumu-ve-chrome-extension-altyapisi: done
-  1-2-service-worker-session-yasam-dongusu-ve-veri-yonetimi: backlog
+  1-2-service-worker-session-yasam-dongusu-ve-veri-yonetimi: done
   1-3-content-script-veri-kayit-motoru: backlog
   1-4-popup-dashboard-ve-session-kontrol: backlog
   epic-1-retrospective: optional
