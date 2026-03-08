@@ -52,7 +52,7 @@ development_status:
   epic-2: in-progress
   2-1-snapshot-motoru-screenshot-dom-ve-storage-toplama: done
   2-2-bug-raporlama-formu-ve-sessionsiz-bug-akisi: done
-  2-3-zip-export-ve-timeline-builder: review
+  2-3-zip-export-ve-timeline-builder: done
   epic-2-retrospective: optional
 
   # Epic 3: Ayarlar Sayfasi

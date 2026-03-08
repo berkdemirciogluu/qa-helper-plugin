@@ -257,6 +257,32 @@ describe('buildTimeline', () => {
     });
   });
 
+  it('parsedStack varsa source alanını fileName:lineNumber formatında üretir', () => {
+    const logWithParsedStack = makeConsoleLog({
+      message: 'ReferenceError: x is not defined',
+      stack: 'ReferenceError: x is not defined\n    at Object.<anonymous> (checkout.js:42:15)',
+      parsedStack: [{ fileName: 'checkout.js', lineNumber: 42, columnNumber: 15, functionName: 'Object.<anonymous>' }],
+    });
+
+    const result = buildTimeline({
+      snapshotData: makeSnapshotData(),
+      clicks: [],
+      navs: [],
+      xhrs: [],
+      consoleLogs: [logWithParsedStack],
+      form: defaultForm,
+      configFields: defaultConfig,
+    });
+
+    expect(result.timeline[0]).toEqual({
+      ts: 4000,
+      ch: 'sys',
+      type: 'error',
+      msg: 'ReferenceError: x is not defined',
+      source: 'checkout.js:42',
+    });
+  });
+
   it('errorSummary consoleErrors sayısını doğru hesaplar', () => {
     const result = buildTimeline({
       snapshotData: makeSnapshotData(),

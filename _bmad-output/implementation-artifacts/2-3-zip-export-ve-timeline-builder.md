@@ -1,6 +1,6 @@
 # Story 2.3: ZIP Export ve Timeline Builder
 
-Status: review
+Status: done
 
 <!-- Note: Validation is optional. Run validate-create-story for quality check before dev-story. -->
 
@@ -385,13 +385,13 @@ exportStatus: 'idle' → 'loading' → 'success' → (temizle/koru) → Dashboar
 
 ### Erişilebilirlik Checklist
 
-- [ ] ZIP İndir butonu: `aria-label` veya görünür metin + ikon
-- [ ] Clipboard kopyala butonu: `aria-label="Description'ı clipboard'a kopyala"`
-- [ ] Jira disabled buton: `aria-disabled="true"` + `title="Ayarlardan Jira'yı kurun"`
-- [ ] Loading state: `aria-live="polite"` + `aria-busy="true"` (buton üzerinde)
-- [ ] Post-export UI: `aria-live="polite"` bölge, temizle/koru butonları focusable
-- [ ] Toast bildirimi: mevcut Toast component `aria-live="assertive"` kullanıyor
-- [ ] Keyboard: Tab ile tüm butonlara erişim, Enter ile aktivasyon
+- [x] ZIP İndir butonu: `aria-label` veya görünür metin + ikon
+- [x] Clipboard kopyala butonu: `aria-label="Description'ı clipboard'a kopyala"`
+- [x] Jira disabled buton: `aria-disabled="true"` + `title="Ayarlardan Jira'yı kurun"`
+- [x] Loading state: `aria-live="polite"` + `aria-busy="true"` (buton üzerinde)
+- [x] Post-export UI: `aria-live="polite"` bölge, temizle/koru butonları focusable
+- [x] Toast bildirimi: mevcut Toast component `aria-live="assertive"` kullanıyor
+- [x] Keyboard: Tab ile tüm butonlara erişim, Enter ile aktivasyon
 
 ### Performans Notları
 
@@ -497,6 +497,7 @@ import type { ... } from '@/lib/types';
 ## Change Log
 
 - 2026-03-08: Story 2.3 implementasyonu tamamlandı — ZIP export, timeline builder, description builder, clipboard kopyalama, post-export UI ve session temizleme
+- 2026-03-08: Code review düzeltmeleri — handleClearSession tabId fix (C1), timeline source parsedStack kullanımı (H1), duplicate error filter kaldırma (M1), formatFileSize 0-byte edge case (L2), erişilebilirlik checklist güncelleme (M2)
 
 ## Dev Agent Record
 

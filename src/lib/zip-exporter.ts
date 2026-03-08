@@ -62,6 +62,7 @@ function buildHar(xhrs: XhrEvent[]): SimplifiedHar {
 }
 
 function formatFileSize(bytes: number): string {
+  if (bytes === 0) return '0 KB';
   if (bytes >= 1024 * 1024) {
     return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
   }

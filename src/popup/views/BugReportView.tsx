@@ -258,7 +258,10 @@ export function BugReportView({ hasSession }: { hasSession: boolean }) {
 
   async function handleClearSession() {
     await storageClearSessions();
-    await sendMessage({ action: MESSAGE_ACTIONS.STOP_SESSION, payload: {} });
+    const tabId = tabIdRef.current;
+    if (tabId !== null) {
+      await sendMessage({ action: MESSAGE_ACTIONS.STOP_SESSION, payload: { tabId } });
+    }
     resetFormSignals();
     slideDirection.value = 'left';
     currentView.value = 'dashboard';

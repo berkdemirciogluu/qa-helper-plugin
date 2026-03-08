@@ -114,12 +114,15 @@ export function buildTimeline(input: BuildTimelineInput): TimelineJSON {
 
   const errorLogs = consoleLogs.filter((log) => log.level === 'error');
   for (const log of errorLogs) {
-    timeline.push({ ts: log.timestamp, ch: 'sys', type: 'error', msg: log.message, source: log.stack ?? '' });
+    const source = log.parsedStack?.[0]
+      ? `${log.parsedStack[0].fileName}:${log.parsedStack[0].lineNumber}`
+      : log.stack ?? '';
+    timeline.push({ ts: log.timestamp, ch: 'sys', type: 'error', msg: log.message, source });
   }
 
   timeline.sort((a, b) => a.ts - b.ts);
 
-  const consoleErrors = consoleLogs.filter((log) => log.level === 'error').length;
+  const consoleErrors = errorLogs.length;
   const failedRequests = xhrs.filter((xhr) => xhr.status >= 400).length;
 
   return {

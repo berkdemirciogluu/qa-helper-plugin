@@ -201,7 +201,7 @@ describe('BugReportView', () => {
     });
   });
 
-  it('post-export UI: Temizle butonuna tıklandığında session temizlenir', async () => {
+  it('post-export UI: Temizle butonuna tıklandığında session temizlenir ve STOP_SESSION tabId ile gönderilir', async () => {
     render(<BugReportView hasSession={true} />);
     await waitFor(() => {
       expect(screen.getByAltText('Sayfa ekran görüntüsü')).toBeTruthy();
@@ -214,6 +214,11 @@ describe('BugReportView', () => {
     fireEvent.click(screen.getByText('Temizle'));
     await waitFor(() => {
       expect(chrome.storage.local.get).toHaveBeenCalled();
+    });
+    await waitFor(() => {
+      expect(chrome.runtime.sendMessage).toHaveBeenCalledWith(
+        expect.objectContaining({ action: 'STOP_SESSION', payload: { tabId: 42 } }),
+      );
     });
   });
 
