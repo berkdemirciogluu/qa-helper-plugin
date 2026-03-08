@@ -1,6 +1,6 @@
 # Story 3.3: İlk Kullanım Onboarding Wizard
 
-Status: review
+Status: done
 
 <!-- Note: Validation is optional. Run validate-create-story for quality check before dev-story. -->
 
@@ -406,25 +406,27 @@ Claude Sonnet 4.6 (GitHub Copilot)
 - `src/lib/constants.ts` — MODIFIED: ONBOARDING_COMPLETED key eklendi
 - `src/lib/types.ts` — MODIFIED: JiraCredentials interface eklendi
 - `src/popup/view-state.ts` — MODIFIED: View type + onboardingPulse signal
-- `src/components/domain/StepWizard.tsx` — CREATED
-- `src/components/domain/StepWizard.test.tsx` — CREATED
-- `src/popup/views/onboarding/EnvironmentStep.tsx` — CREATED
+- `src/components/ui/Input.tsx` — MODIFIED: type prop eklendi (text/password/email/url/number)
+- `src/components/domain/StepWizard.tsx` — CREATED (review: key={i} → key={s.title})
+- `src/components/domain/StepWizard.test.tsx` — CREATED (review: +2 ESC key test)
+- `src/popup/views/onboarding/EnvironmentStep.tsx` — CREATED (review: try-catch + debounce)
 - `src/popup/views/onboarding/EnvironmentStep.test.tsx` — CREATED
-- `src/popup/views/onboarding/JiraStep.tsx` — CREATED
+- `src/popup/views/onboarding/JiraStep.tsx` — CREATED (review: Input type=password, try-catch, debounce)
 - `src/popup/views/onboarding/JiraStep.test.tsx` — CREATED
 - `src/popup/views/onboarding/ReadyStep.tsx` — CREATED
 - `src/popup/views/onboarding/ReadyStep.test.tsx` — CREATED
-- `src/popup/views/OnboardingView.tsx` — CREATED
+- `src/popup/views/OnboardingView.tsx` — CREATED (review: try-catch, setTimeout DashboardView'a taşındı)
 - `src/popup/views/OnboardingView.test.tsx` — CREATED
-- `src/popup/App.tsx` — MODIFIED: useEffect onboarding check + OnboardingView render
+- `src/popup/App.tsx` — MODIFIED: useEffect onboarding check + OnboardingView render (review: try-catch)
 - `src/popup/App.test.tsx` — MODIFIED: 2 yeni test + mock güncelleme
-- `src/popup/views/DashboardView.tsx` — MODIFIED: onboardingPulse import + SessionControl startPulse prop
+- `src/popup/views/DashboardView.tsx` — MODIFIED: onboardingPulse import + SessionControl startPulse prop (review: pulse useEffect cleanup)
 - `src/components/domain/SessionControl.tsx` — MODIFIED: startPulse prop eklendi
-- `src/styles/tailwind.css` — MODIFIED: fade-enter animasyonu
-- `src/options/pages/AboutPage.tsx` — MODIFIED: Buton aktif + storageRemove + showToast
-- `src/options/pages/AboutPage.test.tsx` — MODIFIED: 2 yeni test
+- `src/styles/tailwind.css` — MODIFIED: fade-enter animasyonu (review: prefers-reduced-motion)
+- `src/options/pages/AboutPage.tsx` — MODIFIED: Buton aktif + storageRemove + showToast (review: try-catch)
+- `src/options/pages/AboutPage.test.tsx` — MODIFIED: 2 yeni test (review: misleading test adı düzeltildi)
 - `src/options/App.tsx` — MODIFIED: ToastContainer eklendi
 
 ## Change Log
 
 - 2026-03-08: Story 3.3 implement edildi — OnboardingView wizard (3 adım), storage entegrasyonu, pulse animasyon, AboutPage reset butonu; 371 test geçiyor
+- 2026-03-08: Code review — 9 bulgu düzeltildi (2H, 4M, 3L): fade-enter a11y, Input type prop, JiraStep Input kullanımı, storage error handling (4 dosya), pulse timer DashboardView'a taşındı, debounce eklendi, ESC key testi, test adı düzeltmesi, StepWizard key düzeltmesi; 374 test geçiyor

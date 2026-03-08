@@ -46,7 +46,7 @@ describe('AboutPage', () => {
     expect(screen.getByText(/bug raporlama ve veri toplama/)).toBeTruthy();
   });
 
-  it('kurulum sihirbazı butonu disabled', () => {
+  it('kurulum sihirbazı butonu aktif ve tıklanabilir', () => {
     render(<AboutPage />);
 
     const wizardButton = screen.getByLabelText('Kurulum sihirbazını tekrar aç');

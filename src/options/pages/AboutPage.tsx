@@ -7,8 +7,12 @@ export function AboutPage() {
   const version = chrome.runtime.getManifest().version;
 
   async function handleResetOnboarding() {
-    await storageRemove(STORAGE_KEYS.ONBOARDING_COMPLETED);
-    showToast('info', "Popup'ı açtığınızda kurulum sihirbazı tekrar gösterilecek");
+    try {
+      await storageRemove(STORAGE_KEYS.ONBOARDING_COMPLETED);
+      showToast('info', "Popup'ı açtığınızda kurulum sihirbazı tekrar gösterilecek");
+    } catch {
+      showToast('error', 'Sihirbaz sıfırlama başarısız oldu.');
+    }
   }
 
   return (

@@ -76,9 +76,9 @@ export function StepWizard({ steps, onComplete }: StepWizardProps) {
         aria-label={`Adım ${currentStep + 1} / ${totalSteps}`}
       >
         <div class="flex items-center gap-2">
-          {steps.map((_, i) => (
+          {steps.map((s, i) => (
             <span
-              key={i}
+              key={s.title}
               class={[
                 'w-2 h-2 rounded-full transition-colors',
                 i <= currentStep ? 'bg-blue-600' : 'bg-gray-300',

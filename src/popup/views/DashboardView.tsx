@@ -47,6 +47,13 @@ export function DashboardView({ onOpenBugReport }: DashboardViewProps) {
   const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const durationRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
+  // Onboarding pulse — 5 saniye sonra otomatik kapanır
+  useEffect(() => {
+    if (!onboardingPulse.value) return;
+    const timer = setTimeout(() => { onboardingPulse.value = false; }, 5000);
+    return () => clearTimeout(timer);
+  }, [onboardingPulse.value]);
+
   // Initialize: load tab info, session status, and config toggles
   useEffect(() => {
     void init();

@@ -1,4 +1,4 @@
-import { useState } from 'preact/hooks';
+import { useState, useRef } from 'preact/hooks';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { Button } from '@/components/ui/Button';
@@ -16,6 +16,7 @@ export function JiraStep() {
   const [platform, setPlatform] = useState<JiraCredentials['platform']>('');
   const [url, setUrl] = useState('');
   const [token, setToken] = useState('');
+  const writeTimerRef = useRef<ReturnType<typeof setTimeout>>();
 
   const urlPlaceholder =
     platform === 'cloud'
@@ -25,24 +26,34 @@ export function JiraStep() {
         : 'Jira URL';
 
   async function saveCredentials(overrides: Partial<JiraCredentials>) {
-    const creds: JiraCredentials = { platform, url, token, ...overrides };
-    await storageSet(STORAGE_KEYS.JIRA_CREDENTIALS, creds);
+    try {
+      const creds: JiraCredentials = { platform, url, token, ...overrides };
+      await storageSet(STORAGE_KEYS.JIRA_CREDENTIALS, creds);
+    } catch {
+      // Storage hatası — opsiyonel alan, sessizce devam et
+    }
   }
 
-  async function handlePlatformChange(value: string) {
+  function debouncedSave(overrides: Partial<JiraCredentials>) {
+    if (writeTimerRef.current) clearTimeout(writeTimerRef.current);
+    writeTimerRef.current = setTimeout(() => void saveCredentials(overrides), 300);
+  }
+
+  function handlePlatformChange(value: string) {
     const p = value as JiraCredentials['platform'];
     setPlatform(p);
-    await saveCredentials({ platform: p });
+    // Select değişikliği anında kaydedilir (debounce yok)
+    void saveCredentials({ platform: p });
   }
 
-  async function handleUrlChange(value: string) {
+  function handleUrlChange(value: string) {
     setUrl(value);
-    await saveCredentials({ url: value });
+    debouncedSave({ url: value });
   }
 
-  async function handleTokenChange(value: string) {
+  function handleTokenChange(value: string) {
     setToken(value);
-    await saveCredentials({ token: value });
+    debouncedSave({ token: value });
   }
 
   return (
@@ -66,22 +77,15 @@ export function JiraStep() {
         placeholder={urlPlaceholder}
         aria-label="Jira URL adresi"
       />
-      <div class="flex flex-col gap-1">
-        <label htmlFor="jira-token" class="text-sm font-medium text-gray-700">
-          API Token
-        </label>
-        <input
-          id="jira-token"
-          type="password"
-          value={token}
-          onInput={(e) =>
-            void handleTokenChange((e.target as HTMLInputElement).value)
-          }
-          placeholder="API Token"
-          aria-label="Jira API token"
-          class="w-full rounded-md border border-gray-200 bg-white px-3 min-h-[44px] text-sm text-gray-700 transition-colors focus-visible:outline-2 focus-visible:outline-blue-500 focus-visible:outline-offset-2"
-        />
-      </div>
+      <Input
+        label="API Token"
+        htmlFor="jira-token"
+        type="password"
+        value={token}
+        onChange={handleTokenChange}
+        placeholder="API Token"
+        aria-label="Jira API token"
+      />
       <div>
         <Button
           variant="secondary"

@@ -77,4 +77,24 @@ describe('StepWizard', () => {
 
     expect(screen.getByText('Adım 2')).toBeTruthy();
   });
+
+  it('klavye Escape tuşu ile adım atlanır', () => {
+    render(<StepWizard steps={steps} onComplete={vi.fn()} />);
+
+    fireEvent.keyDown(document, { key: 'Escape' });
+
+    expect(screen.getByText('Adım 2')).toBeTruthy();
+  });
+
+  it('son adımda Escape tuşu çalışmaz (hideSkip)', () => {
+    render(<StepWizard steps={steps} onComplete={vi.fn()} />);
+
+    fireEvent.click(screen.getByText('İleri →'));
+    fireEvent.click(screen.getByText('İleri →'));
+
+    // Son adımda ESC tuşu adım değiştirmemeli
+    fireEvent.keyDown(document, { key: 'Escape' });
+
+    expect(screen.getByText('Adım 3')).toBeTruthy();
+  });
 });

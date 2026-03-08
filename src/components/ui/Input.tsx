@@ -8,6 +8,7 @@ interface InputProps extends Omit<JSX.HTMLAttributes<HTMLInputElement>, 'onChang
   placeholder?: string;
   disabled?: boolean;
   error?: string;
+  type?: 'text' | 'password' | 'email' | 'url' | 'number';
 }
 
 export function Input({
@@ -18,6 +19,7 @@ export function Input({
   placeholder,
   disabled = false,
   error,
+  type = 'text',
   class: className,
   ...rest
 }: InputProps) {
@@ -34,7 +36,7 @@ export function Input({
       <input
         {...rest}
         id={inputId}
-        type="text"
+        type={type}
         value={value}
         onInput={(e) => onChange((e.target as HTMLInputElement).value)}
         placeholder={placeholder}

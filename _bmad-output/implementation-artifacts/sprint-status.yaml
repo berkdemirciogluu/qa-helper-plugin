@@ -59,11 +59,11 @@ development_status:
   epic-3: in-progress
   3-1-options-page-layout-navigasyon-ve-genel-ayarlar: done
   3-2-options-page-konfigurasyon-alanlari-ve-veri-yonetimi: done
-  3-3-ilk-kullanim-onboarding-wizard: review
+  3-3-ilk-kullanim-onboarding-wizard: done
   epic-3-retrospective: optional
 
   # Epic 4: Jira Entegrasyonu
-  epic-4: backlog
+  epic-4: in-progress
   4-1-jira-baglanti-kurulumu-ve-kimlik-dogrulama: backlog
-  4-2-jira-ticket-olusturma-ve-dosya-ekleme: backlog
+  4-2-jira-ticket-olusturma-ve-dosya-ekleme: ready-for-dev
   epic-4-retrospective: optional

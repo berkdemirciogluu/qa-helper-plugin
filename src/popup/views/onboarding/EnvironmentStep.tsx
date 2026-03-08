@@ -1,4 +1,4 @@
-import { useState } from 'preact/hooks';
+import { useState, useRef } from 'preact/hooks';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { storageGet, storageSet } from '@/lib/storage';
@@ -26,38 +26,53 @@ export function EnvironmentStep() {
   const [projectName, setProjectName] = useState('');
   const [environment, setEnvironment] = useState('');
   const [agileTeam, setAgileTeam] = useState('');
+  const writeTimerRef = useRef<ReturnType<typeof setTimeout>>();
 
   async function writeToStorage(fields: {
     project: string;
     environment: string;
     agileTeam: string;
   }) {
-    const result = await storageGet<SessionConfig>(STORAGE_KEYS.SESSION_CONFIG);
-    const existing =
-      result.success && result.data ? result.data : { toggles: DEFAULT_TOGGLES };
-    const updated: SessionConfig = {
-      ...existing,
-      configFields: {
-        testCycle: existing.configFields?.testCycle ?? '',
-        ...fields,
-      },
-    };
-    await storageSet(STORAGE_KEYS.SESSION_CONFIG, updated);
+    try {
+      const result = await storageGet<SessionConfig>(STORAGE_KEYS.SESSION_CONFIG);
+      const existing =
+        result.success && result.data ? result.data : { toggles: DEFAULT_TOGGLES };
+      const updated: SessionConfig = {
+        ...existing,
+        configFields: {
+          testCycle: existing.configFields?.testCycle ?? '',
+          ...fields,
+        },
+      };
+      await storageSet(STORAGE_KEYS.SESSION_CONFIG, updated);
+    } catch {
+      // Storage hatası — opsiyonel alan, sessizce devam et
+    }
   }
 
-  async function handleProjectChange(value: string) {
+  function debouncedWrite(fields: {
+    project: string;
+    environment: string;
+    agileTeam: string;
+  }) {
+    if (writeTimerRef.current) clearTimeout(writeTimerRef.current);
+    writeTimerRef.current = setTimeout(() => void writeToStorage(fields), 300);
+  }
+
+  function handleProjectChange(value: string) {
     setProjectName(value);
-    await writeToStorage({ project: value, environment, agileTeam });
+    debouncedWrite({ project: value, environment, agileTeam });
   }
 
-  async function handleEnvironmentChange(value: string) {
+  function handleEnvironmentChange(value: string) {
     setEnvironment(value);
-    await writeToStorage({ project: projectName, environment: value, agileTeam });
+    // Select değişikliği anında kaydedilir (debounce yok)
+    void writeToStorage({ project: projectName, environment: value, agileTeam });
   }
 
-  async function handleAgileTeamChange(value: string) {
+  function handleAgileTeamChange(value: string) {
     setAgileTeam(value);
-    await writeToStorage({ project: projectName, environment, agileTeam: value });
+    debouncedWrite({ project: projectName, environment, agileTeam: value });
   }
 
   return (

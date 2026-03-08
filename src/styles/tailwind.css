@@ -20,7 +20,8 @@
 
 @media (prefers-reduced-motion: reduce) {
   .slide-enter-right,
-  .slide-enter-left {
+  .slide-enter-left,
+  .fade-enter {
     animation: none;
   }
 }

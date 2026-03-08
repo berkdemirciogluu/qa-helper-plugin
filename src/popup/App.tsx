@@ -22,8 +22,12 @@ export function App() {
   }, []);
 
   async function checkOnboarding() {
-    const result = await storageGet<boolean>(STORAGE_KEYS.ONBOARDING_COMPLETED);
-    if (!result.success || result.data !== true) {
+    try {
+      const result = await storageGet<boolean>(STORAGE_KEYS.ONBOARDING_COMPLETED);
+      if (!result.success || result.data !== true) {
+        currentView.value = 'onboarding';
+      }
+    } catch {
       currentView.value = 'onboarding';
     }
   }

@@ -25,12 +25,12 @@ const steps = [
 
 export function OnboardingView() {
   async function handleComplete() {
-    await storageSet(STORAGE_KEYS.ONBOARDING_COMPLETED, true);
+    try {
+      await storageSet(STORAGE_KEYS.ONBOARDING_COMPLETED, true);
+    } catch {
+      // Storage hatası — yine de dashboard'a geç
+    }
     onboardingPulse.value = true;
-    // 5 saniye sonra pulse otomatik kapanır
-    setTimeout(() => {
-      onboardingPulse.value = false;
-    }, 5000);
     currentView.value = 'dashboard';
   }
 
