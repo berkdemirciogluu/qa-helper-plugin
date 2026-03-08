@@ -39,12 +39,12 @@ export function DataSummary({
     { label: 'sessionStorage', available: hasSessionStorage },
     {
       label: `XHR${xhrCount > 0 ? ` (${xhrCount})` : ''}`,
-      available: hasSession && xhrCount > 0,
+      available: hasSession,
       sessionRequired: true,
     },
     {
       label: `Timeline${clickCount > 0 ? ` (${clickCount} olay)` : ''}`,
-      available: hasSession && clickCount > 0,
+      available: hasSession,
       sessionRequired: true,
     },
   ];

@@ -14,7 +14,6 @@ export const STORAGE_KEYS = {
   SESSION_CONFIG: 'session_config',
   SESSION_SNAPSHOT: 'session_snapshot',
   JIRA_CREDENTIALS: 'jira_credentials',
-  BUG_REPORT_CONFIG: 'bug_report_config',
 } as const;
 
 /** Varsayılan bug raporu önceliği */

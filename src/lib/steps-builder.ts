@@ -5,8 +5,7 @@ import type { ClickEvent, NavEvent } from './types';
  * Tüm olaylar timestamp'e göre sıralanır.
  */
 export function buildStepsToReproduce(clicks: ClickEvent[], navs: NavEvent[]): string {
-  type AnyEvent = (ClickEvent | NavEvent) & { type: string };
-  const events = ([...clicks, ...navs] as AnyEvent[]).sort(
+  const events: (ClickEvent | NavEvent)[] = [...clicks, ...navs].sort(
     (a, b) => a.timestamp - b.timestamp,
   );
 
@@ -15,14 +14,12 @@ export function buildStepsToReproduce(clicks: ClickEvent[], navs: NavEvent[]): s
 
   for (const event of events) {
     if (event.type === 'nav') {
-      const navEvent = event as NavEvent;
-      steps.push(`${stepNum}. ${navEvent.url} sayfasına gidildi`);
+      steps.push(`${stepNum}. ${event.url} sayfasına gidildi`);
     } else if (event.type === 'click') {
-      const clickEvent = event as ClickEvent;
       const text =
-        clickEvent.text.length > 50
-          ? `${clickEvent.text.slice(0, 50)}...`
-          : clickEvent.text;
+        event.text.length > 50
+          ? `${event.text.slice(0, 50)}...`
+          : event.text;
       steps.push(`${stepNum}. '${text}' elementine tıklandı`);
     }
     stepNum++;

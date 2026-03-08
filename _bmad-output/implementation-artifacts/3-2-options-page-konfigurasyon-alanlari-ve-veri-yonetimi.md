@@ -1,6 +1,6 @@
 # Story 3.2: Options Page — Konfigürasyon Alanları ve Veri Yönetimi
 
-Status: review
+Status: done
 
 <!-- Note: Validation is optional. Run validate-create-story for quality check before dev-story. -->
 

@@ -140,13 +140,6 @@ export interface EnvironmentInfo {
   url: string;
 }
 
-/** Steps to reproduce — otomatik oluşturulan adım */
-export interface StepItem {
-  index: number;
-  description: string;
-  timestamp: number;
-}
-
 /** Depolama kullanım bilgisi */
 export interface StorageUsageInfo {
   totalBytes: number;

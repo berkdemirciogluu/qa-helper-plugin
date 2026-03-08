@@ -13,7 +13,7 @@ import { MESSAGE_ACTIONS, STORAGE_KEYS, DEFAULT_PRIORITY } from '@/lib/constants
 import { showToast } from '@/components/ui/Toast';
 import { buildStepsToReproduce } from '@/lib/steps-builder';
 
-import { currentView } from '@/popup/App';
+import { currentView, slideDirection } from '@/popup/view-state';
 import type {
   SnapshotData,
   TakeSnapshotPayload,
@@ -108,6 +108,7 @@ export function BugReportView({ hasSession }: { hasSession: boolean }) {
   }
 
   function handleGoBack() {
+    slideDirection.value = 'left';
     currentView.value = 'dashboard';
   }
 

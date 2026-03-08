@@ -1,4 +1,3 @@
-import { signal } from '@preact/signals';
 import { useState } from 'preact/hooks';
 import { AlertCircle } from 'lucide-preact';
 import { DashboardView } from './views/DashboardView';
@@ -8,13 +7,8 @@ import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
 import { sendMessage } from '@/lib/messaging';
 import { MESSAGE_ACTIONS } from '@/lib/constants';
+import { currentView, slideDirection } from './view-state';
 import type { GetSessionStatusPayload, SessionMeta } from '@/lib/types';
-
-type View = 'dashboard' | 'bugReport';
-
-const currentView = signal<View>('dashboard');
-// Animasyon yönü: dashboard→bugReport='right', bugReport→dashboard='left'
-const slideDirection = signal<'right' | 'left'>('right');
 
 export function App() {
   const [showSessionWarning, setShowSessionWarning] = useState(false);
@@ -100,4 +94,3 @@ export function App() {
   );
 }
 
-export { currentView, slideDirection };
