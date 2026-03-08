@@ -12,6 +12,7 @@ import { sendMessage } from '@/lib/messaging';
 import { MESSAGE_ACTIONS, STORAGE_KEYS } from '@/lib/constants';
 import { storageGet, storageSet } from '@/lib/storage';
 import { showToast } from '@/components/ui/Toast';
+import { onboardingPulse } from '../view-state';
 import type { SessionMeta, SessionConfig, StartSessionPayload, StopSessionPayload, GetSessionStatusPayload } from '@/lib/types';
 
 const DEFAULT_TOGGLES: SessionConfig['toggles'] = {
@@ -156,6 +157,9 @@ export function DashboardView({ onOpenBugReport }: DashboardViewProps) {
       return;
     }
 
+    // Onboarding pulse göründüyse kullanıcı aksiyon aldı — kapat
+    onboardingPulse.value = false;
+
     isActionLoading.value = true;
     const result = await sendMessage<StartSessionPayload, SessionMeta>({
       action: MESSAGE_ACTIONS.START_SESSION,
@@ -242,6 +246,7 @@ export function DashboardView({ onOpenBugReport }: DashboardViewProps) {
             onStart={() => void handleStartSession()}
             onStop={() => void handleStopSession()}
             loading={isActionLoading.value}
+            startPulse={onboardingPulse.value}
           />
         </Card>
 

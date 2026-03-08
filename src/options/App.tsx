@@ -7,6 +7,7 @@ import { GeneralSettingsPage } from '@/options/pages/GeneralSettingsPage';
 import { ConfigurationPage } from '@/options/pages/ConfigurationPage';
 import { DataManagementPage } from '@/options/pages/DataManagementPage';
 import { AboutPage } from '@/options/pages/AboutPage';
+import { ToastContainer } from '@/components/ui/Toast';
 
 type PageKey = 'general' | 'configuration' | 'data-management' | 'about';
 
@@ -37,6 +38,7 @@ export function App() {
 
   return (
     <div class="min-h-screen bg-gray-50">
+      <ToastContainer />
       {/* Mobile header */}
       <header class="md:hidden flex items-center justify-between p-4 bg-white border-b">
         <h1 class="text-lg font-semibold text-gray-900">QA Helper Ayarları</h1>

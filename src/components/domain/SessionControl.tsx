@@ -8,6 +8,7 @@ interface SessionControlProps {
   onStart: () => void;
   onStop: () => void;
   loading?: boolean;
+  startPulse?: boolean;
 }
 
 function formatDuration(totalSeconds: number): string {
@@ -22,6 +23,7 @@ export function SessionControl({
   onStart,
   onStop,
   loading = false,
+  startPulse = false,
 }: SessionControlProps) {
   const isRecording = status === 'recording';
   const dotVariant = isRecording ? 'active' : 'inactive';
@@ -64,6 +66,7 @@ export function SessionControl({
           onClick={onStart}
           loading={loading}
           aria-label="Session başlat"
+          class={startPulse ? 'animate-pulse' : ''}
         >
           Session Başlat
         </Button>

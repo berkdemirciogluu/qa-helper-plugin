@@ -165,6 +165,13 @@ export interface SessionConfig {
   configFields?: ConfigFields;
 }
 
+/** Jira bağlantı bilgileri */
+export interface JiraCredentials {
+  platform: 'cloud' | 'server' | '';
+  url: string;
+  token: string;
+}
+
 // Snapshot tipleri
 export interface ScreenshotMetadata {
   viewport: { width: number; height: number };

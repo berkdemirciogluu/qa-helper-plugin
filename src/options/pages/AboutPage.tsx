@@ -1,7 +1,15 @@
 import { SectionGroup } from '@/components/layout/SectionGroup';
+import { storageRemove } from '@/lib/storage';
+import { STORAGE_KEYS } from '@/lib/constants';
+import { showToast } from '@/components/ui/Toast';
 
 export function AboutPage() {
   const version = chrome.runtime.getManifest().version;
+
+  async function handleResetOnboarding() {
+    await storageRemove(STORAGE_KEYS.ONBOARDING_COMPLETED);
+    showToast('info', "Popup'ı açtığınızda kurulum sihirbazı tekrar gösterilecek");
+  }
 
   return (
     <div class="flex flex-col gap-6">
@@ -29,11 +37,11 @@ export function AboutPage() {
       <SectionGroup title="Diğer">
         <button
           type="button"
-          disabled
-          class="text-sm text-gray-400 cursor-not-allowed"
+          onClick={() => void handleResetOnboarding()}
+          class="text-sm text-blue-600 hover:text-blue-700 transition-colors focus-visible:outline-2 focus-visible:outline-blue-500 focus-visible:outline-offset-2 rounded"
           aria-label="Kurulum sihirbazını tekrar aç"
         >
-          Kurulum sihirbazını tekrar aç (yakında)
+          Kurulum sihirbazını tekrar aç
         </button>
       </SectionGroup>
     </div>

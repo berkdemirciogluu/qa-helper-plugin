@@ -24,3 +24,13 @@
     animation: none;
   }
 }
+
+/* Onboarding fade geçişi */
+.fade-enter {
+  animation: fadeIn 150ms ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
