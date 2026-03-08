@@ -15,6 +15,22 @@ export const STORAGE_KEYS = {
   JIRA_CREDENTIALS: 'jira_credentials',
 } as const;
 
+/** Content script flush interval (3 saniye) */
+export const RECORDER_FLUSH_INTERVAL_MS = 3000;
+
+/** Injected page script postMessage tipleri */
+export const QA_HELPER_MSG_TYPES = {
+  XHR: '__QA_HELPER_XHR__',
+  CONSOLE: '__QA_HELPER_CONSOLE__',
+  NAV: '__QA_HELPER_NAV__',
+} as const;
+
+/** Static asset uzantıları — XHR/Fetch kaydından hariç tutulur */
+export const STATIC_ASSET_EXTENSIONS = [
+  '.js', '.css', '.png', '.jpg', '.jpeg', '.gif', '.svg',
+  '.woff', '.woff2', '.ttf', '.eot', '.ico', '.map', '.webp', '.avif',
+] as const;
+
 /** Mesaj action isimleri */
 export const MESSAGE_ACTIONS = {
   START_SESSION: 'START_SESSION',
@@ -27,4 +43,9 @@ export const MESSAGE_ACTIONS = {
   EXPORT_JIRA: 'EXPORT_JIRA',
   SESSION_EVENT: 'SESSION_EVENT',
   SNAPSHOT_DATA: 'SNAPSHOT_DATA',
+  START_RECORDING: 'START_RECORDING',
+  STOP_RECORDING: 'STOP_RECORDING',
+  PAUSE_RECORDING: 'PAUSE_RECORDING',
+  RESUME_RECORDING: 'RESUME_RECORDING',
+  QUERY_RECORDING_STATE: 'QUERY_RECORDING_STATE',
 } as const;

@@ -39,6 +39,7 @@ export interface SessionMeta {
 export interface NavEvent {
   type: 'nav';
   timestamp: number;
+  oldUrl: string;
   url: string;
   title: string;
 }
@@ -48,6 +49,7 @@ export interface ClickEvent {
   timestamp: number;
   selector: string;
   text: string;
+  pageUrl: string;
   x: number;
   y: number;
 }
@@ -68,6 +70,7 @@ export interface ConsoleEvent {
   timestamp: number;
   level: 'log' | 'warn' | 'error' | 'info';
   message: string;
+  stack?: string;
 }
 
 export interface ErrorEvent {
@@ -103,5 +106,9 @@ export interface StopSessionPayload {
 }
 
 export interface GetSessionStatusPayload {
+  tabId: number;
+}
+
+export interface RecorderCommandPayload {
   tabId: number;
 }

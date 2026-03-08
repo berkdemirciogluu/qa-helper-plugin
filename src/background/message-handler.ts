@@ -1,5 +1,5 @@
 import { MESSAGE_ACTIONS } from '../lib/constants';
-import { onMessage } from '../lib/messaging';
+import { onMessage, sendTabMessage } from '../lib/messaging';
 import type {
   Message,
   MessageResponse,
@@ -7,6 +7,7 @@ import type {
   StartSessionPayload,
   StopSessionPayload,
   GetSessionStatusPayload,
+  RecorderCommandPayload,
 } from '../lib/types';
 import { startSession, stopSession, getSession, updateCounters } from './session-manager';
 import { enqueueFlush } from './flush-manager';
@@ -26,6 +27,7 @@ export function setupMessageHandler(): void {
   onMessage<KnownPayload>(
     async (
       message: Message<KnownPayload>,
+      sender: chrome.runtime.MessageSender,
     ): Promise<MessageResponse<unknown>> => {
       const { action, payload } = message;
 
@@ -38,6 +40,13 @@ export function setupMessageHandler(): void {
             const p = payload as StartSessionPayload;
             const result = await startSession(p.tabId, p.url);
             if (result.success) {
+              // Content script'e START_RECORDING komutu gönder
+              sendTabMessage<RecorderCommandPayload, unknown>(p.tabId, {
+                action: MESSAGE_ACTIONS.START_RECORDING,
+                payload: { tabId: p.tabId },
+              }).catch(() => {
+                // Content script henüz yüklenmemiş olabilir — kritik değil
+              });
               return { success: true, data: result.data };
             }
             return { success: false, error: result.error };
@@ -50,6 +59,13 @@ export function setupMessageHandler(): void {
             const p = payload as StopSessionPayload;
             const result = await stopSession(p.tabId);
             if (result.success) {
+              // Content script'e STOP_RECORDING komutu gönder
+              sendTabMessage<RecorderCommandPayload, unknown>(p.tabId, {
+                action: MESSAGE_ACTIONS.STOP_RECORDING,
+                payload: { tabId: p.tabId },
+              }).catch(() => {
+                // Content script erişilemeyebilir — kritik değil
+              });
               return { success: true };
             }
             return { success: false, error: result.error };
@@ -97,6 +113,16 @@ export function setupMessageHandler(): void {
             if (navCount > 0) await updateCounters(p.tabId, 'nav', navCount);
 
             return { success: true };
+          }
+
+          case MESSAGE_ACTIONS.QUERY_RECORDING_STATE: {
+            const tabId = sender.tab?.id;
+            if (!tabId) {
+              return { success: false, error: 'No tab ID from sender' };
+            }
+            const result = await getSession(tabId);
+            const recording = result.success && result.data?.status === 'recording';
+            return { success: true, data: { recording, tabId } };
           }
 
           default:

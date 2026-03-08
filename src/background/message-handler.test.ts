@@ -33,6 +33,8 @@ type MessageHandler = (
 
 let capturedListener: MessageHandler | null = null;
 
+const mockSendTabMessage = vi.fn().mockResolvedValue(undefined);
+
 vi.stubGlobal('chrome', {
   runtime: {
     onMessage: {
@@ -52,18 +54,19 @@ vi.stubGlobal('chrome', {
     setBadgeBackgroundColor: vi.fn(),
   },
   tabs: {
+    sendMessage: mockSendTabMessage,
     onActivated: {
       addListener: vi.fn(),
     },
   },
 });
 
-async function dispatch(action: string, payload: unknown): Promise<unknown> {
+async function dispatch(action: string, payload: unknown, sender?: Partial<chrome.runtime.MessageSender>): Promise<unknown> {
   return new Promise((resolve) => {
     if (!capturedListener) throw new Error('No listener registered');
     capturedListener(
       { action, payload },
-      {} as chrome.runtime.MessageSender,
+      (sender ?? {}) as chrome.runtime.MessageSender,
       (response) => resolve(response),
     );
   });
@@ -261,5 +264,98 @@ describe('Bilinmeyen action', () => {
 
     expect(response.success).toBe(false);
     expect(response.error).toBe('Unknown action');
+  });
+});
+
+// 7.11 START_SESSION sonrası content script'e START_RECORDING gönderme
+describe('START_SESSION → content script START_RECORDING', () => {
+  it('startSession başarılı olunca content script\'e START_RECORDING gönderilir', async () => {
+    const meta: SessionMeta = {
+      tabId: 42, startTime: 1000, url: 'https://example.com', status: 'recording',
+      counters: { clicks: 0, xhrRequests: 0, consoleErrors: 0, navEvents: 0 },
+    };
+    mockStartSession.mockResolvedValue({ success: true, data: meta });
+
+    await dispatch('START_SESSION', { tabId: 42, url: 'https://example.com' });
+
+    // sendTabMessage aracılığıyla chrome.tabs.sendMessage çağrılmalı
+    // message-handler sendTabMessage'ı fire-and-forget olarak çağırır
+    await vi.waitFor(() => {
+      expect(mockSendTabMessage).toHaveBeenCalledWith(
+        42,
+        expect.objectContaining({
+          action: 'START_RECORDING',
+          payload: { tabId: 42 },
+        }),
+      );
+    });
+  });
+
+  it('startSession başarısız olunca content script\'e mesaj gönderilmez', async () => {
+    mockStartSession.mockResolvedValue({ success: false, error: 'Failed' });
+
+    await dispatch('START_SESSION', { tabId: 42, url: 'https://example.com' });
+
+    expect(mockSendTabMessage).not.toHaveBeenCalled();
+  });
+});
+
+// 7.12 STOP_SESSION sonrası content script'e STOP_RECORDING gönderme
+describe('STOP_SESSION → content script STOP_RECORDING', () => {
+  it('stopSession başarılı olunca content script\'e STOP_RECORDING gönderilir', async () => {
+    mockStopSession.mockResolvedValue({ success: true, data: undefined });
+
+    await dispatch('STOP_SESSION', { tabId: 42 });
+
+    await vi.waitFor(() => {
+      expect(mockSendTabMessage).toHaveBeenCalledWith(
+        42,
+        expect.objectContaining({
+          action: 'STOP_RECORDING',
+          payload: { tabId: 42 },
+        }),
+      );
+    });
+  });
+
+  it('stopSession başarısız olunca content script\'e mesaj gönderilmez', async () => {
+    mockStopSession.mockResolvedValue({ success: false, error: 'No session' });
+
+    await dispatch('STOP_SESSION', { tabId: 42 });
+
+    expect(mockSendTabMessage).not.toHaveBeenCalled();
+  });
+});
+
+// QUERY_RECORDING_STATE — content script recording state sorgusu
+describe('QUERY_RECORDING_STATE', () => {
+  it('session recording ise { recording: true, tabId } döner', async () => {
+    const meta: SessionMeta = {
+      tabId: 42, startTime: 1000, url: 'https://example.com', status: 'recording',
+      counters: { clicks: 0, xhrRequests: 0, consoleErrors: 0, navEvents: 0 },
+    };
+    mockGetSession.mockResolvedValue({ success: true, data: meta });
+
+    const response = await dispatch('QUERY_RECORDING_STATE', {}, { tab: { id: 42 } as chrome.tabs.Tab }) as { success: boolean; data: { recording: boolean; tabId: number } };
+
+    expect(response.success).toBe(true);
+    expect(response.data.recording).toBe(true);
+    expect(response.data.tabId).toBe(42);
+  });
+
+  it('session yoksa { recording: false } döner', async () => {
+    mockGetSession.mockResolvedValue({ success: true, data: null });
+
+    const response = await dispatch('QUERY_RECORDING_STATE', {}, { tab: { id: 99 } as chrome.tabs.Tab }) as { success: boolean; data: { recording: boolean; tabId: number } };
+
+    expect(response.success).toBe(true);
+    expect(response.data.recording).toBe(false);
+  });
+
+  it('sender.tab yoksa error döner', async () => {
+    const response = await dispatch('QUERY_RECORDING_STATE', {}, {}) as { success: boolean; error: string };
+
+    expect(response.success).toBe(false);
+    expect(response.error).toContain('No tab ID');
   });
 });
