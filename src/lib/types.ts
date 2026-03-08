@@ -112,3 +112,14 @@ export interface GetSessionStatusPayload {
 export interface RecorderCommandPayload {
   tabId: number;
 }
+
+// Veri kaynağı toggle konfigürasyonu
+export interface SessionConfig {
+  toggles: {
+    har: boolean;
+    console: boolean;
+    dom: boolean;
+    localStorage: boolean;
+    sessionStorage: boolean;
+  };
+}

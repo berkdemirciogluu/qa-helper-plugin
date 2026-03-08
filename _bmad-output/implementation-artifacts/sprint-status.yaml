@@ -41,11 +41,11 @@ story_location: _bmad-output/implementation-artifacts
 
 development_status:
   # Epic 1: Proje Kurulumu ve Session Kayit Motoru
-  epic-1: in-progress
+  epic-1: done
   1-1-proje-kurulumu-ve-chrome-extension-altyapisi: done
   1-2-service-worker-session-yasam-dongusu-ve-veri-yonetimi: done
   1-3-content-script-veri-kayit-motoru: done
-  1-4-popup-dashboard-ve-session-kontrol: backlog
+  1-4-popup-dashboard-ve-session-kontrol: done
   epic-1-retrospective: optional
 
   # Epic 2: Bug Raporlama ve ZIP Export
