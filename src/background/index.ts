@@ -44,3 +44,14 @@ chrome.tabs.onActivated.addListener(async ({ tabId }) => {
     console.error('[Background] onActivated failed:', error);
   }
 });
+
+// ─── Full page navigation URL tracking ──────────────────────────────────────
+// Tam sayfa navigasyonlarda önceki URL'i takip et.
+// Sayaç artırma ve flush işlemi content script recovery'de yapılır.
+export const tabPreviousUrls = new Map<number, string>();
+
+chrome.tabs.onUpdated.addListener((_tabId, changeInfo) => {
+  if (changeInfo.url) {
+    tabPreviousUrls.set(_tabId, changeInfo.url);
+  }
+});

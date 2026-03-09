@@ -6,30 +6,6 @@ interface ExportResult {
   fileSize: string;
 }
 
-interface SimplifiedHarEntry {
-  startedDateTime: string;
-  request: {
-    method: string;
-    url: string;
-    headers: never[];
-    bodySize: number;
-  };
-  response: {
-    status: number;
-    statusText: string;
-    headers: never[];
-    bodySize: number;
-  };
-  time: number;
-}
-
-interface SimplifiedHar {
-  log: {
-    version: '1.2';
-    entries: SimplifiedHarEntry[];
-  };
-}
-
 interface ExportBugReportInput {
   snapshotData: SnapshotData;
   timeline: TimelineJSON;
@@ -37,26 +13,61 @@ interface ExportBugReportInput {
   xhrs: XhrEvent[];
 }
 
-function buildHar(xhrs: XhrEvent[]): SimplifiedHar {
+function buildHar(xhrs: XhrEvent[]): Record<string, unknown> {
+  const sorted = [...xhrs].sort((a, b) => a.timestamp - b.timestamp);
   return {
     log: {
       version: '1.2',
-      entries: xhrs.map((xhr) => ({
-        startedDateTime: new Date(xhr.timestamp).toISOString(),
-        request: {
-          method: xhr.method,
-          url: xhr.url,
-          headers: [],
-          bodySize: xhr.requestBody?.length ?? 0,
-        },
-        response: {
-          status: xhr.status,
-          statusText: '',
-          headers: [],
-          bodySize: xhr.responseBody?.length ?? 0,
-        },
-        time: xhr.duration,
-      })),
+      creator: { name: 'QA Helper', version: '0.1.0' },
+      entries: sorted.map((xhr) => {
+        const duration = Number(xhr.duration) || 0;
+        const reqBodySize = xhr.requestBody ? new Blob([xhr.requestBody]).size : 0;
+        const resBodySize = xhr.responseBody ? new Blob([xhr.responseBody]).size : 0;
+        return {
+          _resourceType: 'xhr',
+          startedDateTime: new Date(xhr.timestamp).toISOString(),
+          time: duration,
+          request: {
+            method: xhr.method,
+            url: xhr.url,
+            httpVersion: 'HTTP/1.1',
+            cookies: [],
+            headers: [],
+            queryString: [],
+            headersSize: -1,
+            bodySize: reqBodySize,
+            ...(xhr.requestBody
+              ? { postData: { mimeType: 'application/json', text: xhr.requestBody } }
+              : {}),
+          },
+          response: {
+            status: xhr.status,
+            statusText: '',
+            httpVersion: 'HTTP/1.1',
+            cookies: [],
+            headers: [],
+            content: {
+              size: resBodySize,
+              mimeType: 'application/json',
+              text: xhr.responseBody ?? '',
+            },
+            redirectURL: '',
+            headersSize: -1,
+            bodySize: resBodySize,
+            _transferSize: resBodySize,
+          },
+          cache: {},
+          timings: {
+            blocked: -1,
+            dns: -1,
+            ssl: -1,
+            connect: -1,
+            send: 0,
+            wait: duration,
+            receive: 0,
+          },
+        };
+      }),
     },
   };
 }
@@ -69,7 +80,9 @@ function formatFileSize(bytes: number): string {
   return `${(bytes / 1024).toFixed(1)} KB`;
 }
 
-export async function exportBugReportZip(input: ExportBugReportInput): Promise<Result<ExportResult>> {
+export async function exportBugReportZip(
+  input: ExportBugReportInput
+): Promise<Result<ExportResult>> {
   try {
     const { snapshotData, timeline, description, xhrs } = input;
     const JSZip = (await import('jszip')).default;

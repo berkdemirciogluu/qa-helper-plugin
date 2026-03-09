@@ -30,7 +30,6 @@ export async function sendTabMessage<T, R>(
 ): Promise<Result<R>> {
   try {
     const response = (await chrome.tabs.sendMessage(tabId, message)) as MessageResponse<R>;
-    console.log(`[Messaging] sendTabMessage(${tabId}) response:`, response);
     if (!response) {
       return { success: false, error: 'No response received' };
     }
@@ -40,7 +39,6 @@ export async function sendTabMessage<T, R>(
     return { success: false, error: response.error ?? 'Unknown error' };
   } catch (err) {
     const error = err instanceof Error ? err.message : String(err);
-    console.error(`[Messaging] sendTabMessage(${tabId}) failed:`, error);
     return { success: false, error };
   }
 }

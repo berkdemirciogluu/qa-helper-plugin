@@ -420,7 +420,7 @@ export function BugReportView({ hasSession }: { hasSession: boolean }) {
   const data = snapshotData.value;
 
   return (
-    <div class="flex flex-col h-full overflow-x-hidden overflow-y-auto">
+    <div class="flex flex-col flex-1 min-h-0 overflow-x-hidden overflow-y-auto">
       {/* Header */}
       <header class="flex items-center gap-2 px-4 py-3 border-b border-gray-200 shrink-0">
         <button

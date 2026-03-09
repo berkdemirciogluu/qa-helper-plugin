@@ -18,7 +18,7 @@ export function App() {
 
   useEffect(() => {
     void checkOnboarding();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   async function checkOnboarding() {
@@ -67,25 +67,26 @@ export function App() {
 
   const view = currentView.value;
   const direction = slideDirection.value;
-  const animClass = view === 'bugReport'
-    ? (direction === 'right' ? 'slide-enter-right' : 'slide-enter-left')
-    : (direction === 'left' ? 'slide-enter-left' : 'slide-enter-right');
+  const animClass =
+    view === 'bugReport'
+      ? direction === 'right'
+        ? 'slide-enter-right'
+        : 'slide-enter-left'
+      : direction === 'left'
+        ? 'slide-enter-left'
+        : 'slide-enter-right';
 
   return (
     <div class="w-[400px] min-h-0 max-h-[600px] bg-white flex flex-col overflow-hidden relative">
       <ToastContainer />
 
       {/* Session'sız uyarı modalı — DashboardView seviyesinde */}
-      <Modal
-        isOpen={showSessionWarning}
-        onClose={handleWarningCancel}
-        title="Session Kaydı Yok"
-      >
+      <Modal isOpen={showSessionWarning} onClose={handleWarningCancel} title="Session Kaydı Yok">
         <div class="flex items-start gap-3">
           <AlertCircle size={20} class="text-amber-500 shrink-0 mt-0.5" aria-hidden="true" />
           <p class="text-sm text-gray-700">
-            Session kaydı yok, sadece anlık snapshot alınacak. Tıklama akışı ve XHR geçmişi
-            dahil edilemez.
+            Session kaydı yok, sadece anlık snapshot alınacak. Tıklama akışı ve XHR geçmişi dahil
+            edilemez.
           </p>
         </div>
         <div class="flex justify-end gap-2">
@@ -109,11 +110,10 @@ export function App() {
         </div>
       )}
       {view === 'bugReport' && (
-        <div class={`flex flex-col h-full ${animClass}`}>
+        <div class={`flex flex-col flex-1 min-h-0 ${animClass}`}>
           <BugReportView hasSession={hasSession} />
         </div>
       )}
     </div>
   );
 }
-

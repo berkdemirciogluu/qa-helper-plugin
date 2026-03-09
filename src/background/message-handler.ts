@@ -125,7 +125,10 @@ export function setupMessageHandler(): void {
             }
             const result = await getSession(tabId);
             const recording = result.success && result.data?.status === 'recording';
-            return { success: true, data: { recording, tabId } };
+            // Tam sayfa navigasyonda recorder'ın nav event oluşturabilmesi için önceki URL'i gönder
+            const { tabPreviousUrls } = await import('./index');
+            const previousUrl = tabPreviousUrls.get(tabId) ?? result.data?.url ?? '';
+            return { success: true, data: { recording, tabId, previousUrl } };
           }
 
           case MESSAGE_ACTIONS.TAKE_SNAPSHOT: {

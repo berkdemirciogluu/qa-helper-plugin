@@ -12,8 +12,28 @@ import type {
 // ─── Session State ───────────────────────────────────────────────────────────
 let isRecording = false;
 let isPaused = false;
+let isContextValid = true;
 let currentTabId = -1;
 let currentPageUrl = location.href;
+
+// Extension reload/update sonrası context geçersiz olur — sessizce dur
+function checkContext(): boolean {
+  try {
+    void chrome.runtime.id;
+    return true;
+  } catch {
+    teardown();
+    return false;
+  }
+}
+
+function teardown(): void {
+  isContextValid = false;
+  isRecording = false;
+  isPaused = false;
+  stopFlushTimer();
+  window.removeEventListener('message', handlePageMessage);
+}
 
 // ─── Event Buffers ───────────────────────────────────────────────────────────
 type DataType = FlushDataPayload['dataType'];
@@ -33,6 +53,8 @@ let previousPageLogs: ConsoleEvent[] = [];
 let flushTimerId: ReturnType<typeof setInterval> | null = null;
 
 function flushEvents(dataType: DataType, critical?: boolean): void {
+  if (!isRecording || !isContextValid) return;
+  if (!checkContext()) return;
   const events = pendingEvents.get(dataType);
   if (!events || events.length === 0) return;
 
@@ -43,12 +65,14 @@ function flushEvents(dataType: DataType, critical?: boolean): void {
     critical,
   };
 
-  chrome.runtime.sendMessage({
-    action: MESSAGE_ACTIONS.FLUSH_DATA,
-    payload,
-  }).catch(() => {
-    // Service worker bağlantı hatası — veri kaybedilir ama çökmez
-  });
+  chrome.runtime
+    .sendMessage({
+      action: MESSAGE_ACTIONS.FLUSH_DATA,
+      payload,
+    })
+    .catch(() => {
+      // Service worker bağlantı hatası — veri kaybedilir ama çökmez
+    });
 }
 
 function flushAll(): void {
@@ -70,10 +94,15 @@ function stopFlushTimer(): void {
 }
 
 // ─── Buffer Helpers ──────────────────────────────────────────────────────────
+const MAX_PRE_RECORDING_BUFFER = 200;
+
 function addEvent(dataType: DataType, event: TimelineEvent): void {
-  if (!isRecording || isPaused) return;
+  if (isPaused || !isContextValid) return;
   const buffer = pendingEvents.get(dataType);
-  if (buffer) buffer.push(event);
+  if (!buffer) return;
+  // Kayıt başlamadan önce buffer boyutunu sınırla
+  if (!isRecording && buffer.length >= MAX_PRE_RECORDING_BUFFER) return;
+  buffer.push(event);
 }
 
 // ─── Console Rolling Window ──────────────────────────────────────────────────
@@ -148,15 +177,11 @@ function startRecording(payload: RecorderCommandPayload): void {
   isRecording = true;
   isPaused = false;
 
-  // Buffer'ları temizle
-  for (const events of pendingEvents.values()) {
-    events.length = 0;
-  }
   currentPageLogs = [];
   previousPageLogs = [];
 
   startFlushTimer();
-  injectPageScript();
+  flushAll(); // Kayıt öncesi biriken event'leri flush et
 }
 
 function stopRecording(): void {
@@ -177,37 +202,43 @@ function resumeRecording(): void {
 }
 
 // ─── chrome.runtime.onMessage — Service Worker komutları ─────────────────────
-chrome.runtime.onMessage.addListener(
-  (
-    message: { action: string; payload?: RecorderCommandPayload },
-    _sender: chrome.runtime.MessageSender,
-    sendResponse: (response: { success: boolean }) => void,
-  ) => {
-    switch (message.action) {
-      case MESSAGE_ACTIONS.START_RECORDING:
-        if (message.payload) {
-          startRecording(message.payload);
+try {
+  chrome.runtime.onMessage.addListener(
+    (
+      message: { action: string; payload?: RecorderCommandPayload },
+      _sender: chrome.runtime.MessageSender,
+      sendResponse: (response: { success: boolean }) => void
+    ) => {
+      if (!isContextValid) return;
+      switch (message.action) {
+        case MESSAGE_ACTIONS.START_RECORDING:
+          if (message.payload) {
+            startRecording(message.payload);
+            sendResponse({ success: true });
+          } else {
+            sendResponse({ success: false });
+          }
+          break;
+        case MESSAGE_ACTIONS.STOP_RECORDING:
+          stopRecording();
           sendResponse({ success: true });
-        } else {
-          sendResponse({ success: false });
-        }
-        break;
-      case MESSAGE_ACTIONS.STOP_RECORDING:
-        stopRecording();
-        sendResponse({ success: true });
-        break;
-      case MESSAGE_ACTIONS.PAUSE_RECORDING:
-        pauseRecording();
-        sendResponse({ success: true });
-        break;
-      case MESSAGE_ACTIONS.RESUME_RECORDING:
-        resumeRecording();
-        sendResponse({ success: true });
-        break;
+          break;
+        case MESSAGE_ACTIONS.PAUSE_RECORDING:
+          pauseRecording();
+          sendResponse({ success: true });
+          break;
+        case MESSAGE_ACTIONS.RESUME_RECORDING:
+          resumeRecording();
+          sendResponse({ success: true });
+          break;
+      }
+      return true;
     }
-    return true;
-  },
-);
+  );
+} catch {
+  // Extension context invalidated — sessizce dur
+  teardown();
+}
 
 // ─── postMessage Listener ────────────────────────────────────────────────────
 window.addEventListener('message', handlePageMessage);
@@ -273,7 +304,7 @@ document.addEventListener(
     };
     addEvent('click', clickEvent);
   },
-  true, // capture phase
+  true // capture phase
 );
 
 // ─── SPA Route Tracking (ISOLATED world — DOM events) ────────────────────────
@@ -301,167 +332,6 @@ window.addEventListener('hashchange', () => {
   handleNavigation(currentPageUrl, newUrl);
 });
 
-// ─── Injected Page Script (MAIN world enjeksiyonu) ───────────────────────────
-function injectPageScript(): void {
-  const script = document.createElement('script');
-  script.textContent = `(function() {
-    var QA_XHR = '__QA_HELPER_XHR__';
-    var QA_CONSOLE = '__QA_HELPER_CONSOLE__';
-    var QA_NAV = '__QA_HELPER_NAV__';
-    var MAX_BODY = ${50 * 1024};
-
-    // ── Static asset filter ──
-    var STATIC_EXT = ['.js','.css','.png','.jpg','.jpeg','.gif','.svg','.woff','.woff2','.ttf','.eot','.ico','.map','.webp','.avif'];
-    function isStaticAsset(url) {
-      if (!url || typeof url !== 'string') return false;
-      if (url.indexOf('data:') === 0 || url.indexOf('blob:') === 0) return true;
-      try {
-        var pathname = new URL(url, location.href).pathname.toLowerCase();
-        for (var i = 0; i < STATIC_EXT.length; i++) {
-          if (pathname.endsWith(STATIC_EXT[i])) return true;
-        }
-      } catch(e) {}
-      return false;
-    }
-
-    // ── Body truncation ──
-    function truncateBody(body) {
-      if (!body) return undefined;
-      if (typeof body !== 'string') return undefined;
-      if (body.length > MAX_BODY) return body.slice(0, MAX_BODY) + '\\n[truncated at 50KB]';
-      return body;
-    }
-
-    // ── XHR Monkey-Patch ──
-    var _xhrMeta = new WeakMap();
-    var _origOpen = XMLHttpRequest.prototype.open;
-    var _origSend = XMLHttpRequest.prototype.send;
-
-    XMLHttpRequest.prototype.open = function(method, url) {
-      _xhrMeta.set(this, { method: method, url: String(url), startTime: Date.now() });
-      return _origOpen.apply(this, arguments);
-    };
-
-    XMLHttpRequest.prototype.send = function(body) {
-      var meta = _xhrMeta.get(this);
-      if (meta && !isStaticAsset(meta.url)) {
-        meta.requestBody = typeof body === 'string' ? body : null;
-        var xhr = this;
-        xhr.addEventListener('loadend', function() {
-          var duration = Date.now() - meta.startTime;
-          window.postMessage({
-            type: QA_XHR,
-            method: meta.method,
-            url: meta.url,
-            status: xhr.status,
-            duration: duration,
-            requestBody: truncateBody(meta.requestBody),
-            responseBody: truncateBody(xhr.responseText),
-            timestamp: Date.now()
-          }, '*');
-        });
-      }
-      return _origSend.apply(this, arguments);
-    };
-
-    // ── Fetch Monkey-Patch ──
-    var _origFetch = window.fetch;
-    window.fetch = function(input, init) {
-      var startTime = Date.now();
-      var method = (init && init.method) || 'GET';
-      var url = typeof input === 'string' ? input
-              : input instanceof URL ? input.href
-              : input.url;
-
-      if (isStaticAsset(url)) {
-        return _origFetch.apply(this, arguments);
-      }
-
-      return _origFetch.apply(this, arguments).then(function(response) {
-        var duration = Date.now() - startTime;
-        var cloned = response.clone();
-        cloned.text().then(function(body) {
-          window.postMessage({
-            type: QA_XHR,
-            method: method, url: url,
-            status: response.status, duration: duration,
-            requestBody: truncateBody((init && typeof init.body === 'string') ? init.body : null),
-            responseBody: truncateBody(body),
-            timestamp: Date.now()
-          }, '*');
-        }).catch(function() {});
-        return response;
-      }).catch(function(err) {
-        window.postMessage({
-          type: QA_XHR,
-          method: method, url: url,
-          status: 0, duration: Date.now() - startTime,
-          requestBody: null, responseBody: null,
-          timestamp: Date.now()
-        }, '*');
-        throw err;
-      });
-    };
-
-    // ── Console Interception ──
-    var _origConsole = {
-      log: console.log.bind(console),
-      warn: console.warn.bind(console),
-      error: console.error.bind(console),
-      info: console.info.bind(console)
-    };
-
-    ['log', 'warn', 'error', 'info'].forEach(function(level) {
-      console[level] = function() {
-        var args = Array.prototype.slice.call(arguments);
-        var msg = args.map(function(a) {
-          try { return typeof a === 'object' ? JSON.stringify(a) : String(a); }
-          catch(e) { return String(a); }
-        }).join(' ');
-        var stack = level === 'error' ? (new Error()).stack || '' : undefined;
-        window.postMessage({
-          type: QA_CONSOLE,
-          level: level, message: msg, stack: stack,
-          timestamp: Date.now()
-        }, '*');
-        _origConsole[level].apply(console, args);
-      };
-    });
-
-    // ── History Monkey-Patch ──
-    var _origPush = history.pushState;
-    var _origReplace = history.replaceState;
-
-    history.pushState = function() {
-      var oldUrl = location.href;
-      var result = _origPush.apply(this, arguments);
-      window.postMessage({
-        type: QA_NAV,
-        oldUrl: oldUrl, newUrl: location.href,
-        title: document.title, timestamp: Date.now()
-      }, '*');
-      return result;
-    };
-
-    history.replaceState = function() {
-      var oldUrl = location.href;
-      var result = _origReplace.apply(this, arguments);
-      window.postMessage({
-        type: QA_NAV,
-        oldUrl: oldUrl, newUrl: location.href,
-        title: document.title, timestamp: Date.now()
-      }, '*');
-      return result;
-    };
-  })();`;
-
-  const target = document.documentElement || document.head || document.body;
-  if (target) {
-    target.appendChild(script);
-    script.remove();
-  }
-}
-
 // ─── iframe detection ────────────────────────────────────────────────────────
 // Her frame kendi recorder instance'ını çalıştırır (all_frames: true).
 // window === window.top kontrolü: top frame'de ve iframe'de aynı script çalışır.
@@ -470,18 +340,35 @@ function injectPageScript(): void {
 // ─── Recording State Recovery ────────────────────────────────────────────────
 // Tam sayfa navigasyonunda veya dinamik iframe yüklendiğinde recording state'i
 // sıfırlanır. Service worker'a aktif session var mı diye sorarak kurtarma yapar.
-chrome.runtime
-  .sendMessage({
-    action: MESSAGE_ACTIONS.QUERY_RECORDING_STATE,
-    payload: {},
-  })
-  .then(
-    (response: { success: boolean; data?: { recording: boolean; tabId: number } } | undefined) => {
-      if (response?.success && response.data?.recording && response.data.tabId) {
-        startRecording({ tabId: response.data.tabId });
+if (isContextValid && checkContext()) {
+  chrome.runtime
+    .sendMessage({
+      action: MESSAGE_ACTIONS.QUERY_RECORDING_STATE,
+      payload: {},
+    })
+    .then(
+      (response: { success: boolean; data?: { recording: boolean; tabId: number; previousUrl?: string } } | undefined) => {
+        if (response?.success && response.data?.recording && response.data.tabId) {
+          const prevUrl = response.data.previousUrl ?? '';
+          const currentUrl = location.href;
+          startRecording({ tabId: response.data.tabId });
+          if (prevUrl && prevUrl !== currentUrl) {
+            const navEvent: NavEvent = {
+              type: 'nav',
+              timestamp: Date.now(),
+              oldUrl: prevUrl,
+              url: currentUrl,
+              title: document.title,
+            };
+            addEvent('nav', navEvent);
+            currentPageUrl = currentUrl;
+            shiftConsoleLogs();
+          }
+        }
       }
-    },
-  )
-  .catch(() => {
-    // Service worker henüz hazır değil — ilk yükleme veya extension güncelleme
-  });
+    )
+    .catch(() => {
+      // Service worker henüz hazır değil veya context invalidated
+      teardown();
+    });
+}

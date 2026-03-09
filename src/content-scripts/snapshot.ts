@@ -29,11 +29,59 @@ async function collectSnapshot(): Promise<{
 }
 
 function serializeDOM(): { html: string; doctype: string; url: string } {
+  // Clone DOM and inline external styles for offline viewing
+  const clone = document.documentElement.cloneNode(true) as HTMLElement;
+
+  // Remove external <link rel="stylesheet"> and <style> with @import
+  // Replace with inlined <style> blocks from cssRules
+  const inlinedCss = collectInlineCSS();
+  const linkTags = clone.querySelectorAll('link[rel="stylesheet"]');
+  linkTags.forEach((link) => link.remove());
+
+  // Inject all collected CSS as a single <style> block in <head>
+  const headClone = clone.querySelector('head');
+  if (headClone && inlinedCss) {
+    const styleEl = document.createElement('style');
+    styleEl.setAttribute('data-qa-helper', 'inlined-styles');
+    styleEl.textContent = inlinedCss;
+    headClone.appendChild(styleEl);
+  }
+
+  // Add <base> tag so relative URLs for images etc. still resolve
+  if (headClone && !clone.querySelector('base')) {
+    const base = document.createElement('base');
+    base.href = window.location.href;
+    headClone.insertBefore(base, headClone.firstChild);
+  }
+
   return {
-    html: document.documentElement.outerHTML,
+    html: clone.outerHTML,
     doctype: '<!DOCTYPE html>',
     url: window.location.href,
   };
+}
+
+function collectInlineCSS(): string {
+  const cssTexts: string[] = [];
+  try {
+    for (let i = 0; i < document.styleSheets.length; i++) {
+      const sheet = document.styleSheets[i];
+      try {
+        const rules = sheet.cssRules;
+        for (let j = 0; j < rules.length; j++) {
+          cssTexts.push(rules[j].cssText);
+        }
+      } catch {
+        // Cross-origin stylesheet — fetch ile dene
+        if (sheet.href) {
+          cssTexts.push(`/* Cross-origin stylesheet: ${sheet.href} */`);
+        }
+      }
+    }
+  } catch {
+    // StyleSheets erişim hatası
+  }
+  return cssTexts.join('\n');
 }
 
 function dumpStorage(): {
