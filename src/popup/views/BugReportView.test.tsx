@@ -88,7 +88,7 @@ beforeEach(() => {
 describe('BugReportView', () => {
   it('başlık render edilir', () => {
     render(<BugReportView hasSession={true} />);
-    expect(screen.getByText('Bug Raporu')).toBeTruthy();
+    expect(screen.getByText('Bug Raporla')).toBeTruthy();
   });
 
   it('geri ok butonu render edilir', () => {
@@ -121,7 +121,7 @@ describe('BugReportView', () => {
   it('priority select Medium varsayılan değer ile render edilir', async () => {
     render(<BugReportView hasSession={true} />);
     await waitFor(() => {
-      const select = screen.getByRole('combobox', { name: 'Öncelik' }) as HTMLSelectElement;
+      const select = screen.getByLabelText('Priority') as HTMLSelectElement;
       expect(select.value).toBe('medium');
     });
   });
@@ -129,7 +129,7 @@ describe('BugReportView', () => {
   it('Steps to Reproduce varsayılan kapalı', async () => {
     render(<BugReportView hasSession={true} />);
     await waitFor(() => {
-      const btn = screen.getByText('Steps to Reproduce');
+      const btn = screen.getByText(/Steps to Reproduce/);
       expect(btn).toBeTruthy();
       // Textarea görünmemeli
       expect(screen.queryByLabelText('Steps to reproduce')).toBeNull();
@@ -138,8 +138,8 @@ describe('BugReportView', () => {
 
   it('Steps to Reproduce açılıp kapatılabiliyor', async () => {
     render(<BugReportView hasSession={true} />);
-    await waitFor(() => screen.getByText('Steps to Reproduce'));
-    const toggle = screen.getByText('Steps to Reproduce').closest('button')!;
+    await waitFor(() => screen.getByText(/Steps to Reproduce/));
+    const toggle = screen.getByText(/Steps to Reproduce/).closest('button')!;
     fireEvent.click(toggle);
     expect(screen.getByLabelText('Steps to reproduce')).toBeTruthy();
     fireEvent.click(toggle);
@@ -154,29 +154,27 @@ describe('BugReportView', () => {
   it('DataSummary render edilir (snapshot sonrası)', async () => {
     render(<BugReportView hasSession={true} />);
     await waitFor(() => {
-      expect(screen.getByRole('list', { name: 'Toplanan veriler' })).toBeTruthy();
+      expect(screen.getByText('Toplanan Veriler')).toBeTruthy();
     });
   });
 
   it("session'sız modda steps placeholder farklı", async () => {
     render(<BugReportView hasSession={false} />);
-    await waitFor(() => screen.getByText('Steps to Reproduce'));
-    const toggle = screen.getByText('Steps to Reproduce').closest('button')!;
+    await waitFor(() => screen.getByText(/Steps to Reproduce/));
+    const toggle = screen.getByText(/Steps to Reproduce/).closest('button')!;
     fireEvent.click(toggle);
     const textarea = screen.getByLabelText('Steps to reproduce') as HTMLTextAreaElement;
     expect(textarea.placeholder).toContain('Session kaydı yok');
   });
 
-  it('Jira butonu disabled, ZIP ve Kopyala aktif (snapshot sonrası)', async () => {
+  it('Jira butonu disabled, ZIP aktif (snapshot sonrası)', async () => {
     render(<BugReportView hasSession={true} />);
     await waitFor(() => {
       expect(screen.getByAltText('Sayfa ekran görüntüsü')).toBeTruthy();
     });
     const zipBtn = screen.getByText('ZIP İndir').closest('button')! as HTMLButtonElement;
-    const jiraBtn = screen.getByText("Jira'ya Gönder").closest('button')! as HTMLButtonElement;
-    const copyBtn = screen.getByText('Kopyala').closest('button')! as HTMLButtonElement;
+    const jiraBtn = screen.getByText('Jira Gönder').closest('button')! as HTMLButtonElement;
     expect(zipBtn.disabled).toBe(false);
-    expect(copyBtn.disabled).toBe(false);
     expect(jiraBtn.disabled).toBe(true);
     expect(jiraBtn.title).toBe("Ayarlardan Jira'yı kurun");
   });
@@ -195,19 +193,6 @@ describe('BugReportView', () => {
     await waitFor(() => {
       expect(screen.getByText('ZIP indirildi')).toBeTruthy();
       expect(screen.getByText('Session verilerini temizlemek ister misiniz?')).toBeTruthy();
-    });
-  });
-
-  it('Kopyala tıklandığında clipboard kopyalama tetiklenir', async () => {
-    const { copyToClipboard } = await import('@/lib/clipboard');
-    render(<BugReportView hasSession={true} />);
-    await waitFor(() => {
-      expect(screen.getByAltText('Sayfa ekran görüntüsü')).toBeTruthy();
-    });
-    const copyBtn = screen.getByText('Kopyala').closest('button')!;
-    fireEvent.click(copyBtn);
-    await waitFor(() => {
-      expect(copyToClipboard).toHaveBeenCalled();
     });
   });
 
@@ -246,10 +231,10 @@ describe('BugReportView', () => {
     // Koru tıklandığında form resetlenir
   });
 
-  it('Konfigürasyon alanları render edilir', async () => {
+  it('Konfigürasyon alanları kaldırıldı (Design D)', async () => {
     render(<BugReportView hasSession={true} />);
     await waitFor(() => {
-      expect(screen.getByLabelText('Environment')).toBeTruthy();
+      expect(screen.queryByLabelText('Environment')).toBeNull();
     });
   });
 
@@ -270,7 +255,7 @@ describe('BugReportView', () => {
     await waitFor(() => {
       expect(screen.getByAltText('Sayfa ekran görüntüsü')).toBeTruthy();
     });
-    const jiraBtn = screen.getByText("Jira'ya Gönder").closest('button')! as HTMLButtonElement;
+    const jiraBtn = screen.getByText('Jira Gönder').closest('button')! as HTMLButtonElement;
     expect(jiraBtn.disabled).toBe(true);
     expect(jiraBtn.title).toBe("Ayarlardan Jira'yı kurun");
   });
@@ -290,7 +275,7 @@ describe('BugReportView', () => {
       expect(screen.getByAltText('Sayfa ekran görüntüsü')).toBeTruthy();
     });
     await waitFor(() => {
-      const jiraBtn = screen.getByText("Jira'ya Gönder").closest('button')! as HTMLButtonElement;
+      const jiraBtn = screen.getByText('Jira Gönder').closest('button')! as HTMLButtonElement;
       expect(jiraBtn.disabled).toBe(false);
       expect(jiraBtn.title).toBeFalsy();
     });
@@ -313,10 +298,10 @@ describe('BugReportView', () => {
       expect(screen.getByAltText('Sayfa ekran görüntüsü')).toBeTruthy();
     });
     await waitFor(() => {
-      const jiraBtn = screen.getByText("Jira'ya Gönder").closest('button')! as HTMLButtonElement;
+      const jiraBtn = screen.getByText('Jira Gönder').closest('button')! as HTMLButtonElement;
       expect(jiraBtn.disabled).toBe(false);
     });
-    const jiraBtn = screen.getByText("Jira'ya Gönder").closest('button')!;
+    const jiraBtn = screen.getByText('Jira Gönder').closest('button')!;
     fireEvent.click(jiraBtn);
     await waitFor(() => {
       expect(exportToJira).toHaveBeenCalled();
@@ -347,10 +332,10 @@ describe('BugReportView', () => {
       expect(screen.getByAltText('Sayfa ekran görüntüsü')).toBeTruthy();
     });
     await waitFor(() => {
-      const jiraBtn = screen.getByText("Jira'ya Gönder").closest('button')! as HTMLButtonElement;
+      const jiraBtn = screen.getByText('Jira Gönder').closest('button')! as HTMLButtonElement;
       expect(jiraBtn.disabled).toBe(false);
     });
-    const jiraBtn = screen.getByText("Jira'ya Gönder").closest('button')!;
+    const jiraBtn = screen.getByText('Jira Gönder').closest('button')!;
     fireEvent.click(jiraBtn);
     await waitFor(() => {
       expect(exportToJira).toHaveBeenCalled();

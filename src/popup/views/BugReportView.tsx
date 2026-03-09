@@ -13,9 +13,7 @@ import {
 } from 'lucide-preact';
 
 import { Button } from '@/components/ui/Button';
-import { Card } from '@/components/ui/Card';
 import { DataSummary } from '@/components/domain/DataSummary';
-import { ConfigFields } from '@/components/domain/ConfigFields';
 
 import { sendMessage } from '@/lib/messaging';
 import { storageGet, storageClearSessions } from '@/lib/storage';
@@ -431,14 +429,14 @@ export function BugReportView({ hasSession }: { hasSession: boolean }) {
         >
           <ArrowLeft size={16} />
         </button>
-        <h1 class="text-sm font-semibold text-gray-900">Bug Raporu</h1>
+        <h1 class="text-sm font-semibold text-gray-900">Bug Raporla</h1>
       </header>
 
-      <main class="flex flex-col gap-3 p-4 flex-1">
+      <main class="flex flex-col gap-3 p-3 flex-1">
         {/* Screenshot Preview */}
-        <div class="rounded-lg border border-gray-200 overflow-hidden bg-gray-50 flex items-center justify-center min-h-[120px]">
+        <div class="relative rounded-lg border border-gray-200 overflow-hidden bg-gray-100 flex items-center justify-center min-h-[100px]">
           {status === 'loading' && (
-            <p class="text-sm text-gray-400" aria-live="polite">
+            <p class="text-xs text-gray-400" aria-live="polite">
               Screenshot yükleniyor...
             </p>
           )}
@@ -449,91 +447,86 @@ export function BugReportView({ hasSession }: { hasSession: boolean }) {
               class="w-full object-contain max-h-[200px]"
             />
           ) : status === 'success' ? (
-            <p class="text-sm text-gray-400">Screenshot alınamadı</p>
+            <p class="text-xs text-gray-400">Screenshot alınamadı</p>
           ) : null}
-          {status === 'error' && <p class="text-sm text-red-500">Screenshot alınamadı</p>}
-        </div>
-
-        {/* Yeniden Çek */}
-        <div class="flex justify-end">
-          <Button
-            variant="ghost"
-            size="sm"
+          {status === 'error' && <p class="text-xs text-red-500">Screenshot alınamadı</p>}
+          {/* Retake overlay button */}
+          <button
+            type="button"
             onClick={() => void triggerSnapshot()}
-            loading={status === 'loading'}
-            iconLeft={<RefreshCw size={12} />}
+            disabled={status === 'loading'}
             aria-label="Screenshot'ı yeniden çek"
+            class="absolute top-2 right-2 px-2 py-1 bg-black/50 text-white text-[11px] rounded hover:bg-black/70 transition-colors focus-visible:outline-2 focus-visible:outline-blue-500 disabled:opacity-50"
           >
-            Yeniden Çek
-          </Button>
+            <RefreshCw size={10} class="inline mr-1" />
+            Tekrar Al
+          </button>
         </div>
 
         {/* Bug Formu */}
-        <Card>
-          <div class="flex flex-col gap-3">
-            {/* Beklenen Sonuç */}
-            <div class="flex flex-col gap-1">
-              <label for="bug-expected" class="text-xs font-medium text-gray-700">
-                Beklenen Sonuç
-              </label>
-              <textarea
-                id="bug-expected"
-                aria-label="Beklenen sonuç"
-                placeholder="Ne olmasını bekliyordunuz?"
-                value={formExpected.value}
-                onInput={(e) => {
-                  formExpected.value = (e.target as HTMLTextAreaElement).value;
-                  handleTextareaResize(e);
-                }}
-                rows={2}
-                class="w-full rounded border border-gray-300 px-3 py-2 text-sm text-gray-700 resize-none focus-visible:outline-2 focus-visible:outline-blue-500 focus-visible:outline-offset-1"
-              />
-            </div>
-
-            {/* Neden Bug */}
-            <div class="flex flex-col gap-1">
-              <label for="bug-reason" class="text-xs font-medium text-gray-700">
-                Neden Bug?
-              </label>
-              <textarea
-                id="bug-reason"
-                aria-label="Neden bug"
-                placeholder="Neyin yanlış çalıştığını açıklayın…"
-                value={formReason.value}
-                onInput={(e) => {
-                  formReason.value = (e.target as HTMLTextAreaElement).value;
-                  handleTextareaResize(e);
-                }}
-                rows={2}
-                class="w-full rounded border border-gray-300 px-3 py-2 text-sm text-gray-700 resize-none focus-visible:outline-2 focus-visible:outline-blue-500 focus-visible:outline-offset-1"
-              />
-            </div>
-
-            {/* Priority */}
-            <div class="flex items-center gap-2">
-              <label for="bug-priority" class="text-xs font-medium text-gray-700 shrink-0">
-                Öncelik
-              </label>
-              <select
-                id="bug-priority"
-                value={formPriority.value}
-                onChange={(e) => {
-                  formPriority.value = (e.target as HTMLSelectElement)
-                    .value as typeof formPriority.value;
-                }}
-                class="flex-1 h-7 rounded border border-gray-300 px-2 text-sm text-gray-700 bg-white focus-visible:outline-2 focus-visible:outline-blue-500 focus-visible:outline-offset-1"
-              >
-                <option value="low">Low</option>
-                <option value="medium">Medium</option>
-                <option value="high">High</option>
-                <option value="critical">Critical</option>
-              </select>
-            </div>
+        <div class="flex flex-col gap-2.5">
+          {/* Beklenen Sonuç */}
+          <div class="flex flex-col gap-1">
+            <label for="bug-expected" class="text-xs font-medium text-gray-700">
+              Beklenen Sonuç
+            </label>
+            <textarea
+              id="bug-expected"
+              aria-label="Beklenen sonuç"
+              placeholder="Ne olmasını bekliyordunuz?"
+              value={formExpected.value}
+              onInput={(e) => {
+                formExpected.value = (e.target as HTMLTextAreaElement).value;
+                handleTextareaResize(e);
+              }}
+              rows={2}
+              class="w-full rounded-md border border-gray-200 bg-gray-50 px-2.5 py-2 text-[13px] text-gray-700 resize-vertical focus:outline-2 focus:outline-blue-500 focus:outline-offset-[-1px] focus:border-blue-500"
+            />
           </div>
-        </Card>
 
-        {/* Steps to Reproduce — collapsible, varsayılan kapalı */}
-        <Card>
+          {/* Neden Bug */}
+          <div class="flex flex-col gap-1">
+            <label for="bug-reason" class="text-xs font-medium text-gray-700">
+              Neden Bug?
+            </label>
+            <textarea
+              id="bug-reason"
+              aria-label="Neden bug"
+              placeholder="Ne oldu? Sorun ne?"
+              value={formReason.value}
+              onInput={(e) => {
+                formReason.value = (e.target as HTMLTextAreaElement).value;
+                handleTextareaResize(e);
+              }}
+              rows={2}
+              class="w-full rounded-md border border-gray-200 bg-gray-50 px-2.5 py-2 text-[13px] text-gray-700 resize-vertical focus:outline-2 focus:outline-blue-500 focus:outline-offset-[-1px] focus:border-blue-500"
+            />
+          </div>
+
+          {/* Priority */}
+          <div class="flex flex-col gap-1">
+            <label for="bug-priority" class="text-xs font-medium text-gray-700">
+              Priority
+            </label>
+            <select
+              id="bug-priority"
+              value={formPriority.value}
+              onChange={(e) => {
+                formPriority.value = (e.target as HTMLSelectElement)
+                  .value as typeof formPriority.value;
+              }}
+              class="w-full rounded-md border border-gray-200 bg-gray-50 px-2.5 py-2 text-[13px] text-gray-700 focus:outline-2 focus:outline-blue-500 focus:outline-offset-[-1px] focus:border-blue-500"
+            >
+              <option value="critical">Critical</option>
+              <option value="high">High</option>
+              <option value="medium">Medium</option>
+              <option value="low">Low</option>
+            </select>
+          </div>
+        </div>
+
+        {/* Steps to Reproduce — collapsible */}
+        <div class="rounded-md border border-gray-200 overflow-hidden">
           <button
             type="button"
             onClick={() => {
@@ -541,14 +534,16 @@ export function BugReportView({ hasSession }: { hasSession: boolean }) {
             }}
             aria-expanded={isStepsOpen.value}
             aria-controls="steps-to-reproduce"
-            class="flex items-center gap-1.5 text-sm font-medium text-gray-700 w-full text-left focus-visible:outline-2 focus-visible:outline-blue-500 focus-visible:outline-offset-2 rounded"
+            class="flex items-center justify-between w-full px-2.5 py-2 text-xs font-medium text-gray-500 bg-gray-50 hover:text-gray-700 transition-colors focus-visible:outline-2 focus-visible:outline-blue-500 focus-visible:outline-offset-2"
           >
-            {isStepsOpen.value ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
-            Steps to Reproduce
+            <span class="flex items-center gap-1.5">
+              {isStepsOpen.value ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
+              Steps to Reproduce{hasSession ? ` (otomatik)` : ''}
+            </span>
           </button>
 
           {isStepsOpen.value && (
-            <div id="steps-to-reproduce">
+            <div id="steps-to-reproduce" class="p-2.5 border-t border-gray-200">
               <textarea
                 aria-label="Steps to reproduce"
                 value={stepsText.value}
@@ -556,7 +551,7 @@ export function BugReportView({ hasSession }: { hasSession: boolean }) {
                   stepsText.value = (e.target as HTMLTextAreaElement).value;
                 }}
                 rows={4}
-                class="w-full rounded border border-gray-300 px-3 py-2 text-sm text-gray-700 resize-none focus-visible:outline-2 focus-visible:outline-blue-500 focus-visible:outline-offset-1 font-mono text-xs"
+                class="w-full rounded-md border border-gray-200 bg-gray-50 px-2.5 py-2 text-[13px] text-gray-700 resize-none focus:outline-2 focus:outline-blue-500 focus:outline-offset-[-1px] focus:border-blue-500 font-mono text-xs"
                 placeholder={
                   hasSession
                     ? 'Adımlar otomatik oluşturuldu, düzenleyebilirsiniz…'
@@ -565,23 +560,13 @@ export function BugReportView({ hasSession }: { hasSession: boolean }) {
               />
             </div>
           )}
-        </Card>
-
-        {/* Konfigürasyon */}
-        <Card>
-          <ConfigFields
-            value={configFields.value}
-            onChange={(updated) => {
-              configFields.value = updated;
-            }}
-          />
-        </Card>
+        </div>
 
         {/* Toplanan Veriler */}
-        <Card>
-          <p class="text-xs font-medium text-gray-500 uppercase tracking-wide">Toplanan Veriler</p>
+        <div class="bg-gray-50 rounded-lg p-2.5 border border-gray-200">
+          <p class="text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Toplanan Veriler</p>
           <div aria-live="polite">
-            {status === 'loading' && <p class="text-sm text-gray-400">Veriler toplanıyor…</p>}
+            {status === 'loading' && <p class="text-xs text-gray-400">Veriler toplanıyor…</p>}
             {status !== 'loading' && (
               <DataSummary
                 hasScreenshot={Boolean(data?.screenshot.dataUrl)}
@@ -597,11 +582,11 @@ export function BugReportView({ hasSession }: { hasSession: boolean }) {
               />
             )}
           </div>
-        </Card>
+        </div>
 
         {/* Export butonları / Post-export UI */}
         {exportStatus.value === 'success' ? (
-          <Card>
+          <div class="bg-gray-50 rounded-lg p-3 border border-gray-200">
             <div class="flex flex-col gap-3 text-center" aria-live="polite">
               <div>
                 <p class="text-sm font-medium text-gray-900">ZIP indirildi</p>
@@ -623,38 +608,54 @@ export function BugReportView({ hasSession }: { hasSession: boolean }) {
                 </Button>
               </div>
             </div>
-          </Card>
+          </div>
         ) : (
           <div class="flex flex-col gap-2">
-            <Button
-              variant="primary"
-              size="md"
-              class="w-full"
-              disabled={snapshotStatus.value !== 'success'}
-              loading={exportStatus.value === 'loading'}
-              iconLeft={
-                exportStatus.value === 'loading' ? (
-                  <Loader2 size={14} class="animate-spin" />
-                ) : (
-                  <Download size={14} />
-                )
-              }
-              onClick={() => void handleZipExport()}
-              aria-busy={exportStatus.value === 'loading'}
-            >
-              {exportStatus.value === 'loading' ? 'Hazırlanıyor...' : 'ZIP İndir'}
-            </Button>
-            <Button
-              variant="ghost"
-              size="md"
-              class="w-full"
-              disabled={snapshotStatus.value !== 'success'}
-              iconLeft={<Copy size={14} />}
-              onClick={() => void handleClipboardCopy()}
-              aria-label="Description'ı clipboard'a kopyala"
-            >
-              Kopyala
-            </Button>
+            {/* Yan yana ZIP + Jira */}
+            <div class="flex gap-2">
+              <Button
+                variant="primary"
+                size="md"
+                class="flex-1"
+                disabled={snapshotStatus.value !== 'success'}
+                loading={exportStatus.value === 'loading'}
+                iconLeft={
+                  exportStatus.value === 'loading' ? (
+                    <Loader2 size={14} class="animate-spin" />
+                  ) : (
+                    <Download size={14} />
+                  )
+                }
+                onClick={() => void handleZipExport()}
+                aria-busy={exportStatus.value === 'loading'}
+              >
+                {exportStatus.value === 'loading' ? 'Hazırlanıyor...' : 'ZIP İndir'}
+              </Button>
+              <Button
+                variant="secondary"
+                size="md"
+                class="flex-1"
+                disabled={
+                  !jiraConfigured.value ||
+                  snapshotStatus.value !== 'success' ||
+                  jiraExportStatus.value === 'loading'
+                }
+                loading={jiraExportStatus.value === 'loading'}
+                iconLeft={
+                  jiraExportStatus.value === 'loading' ? (
+                    <Loader2 size={14} class="animate-spin" />
+                  ) : (
+                    <Send size={14} />
+                  )
+                }
+                onClick={() => void handleJiraExport()}
+                title={!jiraConfigured.value ? "Ayarlardan Jira'yı kurun" : undefined}
+                aria-disabled={!jiraConfigured.value ? 'true' : undefined}
+                aria-busy={jiraExportStatus.value === 'loading'}
+              >
+                {jiraExportStatus.value === 'loading' ? 'Gönderiliyor...' : 'Jira Gönder'}
+              </Button>
+            </div>
             {jiraConfigured.value && (
               <div class="flex flex-col gap-1.5">
                 <label class="flex items-center gap-2 text-xs text-neutral-600 cursor-pointer">
@@ -682,30 +683,6 @@ export function BugReportView({ hasSession }: { hasSession: boolean }) {
                 )}
               </div>
             )}
-            <Button
-              variant="secondary"
-              size="md"
-              class="w-full"
-              disabled={
-                !jiraConfigured.value ||
-                snapshotStatus.value !== 'success' ||
-                jiraExportStatus.value === 'loading'
-              }
-              loading={jiraExportStatus.value === 'loading'}
-              iconLeft={
-                jiraExportStatus.value === 'loading' ? (
-                  <Loader2 size={14} class="animate-spin" />
-                ) : (
-                  <Send size={14} />
-                )
-              }
-              onClick={() => void handleJiraExport()}
-              title={!jiraConfigured.value ? "Ayarlardan Jira'yı kurun" : undefined}
-              aria-disabled={!jiraConfigured.value ? 'true' : undefined}
-              aria-busy={jiraExportStatus.value === 'loading'}
-            >
-              {jiraExportStatus.value === 'loading' ? 'Gönderiliyor...' : "Jira'ya Gönder"}
-            </Button>
             {jiraExportStatus.value === 'success' && jiraExportResult.value && (
               <button
                 type="button"
