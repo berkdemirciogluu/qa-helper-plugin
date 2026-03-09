@@ -2,8 +2,13 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import type { JiraCredentials, SnapshotData } from '@/lib/types';
 
 vi.stubGlobal('chrome', {
-  identity: { getRedirectURL: vi.fn(() => 'https://ext-id.chromiumapp.org/atlassian'), launchWebAuthFlow: vi.fn() },
-  storage: { local: { get: vi.fn().mockResolvedValue({}), set: vi.fn().mockResolvedValue(undefined) } },
+  identity: {
+    getRedirectURL: vi.fn(() => 'https://ext-id.chromiumapp.org/atlassian'),
+    launchWebAuthFlow: vi.fn(),
+  },
+  storage: {
+    local: { get: vi.fn().mockResolvedValue({}), set: vi.fn().mockResolvedValue(undefined) },
+  },
   permissions: { request: vi.fn(() => Promise.resolve(true)) },
 });
 
@@ -71,7 +76,8 @@ describe('exportToJira', () => {
     // addAttachments (4 dosya: screenshot, dom, console-logs, local-storage)
     mockFetch.mockResolvedValue({
       ok: true,
-      json: () => Promise.resolve([{ id: '1', filename: 'f', size: 10, mimeType: 'x', content: 'url' }]),
+      json: () =>
+        Promise.resolve([{ id: '1', filename: 'f', size: 10, mimeType: 'x', content: 'url' }]),
     });
 
     const result = await exportToJira(baseParams);
@@ -150,19 +156,23 @@ describe('exportToJira', () => {
     // attachment başarılı
     mockFetch.mockResolvedValueOnce({
       ok: true,
-      json: () => Promise.resolve([{ id: '1', filename: 'f', size: 10, mimeType: 'x', content: 'url' }]),
+      json: () =>
+        Promise.resolve([{ id: '1', filename: 'f', size: 10, mimeType: 'x', content: 'url' }]),
     });
     mockFetch.mockResolvedValueOnce({
       ok: true,
-      json: () => Promise.resolve([{ id: '2', filename: 'g', size: 20, mimeType: 'y', content: 'url' }]),
+      json: () =>
+        Promise.resolve([{ id: '2', filename: 'g', size: 20, mimeType: 'y', content: 'url' }]),
     });
     mockFetch.mockResolvedValueOnce({
       ok: true,
-      json: () => Promise.resolve([{ id: '3', filename: 'h', size: 30, mimeType: 'z', content: 'url' }]),
+      json: () =>
+        Promise.resolve([{ id: '3', filename: 'h', size: 30, mimeType: 'z', content: 'url' }]),
     });
     mockFetch.mockResolvedValueOnce({
       ok: true,
-      json: () => Promise.resolve([{ id: '4', filename: 'i', size: 40, mimeType: 'w', content: 'url' }]),
+      json: () =>
+        Promise.resolve([{ id: '4', filename: 'i', size: 40, mimeType: 'w', content: 'url' }]),
     });
     // linkIssue başarısız
     mockFetch.mockResolvedValueOnce({ ok: false, status: 404 });
@@ -183,7 +193,8 @@ describe('exportToJira', () => {
     });
     mockFetch.mockResolvedValue({
       ok: true,
-      json: () => Promise.resolve([{ id: '1', filename: 'f', size: 10, mimeType: 'x', content: 'url' }]),
+      json: () =>
+        Promise.resolve([{ id: '1', filename: 'f', size: 10, mimeType: 'x', content: 'url' }]),
     });
 
     await exportToJira({ ...baseParams, expected: longExpected });
@@ -200,7 +211,8 @@ describe('exportToJira', () => {
     });
     mockFetch.mockResolvedValue({
       ok: true,
-      json: () => Promise.resolve([{ id: '1', filename: 'f', size: 10, mimeType: 'x', content: 'url' }]),
+      json: () =>
+        Promise.resolve([{ id: '1', filename: 'f', size: 10, mimeType: 'x', content: 'url' }]),
     });
 
     const result = await exportToJira(baseParams);

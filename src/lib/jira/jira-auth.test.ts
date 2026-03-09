@@ -18,9 +18,8 @@ vi.stubGlobal('crypto', { ...globalThis.crypto, randomUUID: vi.fn(() => 'test-st
 const mockFetch = vi.fn();
 vi.stubGlobal('fetch', mockFetch);
 
-const { startOAuthFlow, refreshAccessToken, validatePat, buildAuthUrl } = await import(
-  './jira-auth'
-);
+const { startOAuthFlow, refreshAccessToken, validatePat, buildAuthUrl } =
+  await import('./jira-auth');
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -43,7 +42,7 @@ describe('startOAuthFlow', () => {
     const mockRedirectUrl =
       'https://ext-id.chromiumapp.org/atlassian?code=auth-code-123&state=test-state-uuid';
     (chrome.identity.launchWebAuthFlow as ReturnType<typeof vi.fn>).mockResolvedValue(
-      mockRedirectUrl,
+      mockRedirectUrl
     );
 
     mockFetch
@@ -85,7 +84,7 @@ describe('startOAuthFlow', () => {
 
   it('returns error if user cancels OAuth', async () => {
     (chrome.identity.launchWebAuthFlow as ReturnType<typeof vi.fn>).mockRejectedValue(
-      new Error('The user did not approve access.'),
+      new Error('The user did not approve access.')
     );
 
     const result = await startOAuthFlow();
@@ -99,7 +98,7 @@ describe('startOAuthFlow', () => {
     const mockRedirectUrl =
       'https://ext-id.chromiumapp.org/atlassian?code=auth-code-123&state=test-state-uuid';
     (chrome.identity.launchWebAuthFlow as ReturnType<typeof vi.fn>).mockResolvedValue(
-      mockRedirectUrl,
+      mockRedirectUrl
     );
 
     mockFetch.mockResolvedValueOnce({
@@ -116,7 +115,7 @@ describe('startOAuthFlow', () => {
     const mockRedirectUrl =
       'https://ext-id.chromiumapp.org/atlassian?code=auth-code-123&state=test-state-uuid';
     (chrome.identity.launchWebAuthFlow as ReturnType<typeof vi.fn>).mockResolvedValue(
-      mockRedirectUrl,
+      mockRedirectUrl
     );
 
     mockFetch
@@ -140,9 +139,10 @@ describe('startOAuthFlow', () => {
   });
 
   it('returns error if redirect URL has no auth code', async () => {
-    const mockRedirectUrl = 'https://ext-id.chromiumapp.org/atlassian?error=access_denied&state=test-state-uuid';
+    const mockRedirectUrl =
+      'https://ext-id.chromiumapp.org/atlassian?error=access_denied&state=test-state-uuid';
     (chrome.identity.launchWebAuthFlow as ReturnType<typeof vi.fn>).mockResolvedValue(
-      mockRedirectUrl,
+      mockRedirectUrl
     );
 
     const result = await startOAuthFlow();

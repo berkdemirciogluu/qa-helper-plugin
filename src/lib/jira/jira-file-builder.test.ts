@@ -25,9 +25,7 @@ const fullSnapshotData: SnapshotData = {
     localStorage: { key1: 'value1' },
     sessionStorage: { key2: 'value2' },
   },
-  consoleLogs: [
-    { timestamp: Date.now(), level: 'error', message: 'Test error' },
-  ],
+  consoleLogs: [{ timestamp: Date.now(), level: 'error', message: 'Test error' }],
   timestamp: Date.now(),
   collectionDurationMs: 100,
 };
@@ -36,7 +34,16 @@ describe('buildAttachmentFiles', () => {
   it('creates 7 files from full data', () => {
     const files = buildAttachmentFiles({
       snapshotData: fullSnapshotData,
-      xhrs: [{ type: 'xhr', timestamp: Date.now(), method: 'GET', url: 'https://api.test.com', status: 200, duration: 100 }],
+      xhrs: [
+        {
+          type: 'xhr',
+          timestamp: Date.now(),
+          method: 'GET',
+          url: 'https://api.test.com',
+          status: 200,
+          duration: 100,
+        },
+      ],
       timelineJson: { schemaVersion: '1.0', sessionId: 'test' } as never,
     });
 
@@ -78,7 +85,16 @@ describe('buildAttachmentFiles', () => {
   it('creates JSON files with application/json MIME type', () => {
     const files = buildAttachmentFiles({
       snapshotData: fullSnapshotData,
-      xhrs: [{ type: 'xhr', timestamp: Date.now(), method: 'POST', url: 'https://api.test.com', status: 500, duration: 200 }],
+      xhrs: [
+        {
+          type: 'xhr',
+          timestamp: Date.now(),
+          method: 'POST',
+          url: 'https://api.test.com',
+          status: 500,
+          duration: 200,
+        },
+      ],
     });
 
     const consoleLogs = files.find((f) => f.name === 'console-logs.json');

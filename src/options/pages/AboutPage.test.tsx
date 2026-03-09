@@ -77,7 +77,7 @@ describe('AboutPage', () => {
       <>
         <ToastContainer />
         <AboutPage />
-      </>,
+      </>
     );
 
     const wizardButton = screen.getByLabelText('Reopen setup wizard');

@@ -121,7 +121,7 @@ describe('getScreenshotMetadata', () => {
     expect(meta.zoomLevel).toBe(1);
   });
 
-  it('language navigator\'dan alınır', async () => {
+  it("language navigator'dan alınır", async () => {
     const meta = await getScreenshotMetadata(mockTab);
     expect(meta.language).toBe('tr-TR');
   });
@@ -137,7 +137,11 @@ describe('getScreenshotMetadata', () => {
   });
 
   it('tab.width/height undefined ise 0 döner', async () => {
-    const meta = await getScreenshotMetadata({ ...mockTab, width: undefined, height: undefined } as unknown as chrome.tabs.Tab);
+    const meta = await getScreenshotMetadata({
+      ...mockTab,
+      width: undefined,
+      height: undefined,
+    } as unknown as chrome.tabs.Tab);
     expect(meta.viewport.width).toBe(0);
     expect(meta.viewport.height).toBe(0);
   });

@@ -6,7 +6,7 @@ import type { ClickEvent, NavEvent } from './types';
  */
 export function buildStepsToReproduce(clicks: ClickEvent[], navs: NavEvent[]): string {
   const events: (ClickEvent | NavEvent)[] = [...clicks, ...navs].sort(
-    (a, b) => a.timestamp - b.timestamp,
+    (a, b) => a.timestamp - b.timestamp
   );
 
   const steps: string[] = [];
@@ -16,10 +16,7 @@ export function buildStepsToReproduce(clicks: ClickEvent[], navs: NavEvent[]): s
     if (event.type === 'nav') {
       steps.push(`${stepNum}. Navigated to ${event.url}`);
     } else if (event.type === 'click') {
-      const text =
-        event.text.length > 50
-          ? `${event.text.slice(0, 50)}...`
-          : event.text;
+      const text = event.text.length > 50 ? `${event.text.slice(0, 50)}...` : event.text;
       steps.push(`${stepNum}. Clicked '${text}' element`);
     }
     stepNum++;

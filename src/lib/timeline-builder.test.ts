@@ -261,7 +261,14 @@ describe('buildTimeline', () => {
     const logWithParsedStack = makeConsoleLog({
       message: 'ReferenceError: x is not defined',
       stack: 'ReferenceError: x is not defined\n    at Object.<anonymous> (checkout.js:42:15)',
-      parsedStack: [{ fileName: 'checkout.js', lineNumber: 42, columnNumber: 15, functionName: 'Object.<anonymous>' }],
+      parsedStack: [
+        {
+          fileName: 'checkout.js',
+          lineNumber: 42,
+          columnNumber: 15,
+          functionName: 'Object.<anonymous>',
+        },
+      ],
     });
 
     const result = buildTimeline({

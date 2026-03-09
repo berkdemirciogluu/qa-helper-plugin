@@ -128,11 +128,7 @@ describe('storageGetAllSessionKeys', () => {
     const result = await storageGetAllSessionKeys();
     expect(result.success).toBe(true);
     if (result.success) {
-      expect(result.data).toEqual([
-        'session_meta_1',
-        'session_xhr_1',
-        'session_clicks_1',
-      ]);
+      expect(result.data).toEqual(['session_meta_1', 'session_xhr_1', 'session_clicks_1']);
     }
   });
 

@@ -29,14 +29,16 @@ const makeSnapshotData = (): SnapshotData => ({
       timestamp: 1000,
     },
   },
-  dom: { html: '<html><body>Test</body></html>', doctype: '<!DOCTYPE html>', url: 'https://app.com' },
+  dom: {
+    html: '<html><body>Test</body></html>',
+    doctype: '<!DOCTYPE html>',
+    url: 'https://app.com',
+  },
   storage: {
     localStorage: { key1: 'val1' },
     sessionStorage: { key2: 'val2' },
   },
-  consoleLogs: [
-    { timestamp: 1000, level: 'error', message: 'Test error' },
-  ],
+  consoleLogs: [{ timestamp: 1000, level: 'error', message: 'Test error' }],
   timestamp: 1000,
   collectionDurationMs: 100,
 });
@@ -45,7 +47,14 @@ const makeTimeline = (): TimelineJSON => ({
   schemaVersion: '1.0',
   sessionId: 'test-uuid',
   bugReport: { expectedResult: 'ok', actualResult: 'fail', priority: 'high' },
-  environment: { browser: 'Chrome', os: 'Win', viewport: '1920x1080', pixelRatio: 1, language: 'tr', url: 'https://app.com' },
+  environment: {
+    browser: 'Chrome',
+    os: 'Win',
+    viewport: '1920x1080',
+    pixelRatio: 1,
+    language: 'tr',
+    url: 'https://app.com',
+  },
   context: { environment: 'staging', project: 'test', agileTeam: 'team', testCycle: 'sprint1' },
   timeline: [],
   errorSummary: { consoleErrors: 0, failedRequests: 0, crashDetected: false },
@@ -60,7 +69,14 @@ const makeTimeline = (): TimelineJSON => ({
 });
 
 const makeXhrs = (): XhrEvent[] => [
-  { type: 'xhr', timestamp: 1000, method: 'GET', url: 'https://api.com/data', status: 200, duration: 150 },
+  {
+    type: 'xhr',
+    timestamp: 1000,
+    method: 'GET',
+    url: 'https://api.com/data',
+    status: 200,
+    duration: 150,
+  },
 ];
 
 beforeEach(() => {
@@ -104,7 +120,9 @@ describe('exportBugReportZip', () => {
       xhrs: [],
     });
 
-    const screenshotCall = mockFile.mock.calls.find((call: unknown[]) => call[0] === 'screenshot.png') as unknown[] | undefined;
+    const screenshotCall = mockFile.mock.calls.find(
+      (call: unknown[]) => call[0] === 'screenshot.png'
+    ) as unknown[] | undefined;
     expect(screenshotCall).toBeTruthy();
     expect(screenshotCall![1]).toBe('iVBORw0KGgo=');
     expect(screenshotCall![2]).toEqual({ base64: true });
@@ -166,9 +184,13 @@ describe('exportBugReportZip', () => {
       xhrs: makeXhrs(),
     });
 
-    const harCall = mockFile.mock.calls.find((call: unknown[]) => call[0] === 'network.har') as unknown[] | undefined;
+    const harCall = mockFile.mock.calls.find((call: unknown[]) => call[0] === 'network.har') as
+      | unknown[]
+      | undefined;
     expect(harCall).toBeTruthy();
-    const harContent = JSON.parse(harCall![1] as string) as { log: { version: string; entries: unknown[] } };
+    const harContent = JSON.parse(harCall![1] as string) as {
+      log: { version: string; entries: unknown[] };
+    };
     expect(harContent.log.version).toBe('1.2');
     expect(harContent.log.entries).toHaveLength(1);
   });
