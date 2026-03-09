@@ -23,7 +23,7 @@ export function ConfigFields({ value, onChange }: ConfigFieldsProps) {
 
   return (
     <div class="flex flex-col gap-2">
-      <p class="text-xs font-medium text-gray-500 uppercase tracking-wide">Konfigürasyon</p>
+      <p class="text-xs font-medium text-gray-500 uppercase tracking-wide">Configuration</p>
 
       <div class="flex flex-col gap-2">
         <div class="flex items-center gap-2">
@@ -74,7 +74,7 @@ export function ConfigFields({ value, onChange }: ConfigFieldsProps) {
 
         <div class="flex items-center gap-2">
           <label for="config-project" class="text-xs text-gray-600 w-24 shrink-0">
-            Proje
+            Project
           </label>
           <input
             id="config-project"

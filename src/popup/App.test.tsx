@@ -45,7 +45,7 @@ beforeEach(() => {
 });
 
 describe('App', () => {
-  it('varsayılan olarak DashboardView render edilir', async () => {
+  it('renders DashboardView by default', async () => {
     render(<App />);
     await waitFor(() => {
       // DashboardView içinde "QA Helper" başlığı var
@@ -53,28 +53,28 @@ describe('App', () => {
     });
   });
 
-  it('popup sabit genişlik class var', () => {
+  it('popup has fixed width class', () => {
     render(<App />);
     const root = document.querySelector('.w-\\[400px\\]');
     expect(root).toBeTruthy();
   });
 
-  it('max-h-[600px] class var', () => {
+  it('has max-h-[600px] class', () => {
     render(<App />);
     const root = document.querySelector('.max-h-\\[600px\\]');
     expect(root).toBeTruthy();
   });
 
-  it('onboarding_completed false ise OnboardingView gösterilir', async () => {
+  it('shows OnboardingView when onboarding_completed is false', async () => {
     (chrome.storage.local.get as ReturnType<typeof vi.fn>).mockResolvedValue({});
     render(<App />);
 
     await waitFor(() => {
-      expect(screen.getByText('Ortam Bilgisi')).toBeTruthy();
+      expect(screen.getByText('Environment Info')).toBeTruthy();
     });
   });
 
-  it('onboarding_completed true ise DashboardView gösterilir', async () => {
+  it('shows DashboardView when onboarding_completed is true', async () => {
     render(<App />);
 
     await waitFor(() => {

@@ -33,7 +33,7 @@ const fullSnapshotData: SnapshotData = {
 };
 
 describe('buildAttachmentFiles', () => {
-  it('tam veri ile 7 dosya oluşturur', () => {
+  it('creates 7 files from full data', () => {
     const files = buildAttachmentFiles({
       snapshotData: fullSnapshotData,
       xhrs: [{ type: 'xhr', timestamp: Date.now(), method: 'GET', url: 'https://api.test.com', status: 200, duration: 100 }],
@@ -51,7 +51,7 @@ describe('buildAttachmentFiles', () => {
     expect(names).toContain('timeline.json');
   });
 
-  it('eksik veri kaynakları atlanır', () => {
+  it('skips missing data sources', () => {
     const minimal: SnapshotData = {
       screenshot: { dataUrl: '', metadata: {} as never },
       dom: { html: '', doctype: '', url: '' },
@@ -66,7 +66,7 @@ describe('buildAttachmentFiles', () => {
     expect(files).toHaveLength(0);
   });
 
-  it('screenshot base64 → File dönüşümü doğru MIME type ile yapılır', () => {
+  it('converts screenshot base64 to File with correct MIME type', () => {
     const files = buildAttachmentFiles({ snapshotData: fullSnapshotData });
     const screenshot = files.find((f) => f.name === 'screenshot.png');
 
@@ -75,7 +75,7 @@ describe('buildAttachmentFiles', () => {
     expect(screenshot!.size).toBeGreaterThan(0);
   });
 
-  it('JSON dosyaları application/json MIME type ile oluşturulur', () => {
+  it('creates JSON files with application/json MIME type', () => {
     const files = buildAttachmentFiles({
       snapshotData: fullSnapshotData,
       xhrs: [{ type: 'xhr', timestamp: Date.now(), method: 'POST', url: 'https://api.test.com', status: 500, duration: 200 }],
@@ -90,7 +90,7 @@ describe('buildAttachmentFiles', () => {
     expect(localStorage!.type).toBe('application/json');
   });
 
-  it('DOM snapshot text/html MIME type ile oluşturulur', () => {
+  it('creates DOM snapshot with text/html MIME type', () => {
     const files = buildAttachmentFiles({ snapshotData: fullSnapshotData });
     const dom = files.find((f) => f.name === 'dom-snapshot.html');
 

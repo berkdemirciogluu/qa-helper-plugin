@@ -17,7 +17,7 @@ beforeEach(() => {
 });
 
 describe('parseStackTrace', () => {
-  it('Chrome format stack trace parse eder', () => {
+  it('parses Chrome format stack trace', () => {
     const stack = `TypeError: Cannot read property 'foo' of undefined
     at Object.handleClick (https://app.com/static/js/main.chunk.js:42:15)
     at HTMLButtonElement.onClick (https://app.com/static/js/main.chunk.js:108:3)`;
@@ -39,7 +39,7 @@ describe('parseStackTrace', () => {
     });
   });
 
-  it('İsimsiz fonksiyon için <anonymous> döner', () => {
+  it('returns <anonymous> for unnamed functions', () => {
     const stack = `Error: test
     at https://app.com/bundle.js:10:5`;
 
@@ -49,7 +49,7 @@ describe('parseStackTrace', () => {
     expect(result[0]?.columnNumber).toBe(5);
   });
 
-  it('Geçersiz satırı atlar', () => {
+  it('skips invalid lines', () => {
     const stack = `Error: test
     not a valid stack line
     at Object.foo (https://app.com/a.js:1:1)`;
@@ -59,17 +59,23 @@ describe('parseStackTrace', () => {
     expect(result[0]?.functionName).toBe('Object.foo');
   });
 
-  it('Boş stack için boş dizi döner', () => {
+  it('returns empty array for empty stack', () => {
     expect(parseStackTrace('')).toHaveLength(0);
     expect(parseStackTrace('Just a message')).toHaveLength(0);
   });
 });
 
 describe('compileConsoleEvents', () => {
-  it('ConsoleEvent listesini ConsoleLogEntry listesine dönüştürür', () => {
+  it('converts ConsoleEvent list to ConsoleLogEntry list', () => {
     const events: ConsoleEvent[] = [
       { type: 'console', timestamp: 1000, level: 'log', message: 'Hello' },
-      { type: 'console', timestamp: 2000, level: 'error', message: 'Fail', stack: 'Error: Fail\n    at fn (app.js:5:3)' },
+      {
+        type: 'console',
+        timestamp: 2000,
+        level: 'error',
+        message: 'Fail',
+        stack: 'Error: Fail\n    at fn (app.js:5:3)',
+      },
     ];
 
     const result = compileConsoleEvents(events);
@@ -81,7 +87,7 @@ describe('compileConsoleEvents', () => {
     expect(result[1]?.parsedStack?.[0]?.fileName).toBe('app.js');
   });
 
-  it('Stack yoksa parsedStack eklenmez', () => {
+  it('does not add parsedStack when no stack', () => {
     const events: ConsoleEvent[] = [
       { type: 'console', timestamp: 1000, level: 'warn', message: 'Warning' },
     ];
@@ -89,7 +95,7 @@ describe('compileConsoleEvents', () => {
     expect(result[0]?.parsedStack).toBeUndefined();
   });
 
-  it('Tüm log level\'ları korunur', () => {
+  it('preserves all log levels', () => {
     const events: ConsoleEvent[] = [
       { type: 'console', timestamp: 1, level: 'log', message: 'a' },
       { type: 'console', timestamp: 2, level: 'warn', message: 'b' },
@@ -102,11 +108,11 @@ describe('compileConsoleEvents', () => {
 });
 
 describe('compileConsoleLogs', () => {
-  it('Storage\'dan console eventleri okur ve derler', async () => {
+  it('reads console events from storage and compiles', async () => {
     const events: ConsoleEvent[] = [
       { type: 'console', timestamp: 1000, level: 'log', message: 'test' },
     ];
-    mockStorageGet.mockResolvedValue({ 'session_console_42': events });
+    mockStorageGet.mockResolvedValue({ session_console_42: events });
 
     const result = await compileConsoleLogs(42);
 
@@ -117,7 +123,7 @@ describe('compileConsoleLogs', () => {
     }
   });
 
-  it('Storage boşsa boş dizi döner', async () => {
+  it('returns empty array when storage is empty', async () => {
     mockStorageGet.mockResolvedValue({});
 
     const result = await compileConsoleLogs(99);

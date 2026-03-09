@@ -8,18 +8,18 @@ import { ReadyStep } from './onboarding/ReadyStep';
 
 const steps = [
   {
-    title: 'Ortam Bilgisi',
+    title: 'Environment Info',
     content: <EnvironmentStep />,
   },
   {
-    title: 'Jira Bağlantısı',
+    title: 'Jira Connection',
     content: <JiraStep />,
   },
   {
-    title: 'Hazır!',
+    title: 'Ready!',
     content: <ReadyStep />,
     hideSkip: true,
-    nextLabel: 'Başla',
+    nextLabel: 'Start',
   },
 ];
 

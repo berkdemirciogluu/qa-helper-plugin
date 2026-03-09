@@ -11,7 +11,7 @@ import { STORAGE_KEYS } from '@/lib/constants';
 import type { SessionConfig, ConfigFields } from '@/lib/types';
 
 const environmentOptions = [
-  { value: '', label: 'Seçiniz...' },
+  { value: '', label: 'Select...' },
   { value: 'development', label: 'Development' },
   { value: 'staging', label: 'Staging' },
   { value: 'qa', label: 'QA' },
@@ -39,20 +39,20 @@ export function ConfigurationPage() {
   if (isLoading.value) {
     return (
       <SectionGroup
-        title="Konfigürasyon Alanları"
-        description="Bug raporlarına otomatik eklenen bağlam bilgileri. Bir kez ayarlayın, her raporda kullanılsın."
+        title="Configuration Fields"
+        description="Context fields automatically included in bug reports. Set once, use in every report."
       >
-        <p class="text-sm text-gray-400">Yükleniyor...</p>
+        <p class="text-sm text-gray-400">Loading...</p>
       </SectionGroup>
     );
   }
 
   return (
     <SectionGroup
-      title="Konfigürasyon Alanları"
-      description="Bug raporlarına otomatik eklenen bağlam bilgileri. Bir kez ayarlayın, her raporda kullanılsın."
+      title="Configuration Fields"
+      description="Context fields automatically included in bug reports. Set once, use in every report."
     >
-      <FormRow label="Ortam" htmlFor="config-environment">
+      <FormRow label="Environment" htmlFor="config-environment">
         <Select
           htmlFor="config-environment"
           options={environmentOptions}
@@ -61,7 +61,7 @@ export function ConfigurationPage() {
         />
       </FormRow>
 
-      <FormRow label="Test Döngüsü" htmlFor="config-test-cycle">
+      <FormRow label="Test Cycle" htmlFor="config-test-cycle">
         <Input
           htmlFor="config-test-cycle"
           value={configFields.value.testCycle}
@@ -70,7 +70,7 @@ export function ConfigurationPage() {
         />
       </FormRow>
 
-      <FormRow label="Agile Takım" htmlFor="config-agile-team">
+      <FormRow label="Agile Team" htmlFor="config-agile-team">
         <Input
           htmlFor="config-agile-team"
           value={configFields.value.agileTeam}
@@ -79,7 +79,7 @@ export function ConfigurationPage() {
         />
       </FormRow>
 
-      <FormRow label="Proje" htmlFor="config-project">
+      <FormRow label="Project" htmlFor="config-project">
         <Input
           htmlFor="config-project"
           value={configFields.value.project}
@@ -114,6 +114,6 @@ async function handleFieldChange(field: keyof ConfigFields, value: string) {
 
   const saveResult = await storageSet(STORAGE_KEYS.SESSION_CONFIG, config);
   if (!saveResult.success) {
-    showToast('error', 'Ayarlar kaydedilemedi');
+    showToast('error', 'Failed to save settings');
   }
 }

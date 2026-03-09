@@ -1,8 +1,8 @@
 import type { ClickEvent, NavEvent } from './types';
 
 /**
- * Tıklama ve navigasyon olaylarından okunabilir adımlar oluşturur.
- * Tüm olaylar timestamp'e göre sıralanır.
+ * Builds readable steps from click and navigation events.
+ * All events are sorted by timestamp.
  */
 export function buildStepsToReproduce(clicks: ClickEvent[], navs: NavEvent[]): string {
   const events: (ClickEvent | NavEvent)[] = [...clicks, ...navs].sort(
@@ -14,13 +14,13 @@ export function buildStepsToReproduce(clicks: ClickEvent[], navs: NavEvent[]): s
 
   for (const event of events) {
     if (event.type === 'nav') {
-      steps.push(`${stepNum}. ${event.url} sayfasına gidildi`);
+      steps.push(`${stepNum}. Navigated to ${event.url}`);
     } else if (event.type === 'click') {
       const text =
         event.text.length > 50
           ? `${event.text.slice(0, 50)}...`
           : event.text;
-      steps.push(`${stepNum}. '${text}' elementine tıklandı`);
+      steps.push(`${stepNum}. Clicked '${text}' element`);
     }
     stepNum++;
   }

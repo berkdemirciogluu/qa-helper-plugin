@@ -57,38 +57,38 @@ const serverCredentials: JiraCredentials = {
 };
 
 describe('getApiBaseUrl', () => {
-  it('Cloud için doğru base URL oluşturur', () => {
+  it('builds correct base URL for Cloud', () => {
     const url = getApiBaseUrl(cloudCredentials);
     expect(url).toBe('https://api.atlassian.com/ex/jira/cloud-id-789');
   });
 
-  it('Server için doğru base URL oluşturur', () => {
+  it('builds correct base URL for Server', () => {
     const url = getApiBaseUrl(serverCredentials);
     expect(url).toBe('https://jira.company.com');
   });
 });
 
 describe('getAuthHeaders', () => {
-  it('Cloud credentials için Bearer header döner', () => {
+  it('returns Bearer header for Cloud credentials', () => {
     const headers = getAuthHeaders(cloudCredentials);
     expect(headers['Authorization']).toBe('Bearer access-token-123');
   });
 
-  it('Server credentials için Bearer header döner', () => {
+  it('returns Bearer header for Server credentials', () => {
     const headers = getAuthHeaders(serverCredentials);
     expect(headers['Authorization']).toBe('Bearer pat-token-abc');
   });
 });
 
 describe('testConnection', () => {
-  it('Cloud bağlantı testi başarılı — kullanıcı bilgisi döner', async () => {
+  it('Cloud connection test succeeds — returns user info', async () => {
     mockFetch.mockResolvedValueOnce({
       ok: true,
       json: () =>
         Promise.resolve({
           accountId: 'user-123',
-          displayName: 'Ahmet Yılmaz',
-          emailAddress: 'ahmet@example.com',
+          displayName: 'John Doe',
+          emailAddress: 'john@example.com',
           avatarUrls: {},
         }),
     });
@@ -96,7 +96,7 @@ describe('testConnection', () => {
     const result = await testConnection(cloudCredentials);
     expect(result.success).toBe(true);
     if (result.success) {
-      expect(result.data.displayName).toBe('Ahmet Yılmaz');
+      expect(result.data.displayName).toBe('John Doe');
     }
     expect(mockFetch).toHaveBeenCalledWith(
       'https://api.atlassian.com/ex/jira/cloud-id-789/rest/api/3/myself',
@@ -106,13 +106,13 @@ describe('testConnection', () => {
     );
   });
 
-  it('Server bağlantı testi başarılı', async () => {
+  it('Server connection test succeeds', async () => {
     mockFetch.mockResolvedValueOnce({
       ok: true,
       json: () =>
         Promise.resolve({
           accountId: 'user-456',
-          displayName: 'Mehmet Kara',
+          displayName: 'Jane Smith',
           avatarUrls: {},
         }),
     });
@@ -120,7 +120,7 @@ describe('testConnection', () => {
     const result = await testConnection(serverCredentials);
     expect(result.success).toBe(true);
     if (result.success) {
-      expect(result.data.displayName).toBe('Mehmet Kara');
+      expect(result.data.displayName).toBe('Jane Smith');
     }
     expect(mockFetch).toHaveBeenCalledWith(
       'https://jira.company.com/rest/api/2/myself',
@@ -130,7 +130,7 @@ describe('testConnection', () => {
     );
   });
 
-  it('bağlantı başarısız olursa hata döner', async () => {
+  it('returns error on connection failure', async () => {
     mockFetch.mockResolvedValueOnce({
       ok: false,
       status: 401,
@@ -140,7 +140,7 @@ describe('testConnection', () => {
     expect(result.success).toBe(false);
   });
 
-  it('network hatası olursa hata döner', async () => {
+  it('returns error on network failure', async () => {
     mockFetch.mockRejectedValueOnce(new Error('Failed to fetch'));
 
     const result = await testConnection(cloudCredentials);
@@ -149,7 +149,7 @@ describe('testConnection', () => {
 });
 
 describe('getProjects', () => {
-  it('Cloud proje listesi başarılı döner', async () => {
+  it('Cloud project list returns successfully', async () => {
     mockFetch.mockResolvedValueOnce({
       ok: true,
       json: () =>
@@ -167,7 +167,7 @@ describe('getProjects', () => {
     }
   });
 
-  it('Server proje listesi başarılı döner', async () => {
+  it('Server project list returns successfully', async () => {
     mockFetch.mockResolvedValueOnce({
       ok: true,
       json: () =>
@@ -181,7 +181,7 @@ describe('getProjects', () => {
     }
   });
 
-  it('proje listesi boşsa başarılı ancak boş array döner', async () => {
+  it('returns success with empty array when no projects', async () => {
     mockFetch.mockResolvedValueOnce({
       ok: true,
       json: () => Promise.resolve([]),
@@ -194,7 +194,7 @@ describe('getProjects', () => {
     }
   });
 
-  it('API hatası olursa hata döner', async () => {
+  it('returns error on API failure', async () => {
     mockFetch.mockResolvedValueOnce({
       ok: false,
       status: 403,
@@ -206,7 +206,7 @@ describe('getProjects', () => {
 });
 
 describe('getAccessibleResources', () => {
-  it('erişilebilir kaynakları getirir', async () => {
+  it('fetches accessible resources', async () => {
     mockFetch.mockResolvedValueOnce({
       ok: true,
       json: () =>
@@ -229,7 +229,7 @@ describe('getAccessibleResources', () => {
     }
   });
 
-  it('API hatası olursa hata döner', async () => {
+  it('returns error on API failure', async () => {
     mockFetch.mockResolvedValueOnce({
       ok: false,
       status: 401,
@@ -241,7 +241,7 @@ describe('getAccessibleResources', () => {
 });
 
 describe('jiraFetch — auto-refresh interceptor', () => {
-  it('401 ve Cloud credentials ile otomatik refresh ve retry yapar', async () => {
+  it('auto-refreshes and retries on 401 with Cloud credentials', async () => {
     // İlk istek: 401
     mockFetch.mockResolvedValueOnce({
       ok: false,
@@ -269,7 +269,7 @@ describe('jiraFetch — auto-refresh interceptor', () => {
     expect(mockFetch).toHaveBeenCalledTimes(3);
   });
 
-  it('Server credentials ile 401 olursa refresh denemez', async () => {
+  it('does not attempt refresh on 401 with Server credentials', async () => {
     mockFetch.mockResolvedValueOnce({
       ok: false,
       status: 401,
@@ -280,7 +280,7 @@ describe('jiraFetch — auto-refresh interceptor', () => {
     expect(mockFetch).toHaveBeenCalledTimes(1);
   });
 
-  it('refresh token yoksa retry denemez', async () => {
+  it('does not attempt retry without refresh token', async () => {
     const credsNoRefresh: JiraCredentials = { ...cloudCredentials, refreshToken: undefined };
     mockFetch.mockResolvedValueOnce({
       ok: false,
@@ -294,7 +294,7 @@ describe('jiraFetch — auto-refresh interceptor', () => {
 });
 
 describe('createIssue', () => {
-  it('Cloud ile başarılı issue oluşturur', async () => {
+  it('creates issue with Cloud successfully', async () => {
     mockFetch.mockResolvedValueOnce({
       ok: true,
       json: () =>
@@ -321,7 +321,7 @@ describe('createIssue', () => {
     );
   });
 
-  it('Server ile API v2 kullanır', async () => {
+  it('uses API v2 with Server', async () => {
     mockFetch.mockResolvedValueOnce({
       ok: true,
       json: () =>
@@ -344,7 +344,7 @@ describe('createIssue', () => {
     );
   });
 
-  it('API hatası olursa error messages döner', async () => {
+  it('returns error messages on API failure', async () => {
     mockFetch.mockResolvedValueOnce({
       ok: false,
       status: 400,
@@ -366,7 +366,7 @@ describe('createIssue', () => {
     }
   });
 
-  it('Network hatası olursa error döner', async () => {
+  it('returns error on network failure', async () => {
     mockFetch.mockRejectedValueOnce(new Error('Failed to fetch'));
 
     const result = await createIssue(cloudCredentials, {
@@ -380,13 +380,13 @@ describe('createIssue', () => {
 
     expect(result.success).toBe(false);
     if (!result.success) {
-      expect(result.error).toContain('Ağ bağlantınızı kontrol edin');
+      expect(result.error).toContain('Check your network connection');
     }
   });
 });
 
 describe('addAttachments', () => {
-  it('başarılı dosya ekleme', async () => {
+  it('successful file attachment', async () => {
     mockFetch.mockResolvedValueOnce({
       ok: true,
       json: () =>
@@ -411,7 +411,7 @@ describe('addAttachments', () => {
     }
   });
 
-  it('kısmi hata — bazı dosyalar yüklenemez', async () => {
+  it('partial failure — some files fail to upload', async () => {
     // İlk dosya başarılı
     mockFetch.mockResolvedValueOnce({
       ok: true,
@@ -443,7 +443,7 @@ describe('addAttachments', () => {
     }
   });
 
-  it('tüm dosyalar başarısız olursa error döner', async () => {
+  it('returns error when all files fail', async () => {
     mockFetch.mockResolvedValueOnce({ ok: false, status: 500 });
 
     const file = new File(['test'], 'fail.json', { type: 'application/json' });
@@ -451,11 +451,11 @@ describe('addAttachments', () => {
 
     expect(result.success).toBe(false);
     if (!result.success) {
-      expect(result.error).toContain('Hiçbir dosya eklenemedi');
+      expect(result.error).toContain('No files could be attached');
     }
   });
 
-  it('X-Atlassian-Token header gönderilir', async () => {
+  it('sends X-Atlassian-Token header', async () => {
     mockFetch.mockResolvedValueOnce({
       ok: true,
       json: () =>
@@ -483,7 +483,7 @@ describe('addAttachments', () => {
     );
   });
 
-  it('Content-Type header gönderilmez (FormData boundary otomatik)', async () => {
+  it('does not send Content-Type header (FormData boundary auto)', async () => {
     mockFetch.mockResolvedValueOnce({
       ok: true,
       json: () =>
@@ -505,7 +505,7 @@ describe('addAttachments', () => {
     expect(callHeaders['Content-Type']).toBeUndefined();
   });
 
-  it('Cloud için 401 olduğunda token refresh ve retry yapar', async () => {
+  it('refreshes token and retries on 401 for Cloud', async () => {
     // İlk deneme 401
     mockFetch.mockResolvedValueOnce({ ok: false, status: 401 });
     // Refresh token exchange
@@ -547,7 +547,7 @@ describe('addAttachments', () => {
 });
 
 describe('linkIssue', () => {
-  it('başarılı link oluşturur', async () => {
+  it('creates link successfully', async () => {
     mockFetch.mockResolvedValueOnce({ ok: true });
 
     const result = await linkIssue(cloudCredentials, 'PROJ-456', 'PROJ-123');
@@ -566,14 +566,14 @@ describe('linkIssue', () => {
     );
   });
 
-  it('başarısız olursa hata döner', async () => {
+  it('returns error on failure', async () => {
     mockFetch.mockResolvedValueOnce({ ok: false, status: 404 });
 
     const result = await linkIssue(cloudCredentials, 'PROJ-456', 'INVALID-999');
 
     expect(result.success).toBe(false);
     if (!result.success) {
-      expect(result.error).toContain('Ticket bağlanamadı');
+      expect(result.error).toContain('Could not link ticket');
     }
   });
 });

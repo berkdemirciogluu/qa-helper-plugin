@@ -3,8 +3,8 @@ import { buildDescription } from './description-builder';
 import type { ConfigFields } from './types';
 
 const defaultForm = {
-  expectedResult: 'Login butonuna tıklayınca ana sayfaya yönlenmeli',
-  reason: 'Login butonuna tıklayınca 500 hatası alınıyor',
+  expectedResult: 'Clicking the login button should redirect to the homepage',
+  reason: 'Clicking the login button returns a 500 error',
   priority: 'high' as const,
 };
 
@@ -25,29 +25,29 @@ const defaultEnvironment = {
 };
 
 describe('buildDescription', () => {
-  it('tüm bölümleri içeren description üretir', () => {
+  it('produces description with all sections', () => {
     const result = buildDescription({
       form: defaultForm,
-      stepsText: '1. Sayfaya gidildi\n2. Butona tıklandı',
+      stepsText: '1. Navigated to page\n2. Clicked button',
       environment: defaultEnvironment,
       configFields: defaultConfig,
     });
 
-    expect(result).toContain('## Bug Raporu');
-    expect(result).toContain('**Beklenen Sonuç:**');
-    expect(result).toContain('Login butonuna tıklayınca ana sayfaya yönlenmeli');
-    expect(result).toContain('**Neden Bug:**');
-    expect(result).toContain('Login butonuna tıklayınca 500 hatası alınıyor');
-    expect(result).toContain('**Öncelik:** High');
+    expect(result).toContain('## Bug Report');
+    expect(result).toContain('**Expected Result:**');
+    expect(result).toContain('Clicking the login button should redirect to the homepage');
+    expect(result).toContain('**Why Bug:**');
+    expect(result).toContain('Clicking the login button returns a 500 error');
+    expect(result).toContain('**Priority:** High');
     expect(result).toContain('**Steps to Reproduce:**');
-    expect(result).toContain('1. Sayfaya gidildi');
-    expect(result).toContain('**Ortam:**');
+    expect(result).toContain('1. Navigated to page');
+    expect(result).toContain('**Environment:**');
     expect(result).toContain('Chrome 133');
-    expect(result).toContain('**Konfigürasyon:**');
+    expect(result).toContain('**Configuration:**');
     expect(result).toContain('staging');
   });
 
-  it('boş form verileri ile de çalışır', () => {
+  it('works with empty form data', () => {
     const result = buildDescription({
       form: { expectedResult: '', reason: '', priority: 'medium' },
       stepsText: '',
@@ -55,11 +55,11 @@ describe('buildDescription', () => {
       configFields: defaultConfig,
     });
 
-    expect(result).toContain('## Bug Raporu');
-    expect(result).toContain('**Öncelik:** Medium');
+    expect(result).toContain('## Bug Report');
+    expect(result).toContain('**Priority:** Medium');
   });
 
-  it('ortam bilgilerini doğru formatlayarak ekler', () => {
+  it('formats and includes environment info correctly', () => {
     const result = buildDescription({
       form: defaultForm,
       stepsText: '',
@@ -71,11 +71,11 @@ describe('buildDescription', () => {
     expect(result).toContain('- OS: Windows 11');
     expect(result).toContain('- Viewport: 1920x1080');
     expect(result).toContain('- Pixel Ratio: 1');
-    expect(result).toContain('- Dil: tr-TR');
+    expect(result).toContain('- Language: tr-TR');
     expect(result).toContain('- URL: https://app.com/login');
   });
 
-  it('konfigürasyon alanlarını doğru formatlayarak ekler', () => {
+  it('formats and includes configuration fields correctly', () => {
     const result = buildDescription({
       form: defaultForm,
       stepsText: '',
@@ -84,12 +84,12 @@ describe('buildDescription', () => {
     });
 
     expect(result).toContain('- Environment: staging');
-    expect(result).toContain('- Proje: e-commerce');
+    expect(result).toContain('- Project: e-commerce');
     expect(result).toContain('- Agile Team: Team Alpha');
     expect(result).toContain('- Test Cycle: Sprint 1');
   });
 
-  it('priority değerini capitalize eder', () => {
+  it('capitalizes priority value', () => {
     const result = buildDescription({
       form: { expectedResult: '', reason: '', priority: 'critical' },
       stepsText: '',
@@ -97,10 +97,10 @@ describe('buildDescription', () => {
       configFields: defaultConfig,
     });
 
-    expect(result).toContain('**Öncelik:** Critical');
+    expect(result).toContain('**Priority:** Critical');
   });
 
-  it('footer satırında tarih ve proje adı bulunur', () => {
+  it('footer contains date and project name', () => {
     const result = buildDescription({
       form: defaultForm,
       stepsText: '',
@@ -108,6 +108,6 @@ describe('buildDescription', () => {
       configFields: defaultConfig,
     });
 
-    expect(result).toContain('Rapor: qa-helper-plugin');
+    expect(result).toContain('Report: qa-helper-plugin');
   });
 });

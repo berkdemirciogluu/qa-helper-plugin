@@ -54,7 +54,7 @@ beforeEach(() => {
 });
 
 describe('DashboardView', () => {
-  it('başlangıçta toggle switch OFF durumunda (idle)', async () => {
+  it('toggle switch is OFF initially (idle)', async () => {
     render(<DashboardView />);
     await waitFor(() => {
       const toggle = screen.getByRole('switch');
@@ -62,33 +62,33 @@ describe('DashboardView', () => {
     });
   });
 
-  it('başlangıçta "Session Pasif" metni gösterilir', async () => {
+  it('shows "Session Inactive" text initially', async () => {
     render(<DashboardView />);
     await waitFor(() => {
-      expect(screen.getByText('Session Pasif')).toBeTruthy();
+      expect(screen.getByText('Session Inactive')).toBeTruthy();
     });
   });
 
-  it('sayaçlar stat chip olarak gösterilir', async () => {
+  it('counters shown as stat chips', async () => {
     render(<DashboardView />);
     await waitFor(() => {
       expect(screen.getByText('XHR')).toBeTruthy();
-      expect(screen.getByText('Sayfa')).toBeTruthy();
-      expect(screen.getByText('Olay')).toBeTruthy();
+      expect(screen.getByText('Page')).toBeTruthy();
+      expect(screen.getByText('Event')).toBeTruthy();
     });
   });
 
-  it('recording state: toggle switch ON ve "Session Aktif" gösterilir', async () => {
+  it('recording state: toggle switch ON and "Session Active" shown', async () => {
     mockSendMessage.mockResolvedValue({ success: true, data: mockRecordingMeta });
     render(<DashboardView />);
     await waitFor(() => {
-      expect(screen.getByText(/Session Aktif/)).toBeTruthy();
+      expect(screen.getByText(/Session Active/)).toBeTruthy();
       const toggle = screen.getByRole('switch');
       expect(toggle.getAttribute('aria-checked')).toBe('true');
     });
   });
 
-  it('toggle ON yapınca START_SESSION mesajı gönderilir', async () => {
+  it('sends START_SESSION message when toggle ON', async () => {
     mockSendMessage
       .mockResolvedValueOnce({ success: true, data: mockIdleMeta })
       .mockResolvedValueOnce({ success: true, data: mockRecordingMeta });
@@ -111,22 +111,22 @@ describe('DashboardView', () => {
     });
   });
 
-  it('footer "Tüm veriler cihazınızda" metni ile gösterilir', async () => {
+  it('footer shows "All data stays on your device" text', async () => {
     render(<DashboardView />);
     await waitFor(() => {
-      expect(screen.getByText('Tüm veriler cihazınızda')).toBeTruthy();
+      expect(screen.getByText('All data stays on your device')).toBeTruthy();
     });
   });
 
-  it('Ayarlar butonuna basınca openOptionsPage çağrılır', async () => {
+  it('calls openOptionsPage when settings button clicked', async () => {
     render(<DashboardView />);
 
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: 'Ayarlar sayfasını aç' })).toBeTruthy();
+      expect(screen.getByRole('button', { name: 'Open settings' })).toBeTruthy();
     });
 
     await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: 'Ayarlar sayfasını aç' }));
+      fireEvent.click(screen.getByRole('button', { name: 'Open settings' }));
     });
 
     expect(mockOpenOptionsPage).toHaveBeenCalled();

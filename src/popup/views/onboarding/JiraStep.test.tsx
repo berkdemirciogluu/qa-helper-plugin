@@ -29,62 +29,62 @@ beforeEach(() => {
 });
 
 describe('JiraStep', () => {
-  it('platform seçimi render eder, Server seçilince URL ve token alanları gösterilir', async () => {
+  it('renders platform selection, shows URL and token fields when Server selected', async () => {
     render(<JiraStep />);
 
-    expect(screen.getByLabelText('Jira platform seçimi')).toBeTruthy();
-    expect(screen.queryByLabelText('Jira URL adresi')).toBeNull();
+    expect(screen.getByLabelText('Jira platform selection')).toBeTruthy();
+    expect(screen.queryByLabelText('Jira URL address')).toBeNull();
 
-    const platformSelect = screen.getByLabelText('Jira platform seçimi');
+    const platformSelect = screen.getByLabelText('Jira platform selection');
     fireEvent.change(platformSelect, { target: { value: 'server' } });
 
     await waitFor(() => {
-      expect(screen.getByLabelText('Jira URL adresi')).toBeTruthy();
+      expect(screen.getByLabelText('Jira URL address')).toBeTruthy();
       expect(screen.getByLabelText('Jira API token')).toBeTruthy();
     });
   });
 
-  it('"Bağlantıyı Test Et" butonu platform seçilmeden gösterilmez', () => {
+  it('Test Connection button not shown without platform selection', () => {
     render(<JiraStep />);
 
-    expect(screen.queryByLabelText('Bağlantıyı test et')).toBeNull();
+    expect(screen.queryByLabelText('Test connection')).toBeNull();
   });
 
-  it('Server seçilip URL ve token girildiğinde test butonu aktif olur', async () => {
+  it('test button becomes active when Server selected with URL and token', async () => {
     render(<JiraStep />);
 
-    const platformSelect = screen.getByLabelText('Jira platform seçimi');
+    const platformSelect = screen.getByLabelText('Jira platform selection');
     fireEvent.change(platformSelect, { target: { value: 'server' } });
 
-    const urlInput = screen.getByLabelText('Jira URL adresi');
+    const urlInput = screen.getByLabelText('Jira URL address');
     const tokenInput = screen.getByLabelText('Jira API token');
     fireEvent.input(urlInput, { target: { value: 'https://jira.company.com' } });
     fireEvent.input(tokenInput, { target: { value: 'valid-token-12345' } });
 
     await waitFor(() => {
-      const testButton = screen.getByLabelText('Bağlantıyı test et');
+      const testButton = screen.getByLabelText('Test connection');
       expect(testButton.hasAttribute('disabled')).toBe(false);
     });
   });
 
-  it('Cloud seçildiğinde "Ayarlar sayfasını kullanın" mesajı gösterilir', async () => {
+  it('shows "Use the Settings page" message when Cloud selected', async () => {
     render(<JiraStep />);
 
-    const platformSelect = screen.getByLabelText('Jira platform seçimi');
+    const platformSelect = screen.getByLabelText('Jira platform selection');
     fireEvent.change(platformSelect, { target: { value: 'cloud' } });
 
     await waitFor(() => {
-      expect(screen.getByText(/Ayarlar sayfasını kullanın/)).toBeTruthy();
+      expect(screen.getByText(/Use the Settings page/)).toBeTruthy();
     });
   });
 
-  it('Server bağlantı testi başarılı olursa mesaj gösterilir', async () => {
+  it('shows success message when Server connection test succeeds', async () => {
     render(<JiraStep />);
 
-    const platformSelect = screen.getByLabelText('Jira platform seçimi');
+    const platformSelect = screen.getByLabelText('Jira platform selection');
     fireEvent.change(platformSelect, { target: { value: 'server' } });
 
-    const urlInput = screen.getByLabelText('Jira URL adresi');
+    const urlInput = screen.getByLabelText('Jira URL address');
     const tokenInput = screen.getByLabelText('Jira API token');
     fireEvent.input(urlInput, { target: { value: 'https://jira.company.com' } });
     fireEvent.input(tokenInput, { target: { value: 'valid-pat-token-12345' } });
@@ -99,21 +99,21 @@ describe('JiraStep', () => {
         }),
     });
 
-    const testButton = screen.getByLabelText('Bağlantıyı test et');
+    const testButton = screen.getByLabelText('Test connection');
     fireEvent.click(testButton);
 
     await waitFor(() => {
-      expect(screen.getByText(/Bağlantı başarılı/)).toBeTruthy();
+      expect(screen.getByText(/Connected/)).toBeTruthy();
     });
   });
 
-  it('Server bağlantı testi başarısız olursa hata gösterilir', async () => {
+  it('shows error when Server connection test fails', async () => {
     render(<JiraStep />);
 
-    const platformSelect = screen.getByLabelText('Jira platform seçimi');
+    const platformSelect = screen.getByLabelText('Jira platform selection');
     fireEvent.change(platformSelect, { target: { value: 'server' } });
 
-    const urlInput = screen.getByLabelText('Jira URL adresi');
+    const urlInput = screen.getByLabelText('Jira URL address');
     const tokenInput = screen.getByLabelText('Jira API token');
     fireEvent.input(urlInput, { target: { value: 'https://jira.company.com' } });
     fireEvent.input(tokenInput, { target: { value: 'invalid-pat-12345' } });
@@ -123,7 +123,7 @@ describe('JiraStep', () => {
       status: 401,
     });
 
-    const testButton = screen.getByLabelText('Bağlantıyı test et');
+    const testButton = screen.getByLabelText('Test connection');
     fireEvent.click(testButton);
 
     await waitFor(() => {
@@ -131,26 +131,26 @@ describe('JiraStep', () => {
     });
   });
 
-  it('Server seçildiğinde URL placeholder güncellenir', async () => {
+  it('URL placeholder updates when Server selected', async () => {
     render(<JiraStep />);
 
-    const platformSelect = screen.getByLabelText('Jira platform seçimi');
+    const platformSelect = screen.getByLabelText('Jira platform selection');
     fireEvent.change(platformSelect, { target: { value: 'server' } });
 
     await waitFor(() => {
-      const urlInput = screen.getByLabelText('Jira URL adresi');
-      expect((urlInput as HTMLInputElement).placeholder).toBe('https://jira.sirketiniz.com');
+      const urlInput = screen.getByLabelText('Jira URL address');
+      expect((urlInput as HTMLInputElement).placeholder).toBe('https://jira.yourcompany.com');
     });
   });
 
-  it('URL girişi storage\'a yazar', async () => {
+  it('URL input writes to storage', async () => {
     render(<JiraStep />);
 
-    const platformSelect = screen.getByLabelText('Jira platform seçimi');
+    const platformSelect = screen.getByLabelText('Jira platform selection');
     fireEvent.change(platformSelect, { target: { value: 'server' } });
 
     await waitFor(() => {
-      const urlInput = screen.getByLabelText('Jira URL adresi');
+      const urlInput = screen.getByLabelText('Jira URL address');
       fireEvent.input(urlInput, { target: { value: 'https://mycompany.atlassian.net' } });
     });
 
@@ -159,10 +159,10 @@ describe('JiraStep', () => {
     });
   });
 
-  it('token input type=password olarak gösterilir', async () => {
+  it('token input shown as type=password', async () => {
     render(<JiraStep />);
 
-    const platformSelect = screen.getByLabelText('Jira platform seçimi');
+    const platformSelect = screen.getByLabelText('Jira platform selection');
     fireEvent.change(platformSelect, { target: { value: 'server' } });
 
     await waitFor(() => {

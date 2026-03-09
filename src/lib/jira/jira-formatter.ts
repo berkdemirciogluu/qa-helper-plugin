@@ -95,15 +95,15 @@ export function formatDescriptionAdf(data: ReportData): AdfDoc {
     });
   }
 
-  // Beklenen Sonuç
+  // Expected Result
   if (data.expected) {
-    content.push(adfHeading(3, 'Beklenen Sonuç'));
+    content.push(adfHeading(3, 'Expected Result'));
     content.push(adfParagraph(adfText(data.expected)));
   }
 
-  // Gerçekleşen Sonuç
+  // Actual Result
   if (data.reason) {
-    content.push(adfHeading(3, 'Gerçekleşen Sonuç'));
+    content.push(adfHeading(3, 'Actual Result'));
     content.push(adfParagraph(adfText(data.reason)));
   }
 
@@ -117,7 +117,7 @@ export function formatDescriptionAdf(data: ReportData): AdfDoc {
         adfTableCell('tableHeader', 'Browser'),
         adfTableCell('tableHeader', 'OS'),
         adfTableCell('tableHeader', 'Viewport'),
-        adfTableCell('tableHeader', 'Dil'),
+        adfTableCell('tableHeader', 'Language'),
         adfTableCell('tableHeader', 'URL'),
       ]),
       adfTableRow([
@@ -140,11 +140,11 @@ export function formatDescriptionAdf(data: ReportData): AdfDoc {
   ].filter(([, v]) => v);
 
   if (cfgEntries.length > 0) {
-    content.push(adfHeading(3, 'Konfigürasyon'));
+    content.push(adfHeading(3, 'Configuration'));
     content.push({
       type: 'table',
       content: [
-        adfTableRow([adfTableCell('tableHeader', 'Alan'), adfTableCell('tableHeader', 'Değer')]),
+        adfTableRow([adfTableCell('tableHeader', 'Field'), adfTableCell('tableHeader', 'Value')]),
         ...cfgEntries.map(([k, v]) =>
           adfTableRow([adfTableCell('tableCell', k), adfTableCell('tableCell', v)])
         ),
@@ -157,7 +157,7 @@ export function formatDescriptionAdf(data: ReportData): AdfDoc {
     content.push({
       type: 'panel',
       attrs: { panelType: 'info' },
-      content: [adfParagraph(adfText(`Ekli dosyalar: ${data.attachmentNames.join(', ')}`))],
+      content: [adfParagraph(adfText(`Attached files: ${data.attachmentNames.join(', ')}`))],
     });
   }
 
@@ -176,16 +176,16 @@ export function formatDescriptionWiki(data: ReportData): string {
     lines.push('');
   }
 
-  // Beklenen Sonuç
+  // Expected Result
   if (data.expected) {
-    lines.push('h3. Beklenen Sonuç');
+    lines.push('h3. Expected Result');
     lines.push(escapeWiki(data.expected));
     lines.push('');
   }
 
-  // Gerçekleşen Sonuç
+  // Actual Result
   if (data.reason) {
-    lines.push('h3. Gerçekleşen Sonuç');
+    lines.push('h3. Actual Result');
     lines.push(escapeWiki(data.reason));
     lines.push('');
   }
@@ -193,7 +193,7 @@ export function formatDescriptionWiki(data: ReportData): string {
   // Environment tablosu
   const env = data.environment;
   lines.push('h3. Environment');
-  lines.push('||Browser||OS||Viewport||Dil||URL||');
+  lines.push('||Browser||OS||Viewport||Language||URL||');
   lines.push(
     `|${escapeWiki(env.browser)}|${escapeWiki(env.os)}|${escapeWiki(env.viewport)}|${escapeWiki(env.language)}|${escapeWiki(env.url)}|`
   );
@@ -209,15 +209,15 @@ export function formatDescriptionWiki(data: ReportData): string {
   ].filter(([, v]) => v);
 
   if (cfgEntries.length > 0) {
-    lines.push('h3. Konfigürasyon');
-    lines.push('||Alan||Değer||');
+    lines.push('h3. Configuration');
+    lines.push('||Field||Value||');
     cfgEntries.forEach(([k, v]) => lines.push(`|${escapeWiki(k)}|${escapeWiki(v)}|`));
     lines.push('');
   }
 
   // Ekli dosyalar
   if (data.attachmentNames.length > 0) {
-    lines.push('{panel:title=Ekli Dosyalar|borderStyle=solid}');
+    lines.push('{panel:title=Attached Files|borderStyle=solid}');
     lines.push(data.attachmentNames.join(', '));
     lines.push('{panel}');
   }

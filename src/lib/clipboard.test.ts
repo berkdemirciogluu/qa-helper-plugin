@@ -6,7 +6,7 @@ beforeEach(() => {
 });
 
 describe('copyToClipboard', () => {
-  it('metni clipboard\'a kopyalar', async () => {
+  it('copies text to clipboard', async () => {
     const writeText = vi.fn().mockResolvedValue(undefined);
     vi.stubGlobal('navigator', { clipboard: { writeText } });
 
@@ -16,7 +16,7 @@ describe('copyToClipboard', () => {
     expect(writeText).toHaveBeenCalledWith('Test metin');
   });
 
-  it('clipboard API hatası olduğunda Result error döner', async () => {
+  it('returns Result error when clipboard API fails', async () => {
     const writeText = vi.fn().mockRejectedValue(new Error('Clipboard access denied'));
     vi.stubGlobal('navigator', { clipboard: { writeText } });
 
@@ -28,7 +28,7 @@ describe('copyToClipboard', () => {
     }
   });
 
-  it('boş metin ile çalışır', async () => {
+  it('works with empty text', async () => {
     const writeText = vi.fn().mockResolvedValue(undefined);
     vi.stubGlobal('navigator', { clipboard: { writeText } });
 

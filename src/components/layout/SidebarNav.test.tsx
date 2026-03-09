@@ -7,66 +7,66 @@ function MockIcon({ size, class: className }: { size?: number; class?: string })
 }
 
 const defaultItems = [
-  { key: 'general', label: 'Genel', icon: MockIcon },
-  { key: 'configuration', label: 'Konfigürasyon', icon: MockIcon },
-  { key: 'data-management', label: 'Veri Yönetimi', icon: MockIcon },
-  { key: 'about', label: 'Hakkında', icon: MockIcon },
+  { key: 'general', label: 'General', icon: MockIcon },
+  { key: 'configuration', label: 'Configuration', icon: MockIcon },
+  { key: 'data-management', label: 'Data Management', icon: MockIcon },
+  { key: 'about', label: 'About', icon: MockIcon },
 ];
 
 describe('SidebarNav', () => {
-  it('tüm navigasyon itemlarını render eder', () => {
+  it('renders all navigation items', () => {
     render(<SidebarNav items={defaultItems} activeKey="general" onSelect={() => {}} />);
 
-    expect(screen.getByText('Genel')).toBeTruthy();
-    expect(screen.getByText('Konfigürasyon')).toBeTruthy();
-    expect(screen.getByText('Veri Yönetimi')).toBeTruthy();
-    expect(screen.getByText('Hakkında')).toBeTruthy();
+    expect(screen.getByText('General')).toBeTruthy();
+    expect(screen.getByText('Configuration')).toBeTruthy();
+    expect(screen.getByText('Data Management')).toBeTruthy();
+    expect(screen.getByText('About')).toBeTruthy();
   });
 
-  it('nav elementine aria-label atar', () => {
+  it('nav element gets aria-label', () => {
     render(<SidebarNav items={defaultItems} activeKey="general" onSelect={() => {}} />);
 
     const nav = screen.getByRole('navigation');
     expect(nav).toBeTruthy();
     expect(nav.tagName.toLowerCase()).toBe('nav');
-    expect(nav.getAttribute('aria-label')).toBe('Ayarlar menüsü');
+    expect(nav.getAttribute('aria-label')).toBe('Settings menu');
   });
 
   it('aktif iteme aria-current="page" atar', () => {
     render(<SidebarNav items={defaultItems} activeKey="configuration" onSelect={() => {}} />);
 
-    const activeButton = screen.getByText('Konfigürasyon').closest('button');
+    const activeButton = screen.getByText('Configuration').closest('button');
     expect(activeButton?.getAttribute('aria-current')).toBe('page');
 
-    const inactiveButton = screen.getByText('Genel').closest('button');
+    const inactiveButton = screen.getByText('General').closest('button');
     expect(inactiveButton?.getAttribute('aria-current')).toBeNull();
   });
 
-  it('aktif item vurgulu gösterilir', () => {
+  it('active item is highlighted', () => {
     render(<SidebarNav items={defaultItems} activeKey="general" onSelect={() => {}} />);
 
-    const activeButton = screen.getByText('Genel').closest('button');
+    const activeButton = screen.getByText('General').closest('button');
     expect(activeButton?.className).toContain('bg-blue-50');
     expect(activeButton?.className).toContain('text-blue-700');
     expect(activeButton?.className).toContain('font-medium');
   });
 
-  it('pasif item uygun stilde gösterilir', () => {
+  it('inactive item has appropriate style', () => {
     render(<SidebarNav items={defaultItems} activeKey="general" onSelect={() => {}} />);
 
-    const inactiveButton = screen.getByText('Konfigürasyon').closest('button');
+    const inactiveButton = screen.getByText('Configuration').closest('button');
     expect(inactiveButton?.className).toContain('text-gray-600');
   });
 
-  it('tıklama ile onSelect çağrılır', () => {
+  it('calls onSelect on click', () => {
     const onSelect = vi.fn();
     render(<SidebarNav items={defaultItems} activeKey="general" onSelect={onSelect} />);
 
-    fireEvent.click(screen.getByText('Hakkında'));
+    fireEvent.click(screen.getByText('About'));
     expect(onSelect).toHaveBeenCalledWith('about');
   });
 
-  it('navigasyon itemları button elementi ile render edilir (native keyboard erişimi)', () => {
+  it('nav items rendered as button elements (native keyboard access)', () => {
     render(<SidebarNav items={defaultItems} activeKey="general" onSelect={() => {}} />);
 
     const buttons = screen.getAllByRole('button');
@@ -76,10 +76,10 @@ describe('SidebarNav', () => {
     });
   });
 
-  it('butonlar minimum 44px yüksekliğe sahip', () => {
+  it('buttons have minimum 44px height', () => {
     render(<SidebarNav items={defaultItems} activeKey="general" onSelect={() => {}} />);
 
-    const button = screen.getByText('Genel').closest('button');
+    const button = screen.getByText('General').closest('button');
     expect(button?.className).toContain('min-h-[44px]');
   });
 });

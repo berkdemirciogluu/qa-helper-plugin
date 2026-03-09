@@ -9,43 +9,43 @@ export function AboutPage() {
   async function handleResetOnboarding() {
     try {
       await storageRemove(STORAGE_KEYS.ONBOARDING_COMPLETED);
-      showToast('info', "Popup'ı açtığınızda kurulum sihirbazı tekrar gösterilecek");
+      showToast('info', 'Setup wizard will appear when you open the popup');
     } catch {
-      showToast('error', 'Sihirbaz sıfırlama başarısız oldu.');
+      showToast('error', 'Wizard reset failed.');
     }
   }
 
   return (
     <div class="flex flex-col gap-6">
-      <SectionGroup title="Hakkında">
+      <SectionGroup title="About">
         <div class="flex flex-col gap-2">
           <h3 class="text-base font-semibold text-gray-900">QA Helper</h3>
           <p class="text-sm text-gray-600">
-            Versiyon: {version}
+            Version: {version}
           </p>
           <p class="text-sm text-gray-500 mt-1">
-            Manuel test süreçlerinde bug raporlama ve veri toplama aracı.
+            A bug reporting and data collection tool for manual testing.
           </p>
           <p class="text-sm text-gray-500 mt-1">
-            Geliştirici: QA Helper Ekibi
+            Developer: QA Helper Team
           </p>
         </div>
       </SectionGroup>
 
-      <SectionGroup title="Lisans">
+      <SectionGroup title="License">
         <p class="text-sm text-gray-500">
-          Durum: Ücretsiz (Phase 2'de lisans eklenecek)
+          Status: Free (license will be added in Phase 2)
         </p>
       </SectionGroup>
 
-      <SectionGroup title="Diğer">
+      <SectionGroup title="Other">
         <button
           type="button"
           onClick={() => void handleResetOnboarding()}
           class="text-sm text-blue-600 hover:text-blue-700 transition-colors focus-visible:outline-2 focus-visible:outline-blue-500 focus-visible:outline-offset-2 rounded"
-          aria-label="Kurulum sihirbazını tekrar aç"
+          aria-label="Reopen setup wizard"
         >
-          Kurulum sihirbazını tekrar aç
+          Reopen setup wizard
         </button>
       </SectionGroup>
     </div>

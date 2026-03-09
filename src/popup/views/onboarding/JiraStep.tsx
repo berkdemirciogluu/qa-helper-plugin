@@ -10,7 +10,7 @@ import type { JiraCredentials } from '@/lib/types';
 type TestStatus = 'idle' | 'loading' | 'success' | 'error';
 
 const platformOptions = [
-  { value: '', label: 'Seçiniz...' },
+  { value: '', label: 'Select...' },
   { value: 'cloud', label: 'Jira Cloud' },
   { value: 'server', label: 'Jira Server / Data Center' },
 ];
@@ -27,7 +27,7 @@ export function JiraStep() {
     platform === 'cloud'
       ? 'https://domain.atlassian.net'
       : platform === 'server'
-        ? 'https://jira.sirketiniz.com'
+        ? 'https://jira.yourcompany.com'
         : 'Jira URL';
 
   async function saveCredentials(overrides: Partial<JiraCredentials>) {
@@ -71,7 +71,7 @@ export function JiraStep() {
     const result = await testConnection(creds);
     if (result.success) {
       setTestStatus('success');
-      setTestMessage(`Bağlantı başarılı — ${result.data.displayName}`);
+      setTestMessage(`Connected — ${result.data.displayName}`);
       await saveCredentials({ displayName: result.data.displayName, connected: true });
     } else {
       setTestStatus('error');
@@ -84,7 +84,7 @@ export function JiraStep() {
   return (
     <div class="flex flex-col gap-4">
       <p class="text-sm text-gray-500">
-        İsteğe bağlı — Jira entegrasyonu zorunlu değil, dilediğinizde atlayabilirsiniz.
+        Optional — Jira integration is not required, you can skip this anytime.
       </p>
       <Select
         label="Platform"
@@ -92,12 +92,10 @@ export function JiraStep() {
         options={platformOptions}
         value={platform}
         onChange={handlePlatformChange}
-        aria-label="Jira platform seçimi"
+        aria-label="Jira platform selection"
       />
       {platform === 'cloud' && (
-        <p class="text-xs text-gray-400">
-          Jira Cloud bağlantısı için Ayarlar sayfasını kullanın.
-        </p>
+        <p class="text-xs text-gray-400">Use the Settings page to connect to Jira Cloud.</p>
       )}
       {platform === 'server' && (
         <>
@@ -107,7 +105,7 @@ export function JiraStep() {
             value={url}
             onChange={handleUrlChange}
             placeholder={urlPlaceholder}
-            aria-label="Jira URL adresi"
+            aria-label="Jira URL address"
           />
           <Input
             label="API Token"
@@ -125,18 +123,22 @@ export function JiraStep() {
               disabled={!isServerWithCredentials}
               loading={testStatus === 'loading'}
               onClick={handleTestConnection}
-              aria-label="Bağlantıyı test et"
+              aria-label="Test connection"
             >
-              Bağlantıyı Test Et
+              Test Connection
             </Button>
           </div>
         </>
       )}
       {testStatus === 'success' && testMessage && (
-        <p class="text-xs text-green-600" aria-live="polite">{testMessage}</p>
+        <p class="text-xs text-green-600" aria-live="polite">
+          {testMessage}
+        </p>
       )}
       {testStatus === 'error' && testMessage && (
-        <p class="text-xs text-red-600" role="alert">{testMessage}</p>
+        <p class="text-xs text-red-600" role="alert">
+          {testMessage}
+        </p>
       )}
     </div>
   );

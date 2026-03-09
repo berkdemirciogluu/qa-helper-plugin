@@ -3,22 +3,22 @@ import { render, screen } from '@testing-library/preact';
 import { ReadyStep } from './ReadyStep';
 
 describe('ReadyStep', () => {
-  it('tamamlanma mesajını gösterir', () => {
+  it('shows completion message', () => {
     render(<ReadyStep />);
 
-    expect(screen.getByText('Kurulum tamam!')).toBeTruthy();
+    expect(screen.getByText('Setup complete!')).toBeTruthy();
   });
 
-  it('session başlatma yönlendirmesini gösterir', () => {
+  it('shows session start guidance', () => {
     render(<ReadyStep />);
 
-    expect(screen.getByText(/İlk session'ınızı başlatın/)).toBeTruthy();
+    expect(screen.getByText(/Start your first session/)).toBeTruthy();
   });
 
-  it('CheckCircle simgesi render edilir', () => {
+  it('CheckCircle icon is rendered', () => {
     const { container } = render(<ReadyStep />);
 
-    // Lucide SVG ikonu aria-hidden ile render edilir
+    // Lucide SVG icon rendered with aria-hidden
     const svg = container.querySelector('svg[aria-hidden="true"]');
     expect(svg).toBeTruthy();
   });

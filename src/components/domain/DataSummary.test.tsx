@@ -14,7 +14,7 @@ describe('DataSummary', () => {
     hasSession: true,
   };
 
-  it('tam veri ile tüm öğeleri render eder', () => {
+  it('renders all items with full data', () => {
     render(<DataSummary {...fullProps} />);
     expect(screen.getByText('Screenshot')).toBeTruthy();
     expect(screen.getByText('DOM')).toBeTruthy();
@@ -25,26 +25,26 @@ describe('DataSummary', () => {
     expect(screen.getByText('Timeline')).toBeTruthy();
   });
 
-  it("session'sız modda XHR ve Timeline soluk render edilir", () => {
+  it('renders XHR and Timeline dimmed without session', () => {
     const { container } = render(
-      <DataSummary {...fullProps} hasSession={false} xhrCount={0} clickCount={0} />,
+      <DataSummary {...fullProps} hasSession={false} xhrCount={0} clickCount={0} />
     );
     const grayItems = container.querySelectorAll('.text-gray-300');
     expect(grayItems.length).toBeGreaterThan(0);
   });
 
-  it('count değerleri gösterilir', () => {
+  it('displays count values', () => {
     render(<DataSummary {...fullProps} />);
     expect(screen.getByText('10')).toBeTruthy(); // xhrCount
     expect(screen.getByText('5')).toBeTruthy(); // consoleLogCount
   });
 
-  it('XHR count 0 ise sıfır gösterilir', () => {
+  it('shows zero for XHR count 0', () => {
     render(<DataSummary {...fullProps} xhrCount={0} />);
     expect(screen.getByText('XHR')).toBeTruthy();
   });
 
-  it('grid olarak render edilir', () => {
+  it('renders as grid', () => {
     const { container } = render(<DataSummary {...fullProps} />);
     const grid = container.querySelector('.grid');
     expect(grid).toBeTruthy();

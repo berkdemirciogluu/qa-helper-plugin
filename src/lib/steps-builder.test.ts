@@ -23,21 +23,21 @@ const makeNav = (overrides: Partial<NavEvent> = {}): NavEvent => ({
 });
 
 describe('buildStepsToReproduce', () => {
-  it('boş listeler için boş string döner', () => {
+  it('returns empty string for empty lists', () => {
     expect(buildStepsToReproduce([], [])).toBe('');
   });
 
-  it('tek tıklama için adım oluşturur', () => {
-    const result = buildStepsToReproduce([makeClick({ text: 'Giriş Yap' })], []);
-    expect(result).toBe("1. 'Giriş Yap' elementine tıklandı");
+  it('creates step for single click', () => {
+    const result = buildStepsToReproduce([makeClick({ text: 'Login' })], []);
+    expect(result).toBe("1. Clicked 'Login' element");
   });
 
-  it('tek navigasyon için adım oluşturur', () => {
+  it('creates step for single navigation', () => {
     const result = buildStepsToReproduce([], [makeNav({ url: 'https://example.com/login' })]);
-    expect(result).toBe('1. https://example.com/login sayfasına gidildi');
+    expect(result).toBe('1. Navigated to https://example.com/login');
   });
 
-  it('50 karakterden uzun metin kırpılır', () => {
+  it('truncates text longer than 50 characters', () => {
     const longText = 'A'.repeat(60);
     const result = buildStepsToReproduce([makeClick({ text: longText })], []);
     expect(result).toContain('...');
@@ -46,21 +46,21 @@ describe('buildStepsToReproduce', () => {
     expect(step).toContain('A'.repeat(50) + '...');
   });
 
-  it('olaylar timestamp sırasına göre sıralanır', () => {
-    const click = makeClick({ timestamp: 3000, text: 'İkinci' });
+  it('sorts events by timestamp', () => {
+    const click = makeClick({ timestamp: 3000, text: 'Second' });
     const nav = makeNav({ timestamp: 1000, url: 'https://example.com/page' });
     const result = buildStepsToReproduce([click], [nav]);
     const lines = result.split('\n');
-    expect(lines[0]).toContain('sayfasına gidildi'); // nav önce
-    expect(lines[1]).toContain("tıklandı"); // click sonra
+    expect(lines[0]).toContain('Navigated to'); // nav first
+    expect(lines[1]).toContain('Clicked'); // click second
   });
 
-  it('çoklu olaylar için sıralı numaralar kullanır', () => {
+  it('uses sequential numbers for multiple events', () => {
     const clicks = [
-      makeClick({ timestamp: 1000, text: 'Birinci' }),
-      makeClick({ timestamp: 3000, text: 'Üçüncü' }),
+      makeClick({ timestamp: 1000, text: 'First' }),
+      makeClick({ timestamp: 3000, text: 'Third' }),
     ];
-    const navs = [makeNav({ timestamp: 2000, url: 'https://example.com/sonraki' })];
+    const navs = [makeNav({ timestamp: 2000, url: 'https://example.com/next' })];
     const result = buildStepsToReproduce(clicks, navs);
     const lines = result.split('\n');
     expect(lines).toHaveLength(3);
@@ -69,7 +69,7 @@ describe('buildStepsToReproduce', () => {
     expect(lines[2]).toMatch(/^3\./);
   });
 
-  it('50 karakter metin kırpılmaz', () => {
+  it('does not truncate 50 character text', () => {
     const text = 'A'.repeat(50);
     const result = buildStepsToReproduce([makeClick({ text })], []);
     expect(result).not.toContain('...');

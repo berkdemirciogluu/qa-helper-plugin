@@ -54,13 +54,13 @@ export async function startOAuthFlow(): Promise<Result<OAuthFlowResult>> {
       const msg = err instanceof Error ? err.message : String(err);
       console.error('[JiraAuth] OAuth flow failed:', msg);
       if (msg.includes('did not approve') || msg.includes('cancelled') || msg.includes('canceled')) {
-        return { success: false, error: 'Yetkilendirme iptal edildi. Tekrar denemek isterseniz butona basın.' };
+        return { success: false, error: 'Authorization cancelled. Press the button to try again.' };
       }
-      return { success: false, error: 'Jira bağlantısı kurulamadı. İnternet bağlantınızı kontrol edip tekrar deneyin.' };
+      return { success: false, error: 'Could not connect to Jira. Check your internet connection and try again.' };
     }
 
     if (!redirectUrl) {
-      return { success: false, error: 'Yetkilendirme başarısız oldu. Lütfen tekrar deneyin.' };
+      return { success: false, error: 'Authorization failed. Please try again.' };
     }
 
     // Auth code'u redirect URL'den çıkar
@@ -71,12 +71,12 @@ export async function startOAuthFlow(): Promise<Result<OAuthFlowResult>> {
 
     if (returnedState !== state) {
       console.error('[JiraAuth] State mismatch — possible CSRF attack');
-      return { success: false, error: 'Güvenlik doğrulaması başarısız oldu. Lütfen tekrar deneyin.' };
+      return { success: false, error: 'Security validation failed. Please try again.' };
     }
 
     if (error || !code) {
       console.error('[JiraAuth] OAuth redirect error:', error);
-      return { success: false, error: 'Yetkilendirme başarısız oldu. Lütfen tekrar deneyin.' };
+      return { success: false, error: 'Authorization failed. Please try again.' };
     }
 
     // Token exchange
@@ -91,7 +91,7 @@ export async function startOAuthFlow(): Promise<Result<OAuthFlowResult>> {
 
     const resources = resourceResult.data;
     if (resources.length === 0) {
-      return { success: false, error: 'Erişilebilir Jira sitesi bulunamadı. Jira yetkilendirmelerinizi kontrol edin.' };
+      return { success: false, error: 'No accessible Jira site found. Check your Jira permissions.' };
     }
 
     const resource = resources[0];
@@ -109,7 +109,7 @@ export async function startOAuthFlow(): Promise<Result<OAuthFlowResult>> {
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     console.error('[JiraAuth] startOAuthFlow error:', msg);
-    return { success: false, error: 'Beklenmeyen bir hata oluştu. Lütfen tekrar deneyin.' };
+    return { success: false, error: 'An unexpected error occurred. Please try again.' };
   }
 }
 
@@ -131,7 +131,7 @@ async function exchangeCodeForTokens(code: string): Promise<Result<JiraOAuthToke
 
   if (!response.ok) {
     console.error('[JiraAuth] Token exchange failed:', response.status);
-    return { success: false, error: 'Token alınamadı. Lütfen tekrar deneyin.' };
+    return { success: false, error: 'Could not retrieve token. Please try again.' };
   }
 
   const tokens: JiraOAuthTokens = await response.json();
@@ -150,7 +150,7 @@ export async function getAccessibleResources(
 
     if (!response.ok) {
       console.error('[JiraAuth] Accessible resources failed:', response.status);
-      return { success: false, error: 'Jira site bilgileri alınamadı.' };
+      return { success: false, error: 'Could not retrieve Jira site information.' };
     }
 
     const resources: JiraAccessibleResource[] = await response.json();
@@ -158,7 +158,7 @@ export async function getAccessibleResources(
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     console.error('[JiraAuth] getAccessibleResources error:', msg);
-    return { success: false, error: 'Jira site bilgileri alınamadı.' };
+    return { success: false, error: 'Could not retrieve Jira site information.' };
   }
 }
 
@@ -181,7 +181,7 @@ export async function refreshAccessToken(
 
     if (!response.ok) {
       console.error('[JiraAuth] Token refresh failed:', response.status);
-      return { success: false, error: 'Oturum süresi doldu. Lütfen tekrar bağlanın.' };
+      return { success: false, error: 'Session expired. Please reconnect.' };
     }
 
     const tokens: JiraOAuthTokens = await response.json();
@@ -197,7 +197,7 @@ export async function refreshAccessToken(
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     console.error('[JiraAuth] refreshAccessToken error:', msg);
-    return { success: false, error: 'Token yenilenirken hata oluştu.' };
+    return { success: false, error: 'Error occurred while refreshing token.' };
   }
 }
 
@@ -205,10 +205,10 @@ export async function refreshAccessToken(
 export function validatePat(pat: string): Result<string> {
   const trimmed = pat.trim();
   if (!trimmed) {
-    return { success: false, error: 'API token boş olamaz.' };
+    return { success: false, error: 'API token cannot be empty.' };
   }
   if (trimmed.length < 10) {
-    return { success: false, error: 'API token çok kısa. Geçerli bir token girin.' };
+    return { success: false, error: 'API token is too short. Enter a valid token.' };
   }
   return { success: true, data: trimmed };
 }

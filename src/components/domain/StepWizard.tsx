@@ -21,7 +21,7 @@ export function StepWizard({ steps, onComplete }: StepWizardProps) {
   const totalSteps = steps.length;
   const step = steps[currentStep];
   const isLast = currentStep === totalSteps - 1;
-  const nextLabel = step.nextLabel ?? (isLast ? 'Başla' : 'İleri');
+  const nextLabel = step.nextLabel ?? (isLast ? 'Start' : 'Next');
 
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
@@ -73,7 +73,7 @@ export function StepWizard({ steps, onComplete }: StepWizardProps) {
         aria-valuenow={currentStep + 1}
         aria-valuemin={1}
         aria-valuemax={totalSteps}
-        aria-label={`Adım ${currentStep + 1} / ${totalSteps}`}
+        aria-label={`Step ${currentStep + 1} / ${totalSteps}`}
       >
         <div class="flex items-center gap-2">
           {steps.map((s, i) => (
@@ -88,7 +88,7 @@ export function StepWizard({ steps, onComplete }: StepWizardProps) {
           ))}
         </div>
         <span class="text-xs text-gray-500" aria-hidden="true">
-          Adım {currentStep + 1}/{totalSteps}
+          Step {currentStep + 1}/{totalSteps}
         </span>
       </div>
 
@@ -106,7 +106,7 @@ export function StepWizard({ steps, onComplete }: StepWizardProps) {
       <div class="flex items-center justify-between px-4 py-3 border-t border-gray-100">
         {!step.hideSkip ? (
           <Button variant="ghost" size="sm" onClick={handleSkip}>
-            Atla
+            Skip
           </Button>
         ) : (
           <div />

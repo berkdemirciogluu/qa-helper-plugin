@@ -20,7 +20,13 @@ describe('ConfigurationPage', () => {
     mockGet.mockImplementation(() =>
       Promise.resolve({
         session_config: {
-          toggles: { har: true, console: true, dom: true, localStorage: true, sessionStorage: true },
+          toggles: {
+            har: true,
+            console: true,
+            dom: true,
+            localStorage: true,
+            sessionStorage: true,
+          },
           configFields: {
             environment: 'staging',
             testCycle: 'Sprint 1',
@@ -28,34 +34,36 @@ describe('ConfigurationPage', () => {
             project: 'e-commerce',
           },
         },
-      }),
+      })
     );
     mockSet.mockImplementation(() => Promise.resolve());
   });
 
-  it('SectionGroup başlık ve açıklaması gösterilir', async () => {
+  it('shows SectionGroup title and description', async () => {
     render(<ConfigurationPage />);
 
     await waitFor(() => {
-      expect(screen.getByText('Konfigürasyon Alanları')).toBeTruthy();
+      expect(screen.getByText('Configuration Fields')).toBeTruthy();
     });
     expect(
-      screen.getByText('Bug raporlarına otomatik eklenen bağlam bilgileri. Bir kez ayarlayın, her raporda kullanılsın.'),
+      screen.getByText(
+        'Context fields automatically included in bug reports. Set once, use in every report.'
+      )
     ).toBeTruthy();
   });
 
-  it('tüm form alanlarını render eder', async () => {
+  it('renders all form fields', async () => {
     render(<ConfigurationPage />);
 
     await waitFor(() => {
-      expect(screen.getByText('Ortam')).toBeTruthy();
-      expect(screen.getByText('Test Döngüsü')).toBeTruthy();
-      expect(screen.getByText('Agile Takım')).toBeTruthy();
-      expect(screen.getByText('Proje')).toBeTruthy();
+      expect(screen.getByText('Environment')).toBeTruthy();
+      expect(screen.getByText('Test Cycle')).toBeTruthy();
+      expect(screen.getByText('Agile Team')).toBeTruthy();
+      expect(screen.getByText('Project')).toBeTruthy();
     });
   });
 
-  it('storage dan mevcut değerleri yükler', async () => {
+  it('loads existing values from storage', async () => {
     render(<ConfigurationPage />);
 
     await waitFor(() => {
@@ -73,7 +81,7 @@ describe('ConfigurationPage', () => {
     });
   });
 
-  it('environment seçim değişikliğinde storage a kaydeder', async () => {
+  it('saves to storage on environment selection change', async () => {
     render(<ConfigurationPage />);
 
     await waitFor(() => {
@@ -92,7 +100,7 @@ describe('ConfigurationPage', () => {
     });
   });
 
-  it('input değişikliğinde mevcut config ile merge ederek kaydeder', async () => {
+  it('merges with existing config when saving input changes', async () => {
     render(<ConfigurationPage />);
 
     await waitFor(() => {
@@ -112,7 +120,7 @@ describe('ConfigurationPage', () => {
     });
   });
 
-  it('storage boşken varsayılan toggles ile config oluşturur', async () => {
+  it('creates config with default toggles when storage is empty', async () => {
     mockGet.mockImplementation(() => Promise.resolve({}));
 
     render(<ConfigurationPage />);
@@ -127,16 +135,22 @@ describe('ConfigurationPage', () => {
     await waitFor(() => {
       expect(mockSet).toHaveBeenCalledWith({
         session_config: expect.objectContaining({
-          toggles: { har: true, console: true, dom: true, localStorage: true, sessionStorage: true },
+          toggles: {
+            har: true,
+            console: true,
+            dom: true,
+            localStorage: true,
+            sessionStorage: true,
+          },
           configFields: expect.objectContaining({ project: 'test-proje' }),
         }),
       });
     });
   });
 
-  it('yükleme sırasında Yükleniyor mesajı gösterilir', () => {
+  it('shows Loading message during load', () => {
     mockGet.mockImplementation(() => new Promise(() => {})); // never resolves
     render(<ConfigurationPage />);
-    expect(screen.getByText('Yükleniyor...')).toBeTruthy();
+    expect(screen.getByText('Loading...')).toBeTruthy();
   });
 });

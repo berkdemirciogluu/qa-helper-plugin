@@ -69,7 +69,7 @@ beforeEach(() => {
 });
 
 describe('handleTakeSnapshot', () => {
-  it('başarılı snapshot: screenshot + DOM + storage + consoleLogs döner', async () => {
+  it('successful snapshot: returns screenshot + DOM + storage + consoleLogs', async () => {
     const { handleTakeSnapshot } = await import('./snapshot-handler');
     const result = await handleTakeSnapshot(42);
 
@@ -83,7 +83,7 @@ describe('handleTakeSnapshot', () => {
     }
   });
 
-  it('screenshot başarısız olsa bile devam eder (graceful degradation)', async () => {
+  it('continues even if screenshot fails (graceful degradation)', async () => {
     mockCaptureVisibleTab.mockRejectedValue(new Error('Cannot capture'));
     const { handleTakeSnapshot } = await import('./snapshot-handler');
     const result = await handleTakeSnapshot(42);
@@ -96,7 +96,7 @@ describe('handleTakeSnapshot', () => {
     }
   });
 
-  it('content script başarısız olsa bile devam eder', async () => {
+  it('continues even if content script fails', async () => {
     mockSendTabMessage.mockResolvedValue({ success: false, error: 'Content script unreachable' });
     const { handleTakeSnapshot } = await import('./snapshot-handler');
     const result = await handleTakeSnapshot(42);
@@ -107,11 +107,9 @@ describe('handleTakeSnapshot', () => {
     }
   });
 
-  it('console logları derlenir', async () => {
+  it('compiles console logs', async () => {
     mockStorageGet.mockResolvedValue({
-      'session_console_42': [
-        { type: 'console', timestamp: 1000, level: 'error', message: 'Oops' },
-      ],
+      session_console_42: [{ type: 'console', timestamp: 1000, level: 'error', message: 'Oops' }],
     });
     const { handleTakeSnapshot } = await import('./snapshot-handler');
     const result = await handleTakeSnapshot(42);
@@ -123,7 +121,7 @@ describe('handleTakeSnapshot', () => {
     }
   });
 
-  it('collectionDurationMs doldurulur', async () => {
+  it('collectionDurationMs is populated', async () => {
     const { handleTakeSnapshot } = await import('./snapshot-handler');
     const result = await handleTakeSnapshot(42);
 

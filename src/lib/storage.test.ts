@@ -115,7 +115,7 @@ describe('getSessionKey', () => {
 });
 
 describe('storageGetAllSessionKeys', () => {
-  it('sadece session prefix li key leri döner', async () => {
+  it('returns only session-prefixed keys', async () => {
     mockStorageGet.mockResolvedValue({
       session_meta_1: {},
       session_xhr_1: [],
@@ -136,7 +136,7 @@ describe('storageGetAllSessionKeys', () => {
     }
   });
 
-  it('session key yoksa boş dizi döner', async () => {
+  it('returns empty array when no session keys exist', async () => {
     mockStorageGet.mockResolvedValue({ session_config: {} });
 
     const result = await storageGetAllSessionKeys();
@@ -146,7 +146,7 @@ describe('storageGetAllSessionKeys', () => {
     }
   });
 
-  it('hata durumunda failure döner', async () => {
+  it('returns failure on error', async () => {
     mockStorageGet.mockRejectedValue(new Error('Access denied'));
 
     const result = await storageGetAllSessionKeys();
@@ -158,7 +158,7 @@ describe('storageGetAllSessionKeys', () => {
 });
 
 describe('storageClearSessions', () => {
-  it('sadece session key lerini siler, config korunur', async () => {
+  it('deletes only session keys, preserves config', async () => {
     mockStorageGet.mockResolvedValue({
       session_meta_1: {},
       session_xhr_1: [],
@@ -181,7 +181,7 @@ describe('storageClearSessions', () => {
     ]);
   });
 
-  it('silinecek key yoksa remove çağırmaz', async () => {
+  it('does not call remove when no keys to delete', async () => {
     mockStorageGet.mockResolvedValue({ session_config: {} });
 
     const result = await storageClearSessions();
@@ -189,7 +189,7 @@ describe('storageClearSessions', () => {
     expect(mockStorageRemove).not.toHaveBeenCalled();
   });
 
-  it('hata durumunda failure döner', async () => {
+  it('returns failure on error', async () => {
     mockStorageGet.mockRejectedValue(new Error('Storage error'));
 
     const result = await storageClearSessions();
@@ -198,7 +198,7 @@ describe('storageClearSessions', () => {
 });
 
 describe('storageGetUsage', () => {
-  it('depolama bilgisini doğru hesaplar', async () => {
+  it('calculates storage info correctly', async () => {
     mockStorageGet.mockResolvedValue({
       session_meta_1: {
         tabId: 1,
@@ -242,7 +242,7 @@ describe('storageGetUsage', () => {
     }
   });
 
-  it('session yoksa boş liste döner', async () => {
+  it('returns empty list when no sessions exist', async () => {
     mockStorageGet.mockResolvedValue({ session_config: {} });
     mockGetBytesInUse.mockResolvedValue(100);
 
@@ -254,7 +254,7 @@ describe('storageGetUsage', () => {
     }
   });
 
-  it('hata durumunda failure döner', async () => {
+  it('returns failure on error', async () => {
     mockStorageGet.mockRejectedValue(new Error('Usage error'));
 
     const result = await storageGetUsage();

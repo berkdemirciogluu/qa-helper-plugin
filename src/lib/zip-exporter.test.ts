@@ -75,7 +75,7 @@ beforeEach(() => {
 });
 
 describe('exportBugReportZip', () => {
-  it('ZIP içine tüm dosyaları ekler', async () => {
+  it('adds all files to ZIP', async () => {
     const result = await exportBugReportZip({
       snapshotData: makeSnapshotData(),
       timeline: makeTimeline(),
@@ -96,7 +96,7 @@ describe('exportBugReportZip', () => {
     expect(fileNames).toContain('timeline.json');
   });
 
-  it('screenshot base64 olarak eklenir (data URL prefix çıkarılır)', async () => {
+  it('adds screenshot as base64 (data URL prefix removed)', async () => {
     await exportBugReportZip({
       snapshotData: makeSnapshotData(),
       timeline: makeTimeline(),
@@ -110,7 +110,7 @@ describe('exportBugReportZip', () => {
     expect(screenshotCall![2]).toEqual({ base64: true });
   });
 
-  it('dosya adı formatı bug-report-YYYY-MM-DD.zip', async () => {
+  it('filename format is bug-report-YYYY-MM-DD.zip', async () => {
     const result = await exportBugReportZip({
       snapshotData: makeSnapshotData(),
       timeline: makeTimeline(),
@@ -124,7 +124,7 @@ describe('exportBugReportZip', () => {
     }
   });
 
-  it('dosya boyutunu MB olarak döner', async () => {
+  it('returns file size in MB', async () => {
     const blob = new Blob(['x'.repeat(1024 * 1024 * 2)]);
     mockGenerateAsync.mockResolvedValue(blob);
 
@@ -141,7 +141,7 @@ describe('exportBugReportZip', () => {
     }
   });
 
-  it('küçük dosyalar için KB formatı döner', async () => {
+  it('returns KB format for small files', async () => {
     const blob = new Blob(['x'.repeat(500)]);
     mockGenerateAsync.mockResolvedValue(blob);
 
@@ -158,7 +158,7 @@ describe('exportBugReportZip', () => {
     }
   });
 
-  it('network.har basitleştirilmiş HAR formatında oluşturulur', async () => {
+  it('creates network.har in simplified HAR format', async () => {
     await exportBugReportZip({
       snapshotData: makeSnapshotData(),
       timeline: makeTimeline(),
@@ -173,7 +173,7 @@ describe('exportBugReportZip', () => {
     expect(harContent.log.entries).toHaveLength(1);
   });
 
-  it('JSZip generateAsync hata verirse Result error döner', async () => {
+  it('returns Result error when JSZip generateAsync fails', async () => {
     mockGenerateAsync.mockRejectedValue(new Error('ZIP generation failed'));
 
     const result = await exportBugReportZip({

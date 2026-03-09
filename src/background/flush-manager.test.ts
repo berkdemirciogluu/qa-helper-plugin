@@ -53,15 +53,15 @@ const makeClickEvent = (): ClickEvent => ({
   y: 200,
 });
 
-describe('enqueueFlush — kritik olmayan', () => {
-  it('debounce süresi geçmeden storage\'a yazmaz', async () => {
+describe('enqueueFlush — non-critical', () => {
+  it('does not write to storage before debounce expires', async () => {
     const event = makeClickEvent();
     await enqueueFlush(42, 'click', [event]);
 
     expect(mockStorageSet).not.toHaveBeenCalled();
   });
 
-  it('debounce süresi (2500ms) geçince storage\'a yazar', async () => {
+  it('writes to storage after debounce period (2500ms)', async () => {
     const event = makeClickEvent();
     await enqueueFlush(42, 'click', [event]);
 
@@ -72,7 +72,7 @@ describe('enqueueFlush — kritik olmayan', () => {
     });
   });
 
-  it('birden fazla event debounce ile birleşerek yazılır', async () => {
+  it('multiple events merge with debounce before writing', async () => {
     const e1 = makeClickEvent();
     const e2 = makeClickEvent();
     await enqueueFlush(42, 'click', [e1]);
@@ -81,13 +81,15 @@ describe('enqueueFlush — kritik olmayan', () => {
     await vi.advanceTimersByTimeAsync(2500);
 
     expect(mockStorageSet).toHaveBeenCalledTimes(1);
-    const stored = (mockStorageSet.mock.calls[0][0] as Record<string, unknown>)['session_clicks_42'] as ClickEvent[];
+    const stored = (mockStorageSet.mock.calls[0][0] as Record<string, unknown>)[
+      'session_clicks_42'
+    ] as ClickEvent[];
     expect(stored).toHaveLength(2);
   });
 });
 
-describe('enqueueFlush — ConsoleEvent level=error → anında flush', () => {
-  it('console error anında yazar', async () => {
+describe('enqueueFlush — ConsoleEvent level=error → immediate flush', () => {
+  it('console error writes immediately', async () => {
     const errorEvent = makeConsoleEvent('error');
     await enqueueFlush(42, 'console', [errorEvent]);
 
@@ -96,7 +98,7 @@ describe('enqueueFlush — ConsoleEvent level=error → anında flush', () => {
     });
   });
 
-  it('console log/warn anında yazmaz', async () => {
+  it('console log/warn does not write immediately', async () => {
     const logEvent = makeConsoleEvent('log');
     await enqueueFlush(42, 'console', [logEvent]);
 
@@ -104,8 +106,8 @@ describe('enqueueFlush — ConsoleEvent level=error → anında flush', () => {
   });
 });
 
-describe('enqueueFlush — XhrEvent status>=400 → anında flush', () => {
-  it('status=500 anında yazar', async () => {
+describe('enqueueFlush — XhrEvent status>=400 → immediate flush', () => {
+  it('status=500 writes immediately', async () => {
     const failedXhr = makeXhrEvent(500);
     await enqueueFlush(42, 'xhr', [failedXhr]);
 
@@ -114,14 +116,14 @@ describe('enqueueFlush — XhrEvent status>=400 → anında flush', () => {
     });
   });
 
-  it('status=404 anında yazar', async () => {
+  it('status=404 writes immediately', async () => {
     const notFound = makeXhrEvent(404);
     await enqueueFlush(42, 'xhr', [notFound]);
 
     expect(mockStorageSet).toHaveBeenCalled();
   });
 
-  it('status=200 anında yazmaz', async () => {
+  it('status=200 does not write immediately', async () => {
     const okXhr = makeXhrEvent(200);
     await enqueueFlush(42, 'xhr', [okXhr]);
 
@@ -129,8 +131,8 @@ describe('enqueueFlush — XhrEvent status>=400 → anında flush', () => {
   });
 });
 
-describe('enqueueFlush — critical=true → anında flush', () => {
-  it('critical flag ile anında yazar', async () => {
+describe('enqueueFlush — critical=true → immediate flush', () => {
+  it('writes immediately with critical flag', async () => {
     const event = makeClickEvent();
     await enqueueFlush(42, 'click', [event], true);
 
@@ -141,7 +143,7 @@ describe('enqueueFlush — critical=true → anında flush', () => {
 });
 
 describe('flushBuffer — storage append pattern', () => {
-  it('mevcut storage verisiyle merge eder (append, overwrite değil)', async () => {
+  it('merges with existing storage data (append, not overwrite)', async () => {
     const existingEvent = makeClickEvent();
     const newEvent = makeClickEvent();
 
@@ -150,26 +152,30 @@ describe('flushBuffer — storage append pattern', () => {
     await enqueueFlush(42, 'click', [newEvent]);
     await vi.advanceTimersByTimeAsync(2500);
 
-    const stored = (mockStorageSet.mock.calls[0][0] as Record<string, unknown>)['session_clicks_42'] as ClickEvent[];
+    const stored = (mockStorageSet.mock.calls[0][0] as Record<string, unknown>)[
+      'session_clicks_42'
+    ] as ClickEvent[];
     expect(stored).toHaveLength(2);
     expect(stored[0]).toEqual(existingEvent);
     expect(stored[1]).toEqual(newEvent);
   });
 
-  it('storage boşsa sadece yeni eventleri yazar', async () => {
+  it('writes only new events when storage is empty', async () => {
     mockStorageGet.mockResolvedValue({});
     const event = makeClickEvent();
 
     await enqueueFlush(42, 'click', [event]);
     await vi.advanceTimersByTimeAsync(2500);
 
-    const stored = (mockStorageSet.mock.calls[0][0] as Record<string, unknown>)['session_clicks_42'] as ClickEvent[];
+    const stored = (mockStorageSet.mock.calls[0][0] as Record<string, unknown>)[
+      'session_clicks_42'
+    ] as ClickEvent[];
     expect(stored).toHaveLength(1);
   });
 });
 
 describe('clearFlushQueue', () => {
-  it('timer iptal edilir — debounce süresi geçse bile yazılmaz', async () => {
+  it('cancels timer — does not write even after debounce expires', async () => {
     const event = makeClickEvent();
     await enqueueFlush(42, 'click', [event]);
 
@@ -179,7 +185,7 @@ describe('clearFlushQueue', () => {
     expect(mockStorageSet).not.toHaveBeenCalled();
   });
 
-  it('buffer temizlenir — immediate flush sonrası buffer boş kalır', async () => {
+  it('clears buffer — buffer stays empty after immediate flush', async () => {
     const event = makeClickEvent();
     await enqueueFlush(42, 'click', [event]);
 

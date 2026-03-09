@@ -175,7 +175,7 @@ export function DashboardView({ onOpenBugReport }: DashboardViewProps) {
   async function handleStartSession() {
     const tabId = tabIdRef.current;
     if (tabId === null) {
-      showToast('error', 'Aktif sekme bulunamadı.');
+      showToast('error', 'No active tab found.');
       return;
     }
 
@@ -192,7 +192,7 @@ export function DashboardView({ onOpenBugReport }: DashboardViewProps) {
     if (result.success) {
       applySessionMeta(result.data);
     } else {
-      showToast('error', `Session başlatılamadı: ${result.error}`);
+      showToast('error', `Failed to start session: ${result.error}`);
     }
   }
 
@@ -215,7 +215,7 @@ export function DashboardView({ onOpenBugReport }: DashboardViewProps) {
       stopDurationTimer();
       startTime.value = null;
     } else {
-      showToast('error', `Session durdurulamadı: ${result.error}`);
+      showToast('error', `Failed to stop session: ${result.error}`);
     }
   }
 
@@ -244,7 +244,7 @@ export function DashboardView({ onOpenBugReport }: DashboardViewProps) {
         <button
           type="button"
           onClick={handleOpenSettings}
-          aria-label="Ayarlar sayfasını aç"
+          aria-label="Open settings"
           class="w-7 h-7 rounded-md bg-gray-100 flex items-center justify-center text-gray-500 hover:text-gray-700 transition-colors focus-visible:outline-2 focus-visible:outline-blue-500 focus-visible:outline-offset-2"
         >
           <Settings size={14} />
@@ -283,7 +283,7 @@ export function DashboardView({ onOpenBugReport }: DashboardViewProps) {
             )}
             {cfg.project && (
               <div class="flex justify-between py-1 text-gray-500">
-                <span>Proje</span>
+                <span>Project</span>
                 <span class="text-gray-700 font-medium">{cfg.project}</span>
               </div>
             )}
@@ -302,17 +302,17 @@ export function DashboardView({ onOpenBugReport }: DashboardViewProps) {
           size="lg"
           onClick={onOpenBugReport}
           iconLeft={<Bug size={16} />}
-          aria-label="Bug raporla"
+          aria-label="Report bug"
           class="w-full"
         >
-          Bug Raporla
+          Report Bug
         </Button>
       </main>
 
       {/* Footer */}
       <footer class="flex items-center gap-1.5 px-4 py-2 border-t border-gray-200">
         <Lock size={16} class="text-neutral-400 shrink-0" />
-        <span class="text-xs text-neutral-500">Tüm veriler cihazınızda</span>
+        <span class="text-xs text-neutral-500">All data stays on your device</span>
       </footer>
     </div>
   );

@@ -43,7 +43,7 @@ beforeEach(() => {
 });
 
 describe('captureScreenshot', () => {
-  it('başarılı screenshot: dataUrl ve metadata döner', async () => {
+  it('successful screenshot: returns dataUrl and metadata', async () => {
     mockTabsGet.mockResolvedValue(mockTab);
     mockCaptureVisibleTab.mockResolvedValue('data:image/png;base64,abc123');
 
@@ -59,7 +59,7 @@ describe('captureScreenshot', () => {
     expect(mockCaptureVisibleTab).toHaveBeenCalledWith(1, { format: 'png' });
   });
 
-  it('tab.windowId yoksa failure döner', async () => {
+  it('returns failure when tab.windowId is missing', async () => {
     mockTabsGet.mockResolvedValue({ ...mockTab, windowId: undefined });
 
     const result = await captureScreenshot(42);
@@ -70,7 +70,7 @@ describe('captureScreenshot', () => {
     }
   });
 
-  it('captureVisibleTab hata fırlatırsa failure döner', async () => {
+  it('returns failure when captureVisibleTab throws error', async () => {
     mockTabsGet.mockResolvedValue(mockTab);
     mockCaptureVisibleTab.mockRejectedValue(new Error('Cannot capture chrome:// page'));
 
@@ -82,7 +82,7 @@ describe('captureScreenshot', () => {
     }
   });
 
-  it('tabs.get hata fırlatırsa failure döner', async () => {
+  it('returns failure when tabs.get throws error', async () => {
     mockTabsGet.mockRejectedValue(new Error('Tab not found'));
 
     const result = await captureScreenshot(42);
@@ -92,7 +92,7 @@ describe('captureScreenshot', () => {
 });
 
 describe('getScreenshotMetadata', () => {
-  it('tab URL ve timestamp içerir', async () => {
+  it('includes tab URL and timestamp', async () => {
     const before = Date.now();
     const meta = await getScreenshotMetadata(mockTab);
     const after = Date.now();

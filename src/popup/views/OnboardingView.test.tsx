@@ -22,78 +22,78 @@ beforeEach(() => {
 });
 
 describe('OnboardingView', () => {
-  it('wizard ilk adımını render eder', () => {
+  it('renders wizard first step', () => {
     render(<OnboardingView />);
 
-    expect(screen.getByText('Ortam Bilgisi')).toBeTruthy();
+    expect(screen.getByText('Environment Info')).toBeTruthy();
   });
 
-  it('progress indicator 1/3 gösterir', () => {
+  it('progress indicator shows 1/3', () => {
     render(<OnboardingView />);
 
-    expect(screen.getByText('Adım 1/3')).toBeTruthy();
+    expect(screen.getByText('Step 1/3')).toBeTruthy();
   });
 
-  it('İleri butonuyla ikinci adıma geçilir', () => {
+  it('navigates to second step with Next button', () => {
     render(<OnboardingView />);
 
-    fireEvent.click(screen.getByText('İleri →'));
+    fireEvent.click(screen.getByText('Next →'));
 
-    expect(screen.getByText('Jira Bağlantısı')).toBeTruthy();
+    expect(screen.getByText('Jira Connection')).toBeTruthy();
   });
 
-  it('tüm adımları geçip onComplete çağrıldığında storage\'a yazar', async () => {
+  it('completes all steps and writes to storage', async () => {
     render(<OnboardingView />);
 
-    fireEvent.click(screen.getByText('İleri →'));
-    fireEvent.click(screen.getByText('İleri →'));
-    fireEvent.click(screen.getByText('Başla →'));
+    fireEvent.click(screen.getByText('Next →'));
+    fireEvent.click(screen.getByText('Next →'));
+    fireEvent.click(screen.getByText('Start →'));
 
     await waitFor(() => {
       expect(chrome.storage.local.set).toHaveBeenCalledWith(
-        expect.objectContaining({ onboarding_completed: true }),
+        expect.objectContaining({ onboarding_completed: true })
       );
     });
   });
 
-  it('tamamlandığında currentView dashboard\'a döner', async () => {
+  it('sets currentView to dashboard on completion', async () => {
     render(<OnboardingView />);
 
-    fireEvent.click(screen.getByText('İleri →'));
-    fireEvent.click(screen.getByText('İleri →'));
-    fireEvent.click(screen.getByText('Başla →'));
+    fireEvent.click(screen.getByText('Next →'));
+    fireEvent.click(screen.getByText('Next →'));
+    fireEvent.click(screen.getByText('Start →'));
 
     await waitFor(() => {
       expect(viewState.currentView.value).toBe('dashboard');
     });
   });
 
-  it('tamamlandığında onboardingPulse true olur', async () => {
+  it('sets onboardingPulse to true on completion', async () => {
     render(<OnboardingView />);
 
-    fireEvent.click(screen.getByText('İleri →'));
-    fireEvent.click(screen.getByText('İleri →'));
-    fireEvent.click(screen.getByText('Başla →'));
+    fireEvent.click(screen.getByText('Next →'));
+    fireEvent.click(screen.getByText('Next →'));
+    fireEvent.click(screen.getByText('Start →'));
 
     await waitFor(() => {
       expect(viewState.onboardingPulse.value).toBe(true);
     });
   });
 
-  it('Atla butonu ile adım atlanır', () => {
+  it('Skip button skips the step', () => {
     render(<OnboardingView />);
 
-    fireEvent.click(screen.getByText('Atla'));
+    fireEvent.click(screen.getByText('Skip'));
 
-    expect(screen.getByText('Jira Bağlantısı')).toBeTruthy();
+    expect(screen.getByText('Jira Connection')).toBeTruthy();
   });
 
-  it('üçüncü adımda Atla butonu yoktur', () => {
+  it('Skip button does not exist on third step', () => {
     render(<OnboardingView />);
 
-    fireEvent.click(screen.getByText('İleri →'));
-    fireEvent.click(screen.getByText('İleri →'));
+    fireEvent.click(screen.getByText('Next →'));
+    fireEvent.click(screen.getByText('Next →'));
 
-    expect(screen.queryByText('Atla')).toBeNull();
+    expect(screen.queryByText('Skip')).toBeNull();
   });
 });

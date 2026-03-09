@@ -14,7 +14,7 @@ const DEFAULT_TOGGLES: SessionConfig['toggles'] = {
 };
 
 const environmentOptions = [
-  { value: '', label: 'Seçiniz...' },
+  { value: '', label: 'Select...' },
   { value: 'development', label: 'Development' },
   { value: 'staging', label: 'Staging' },
   { value: 'qa', label: 'QA' },
@@ -78,31 +78,31 @@ export function EnvironmentStep() {
   return (
     <div class="flex flex-col gap-4">
       <p class="text-sm text-gray-500">
-        İsteğe bağlı — tüm alanlar opsiyonel, dilediğinizde atlayabilirsiniz.
+        Optional — all fields are optional, you can skip this anytime.
       </p>
       <Input
-        label="Proje Adı"
+        label="Project Name"
         htmlFor="env-project"
         value={projectName}
         onChange={handleProjectChange}
         placeholder="e-commerce"
-        aria-label="Proje adı"
+        aria-label="Project name"
       />
       <Select
-        label="Ortam"
+        label="Environment"
         htmlFor="env-environment"
         options={environmentOptions}
         value={environment}
         onChange={handleEnvironmentChange}
-        aria-label="Test ortamı"
+        aria-label="Test environment"
       />
       <Input
-        label="Agile Takım"
+        label="Agile Team"
         htmlFor="env-agile-team"
         value={agileTeam}
         onChange={handleAgileTeamChange}
         placeholder="Team Alpha"
-        aria-label="Agile takım"
+        aria-label="Agile team"
       />
     </div>
   );

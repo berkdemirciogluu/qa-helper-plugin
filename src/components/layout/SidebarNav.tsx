@@ -14,7 +14,7 @@ interface SidebarNavProps {
 
 export function SidebarNav({ items, activeKey, onSelect }: SidebarNavProps) {
   return (
-    <nav aria-label="Ayarlar menüsü">
+    <nav aria-label="Settings menu">
       <ul class="flex flex-col gap-0.5 py-2">
         {items.map((item) => {
           const isActive = item.key === activeKey;

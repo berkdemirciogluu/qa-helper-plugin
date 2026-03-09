@@ -40,16 +40,16 @@ export function getAuthHeaders(credentials: JiraCredentials): Record<string, str
 function getErrorMessage(status: number, credentials: JiraCredentials): string {
   if (status === 401) {
     return credentials.platform === 'cloud'
-      ? 'Oturum süresi doldu. Lütfen tekrar bağlanın.'
-      : 'API token geçersiz. Jira profilinizden yeni bir token oluşturabilirsiniz.';
+      ? 'Session expired. Please reconnect.'
+      : 'API token is invalid. You can generate a new token from your Jira profile.';
   }
   if (status === 403) {
-    return 'Erişim reddedildi. Jira yetkilendirmelerinizi kontrol edin.';
+    return 'Access denied. Check your Jira permissions.';
   }
   if (status === 404) {
-    return "Jira sunucusuna ulaşılamıyor. URL'i kontrol edin.";
+    return 'Cannot reach Jira server. Check the URL.';
   }
-  return "Jira sunucusuna ulaşılamıyor. URL'i ve ağ bağlantınızı kontrol edin.";
+  return 'Cannot reach Jira server. Check the URL and your network connection.';
 }
 
 /**
@@ -135,7 +135,7 @@ export async function testConnection(credentials: JiraCredentials): Promise<Resu
     console.error('[JiraClient] testConnection error:', msg);
     return {
       success: false,
-      error: "Jira sunucusuna ulaşılamıyor. URL'i ve ağ bağlantınızı kontrol edin.",
+      error: 'Cannot reach Jira server. Check the URL and your network connection.',
     };
   }
 }
@@ -156,7 +156,7 @@ export async function getProjects(credentials: JiraCredentials): Promise<Result<
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     console.error('[JiraClient] getProjects error:', msg);
-    return { success: false, error: 'Proje listesi alınamadı. Ağ bağlantınızı kontrol edin.' };
+    return { success: false, error: 'Could not retrieve project list. Check your network connection.' };
   }
 }
 
@@ -178,7 +178,7 @@ export async function createIssue(
       const fieldErrors = Object.values((errorBody as JiraErrorResponse)?.errors ?? {}).join(', ');
       const detail = errorMessages || fieldErrors || getErrorMessage(response.status, credentials);
       console.error('[JiraClient] createIssue failed:', response.status, detail);
-      return { success: false, error: `Ticket oluşturulamadı: ${detail}` };
+      return { success: false, error: `Failed to create ticket: ${detail}` };
     }
 
     const result: JiraIssueCreateResponse = await response.json();
@@ -186,7 +186,7 @@ export async function createIssue(
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     console.error('[JiraClient] createIssue error:', msg);
-    return { success: false, error: 'Jira sunucusuna ulaşılamıyor. Ağ bağlantınızı kontrol edin.' };
+    return { success: false, error: 'Cannot reach Jira server. Check your network connection.' };
   }
 }
 
@@ -286,7 +286,7 @@ export async function addAttachments(
   }
 
   if (results.length === 0 && files.length > 0) {
-    return { success: false, error: 'Hiçbir dosya eklenemedi. Ağ bağlantınızı kontrol edin.' };
+    return { success: false, error: 'No files could be attached. Check your network connection.' };
   }
 
   return { success: true, data: results };
@@ -312,13 +312,13 @@ export async function linkIssue(
     if (!response.ok) {
       const msg = getErrorMessage(response.status, credentials);
       console.error('[JiraClient] linkIssue failed:', response.status);
-      return { success: false, error: `Ticket bağlanamadı: ${msg}` };
+      return { success: false, error: `Could not link ticket: ${msg}` };
     }
 
     return { success: true, data: undefined };
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     console.error('[JiraClient] linkIssue error:', msg);
-    return { success: false, error: 'Ticket bağlama sırasında hata oluştu.' };
+    return { success: false, error: 'An error occurred while linking ticket.' };
   }
 }

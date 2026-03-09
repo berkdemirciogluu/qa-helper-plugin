@@ -38,7 +38,7 @@ beforeEach(() => {
 });
 
 describe('startSession', () => {
-  it('storage\'a doğru key/value yazar ve success döner', async () => {
+  it('writes correct key/value to storage and returns success', async () => {
     mockStorageSet.mockResolvedValue(undefined);
 
     const result = await startSession(42, 'https://example.com');
@@ -66,7 +66,7 @@ describe('startSession', () => {
     });
   });
 
-  it('mevcut session varsa üzerine yazar', async () => {
+  it('overwrites existing session', async () => {
     mockStorageSet.mockResolvedValue(undefined);
 
     await startSession(42, 'https://site-a.com');
@@ -78,14 +78,14 @@ describe('startSession', () => {
     expect(meta.url).toBe('https://site-b.com');
   });
 
-  it('storage hatası olduğunda failure döner', async () => {
+  it('returns failure on storage error', async () => {
     mockStorageSet.mockRejectedValue(new Error('Quota exceeded'));
 
     const result = await startSession(42, 'https://example.com');
     expect(result.success).toBe(false);
   });
 
-  it('eski session event verilerini temizler', async () => {
+  it('clears old session event data', async () => {
     mockStorageSet.mockResolvedValue(undefined);
 
     await startSession(42, 'https://example.com');
@@ -98,7 +98,7 @@ describe('startSession', () => {
     expect(mockStorageRemove).toHaveBeenCalledWith('session_nav_42');
   });
 
-  it('startSession başarılı olduğunda yeşil badge ayarlar', async () => {
+  it('sets green badge on successful startSession', async () => {
     mockStorageSet.mockResolvedValue(undefined);
 
     await startSession(42, 'https://example.com');
@@ -109,7 +109,7 @@ describe('startSession', () => {
 });
 
 describe('stopSession', () => {
-  it('status\'u \'stopped\' olarak günceller', async () => {
+  it('updates status to stopped', async () => {
     const existingMeta = {
       tabId: 42,
       startTime: 1000,
@@ -128,7 +128,7 @@ describe('stopSession', () => {
     });
   });
 
-  it('session yoksa graceful handle eder', async () => {
+  it('handles gracefully when no session exists', async () => {
     mockStorageGet.mockResolvedValue({});
 
     const result = await stopSession(42);
@@ -136,9 +136,12 @@ describe('stopSession', () => {
     expect(mockStorageSet).not.toHaveBeenCalled();
   });
 
-  it('badge\'i temizler', async () => {
+  it('clears badge', async () => {
     const existingMeta = {
-      tabId: 42, startTime: 1000, url: 'https://x.com', status: 'recording',
+      tabId: 42,
+      startTime: 1000,
+      url: 'https://x.com',
+      status: 'recording',
       counters: { clicks: 0, xhrRequests: 0, consoleErrors: 0, navEvents: 0 },
     };
     mockStorageGet.mockResolvedValue({ session_meta_42: existingMeta });
@@ -151,9 +154,12 @@ describe('stopSession', () => {
 });
 
 describe('getSession', () => {
-  it('session varsa döner', async () => {
+  it('returns session when it exists', async () => {
     const meta = {
-      tabId: 42, startTime: 1000, url: 'https://x.com', status: 'recording',
+      tabId: 42,
+      startTime: 1000,
+      url: 'https://x.com',
+      status: 'recording',
       counters: { clicks: 0, xhrRequests: 0, consoleErrors: 0, navEvents: 0 },
     };
     mockStorageGet.mockResolvedValue({ session_meta_42: meta });
@@ -166,7 +172,7 @@ describe('getSession', () => {
     }
   });
 
-  it('session yoksa null döner (error değil)', async () => {
+  it('returns null when no session exists (not error)', async () => {
     mockStorageGet.mockResolvedValue({});
 
     const result = await getSession(42);
@@ -180,39 +186,51 @@ describe('getSession', () => {
 
 describe('updateCounters', () => {
   const baseMeta = {
-    tabId: 42, startTime: 1000, url: 'https://x.com', status: 'recording',
+    tabId: 42,
+    startTime: 1000,
+    url: 'https://x.com',
+    status: 'recording',
     counters: { clicks: 0, xhrRequests: 0, consoleErrors: 0, navEvents: 0 },
   };
 
-  it('click sayacını artırır', async () => {
+  it('increments click counter', async () => {
     mockStorageGet.mockResolvedValue({ session_meta_42: { ...baseMeta } });
     mockStorageSet.mockResolvedValue(undefined);
 
     await updateCounters(42, 'click', 3);
 
-    const stored = (mockStorageSet.mock.calls[0][0] as Record<string, unknown>)['session_meta_42'] as typeof baseMeta;
+    const stored = (mockStorageSet.mock.calls[0][0] as Record<string, unknown>)[
+      'session_meta_42'
+    ] as typeof baseMeta;
     expect(stored.counters.clicks).toBe(3);
   });
 
-  it('xhr sayacını artırır', async () => {
+  it('increments xhr counter', async () => {
     mockStorageGet.mockResolvedValue({ session_meta_42: { ...baseMeta } });
     mockStorageSet.mockResolvedValue(undefined);
 
     await updateCounters(42, 'xhr', 2);
 
-    const stored = (mockStorageSet.mock.calls[0][0] as Record<string, unknown>)['session_meta_42'] as typeof baseMeta;
+    const stored = (mockStorageSet.mock.calls[0][0] as Record<string, unknown>)[
+      'session_meta_42'
+    ] as typeof baseMeta;
     expect(stored.counters.xhrRequests).toBe(2);
   });
 
   it('consoleError sayacını artırır ve kırmızı badge ayarlar', async () => {
     mockStorageGet.mockResolvedValue({
-      session_meta_42: { ...baseMeta, counters: { clicks: 0, xhrRequests: 0, consoleErrors: 1, navEvents: 0 } },
+      session_meta_42: {
+        ...baseMeta,
+        counters: { clicks: 0, xhrRequests: 0, consoleErrors: 1, navEvents: 0 },
+      },
     });
     mockStorageSet.mockResolvedValue(undefined);
 
     await updateCounters(42, 'consoleError', 2);
 
-    const stored = (mockStorageSet.mock.calls[0][0] as Record<string, unknown>)['session_meta_42'] as typeof baseMeta;
+    const stored = (mockStorageSet.mock.calls[0][0] as Record<string, unknown>)[
+      'session_meta_42'
+    ] as typeof baseMeta;
     expect(stored.counters.consoleErrors).toBe(3);
     expect(mockBadgeSetText).toHaveBeenCalledWith({ text: '3', tabId: 42 });
     expect(mockBadgeSetColor).toHaveBeenCalledWith({ color: '#ef4444', tabId: 42 });

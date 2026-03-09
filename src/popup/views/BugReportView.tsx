@@ -144,7 +144,7 @@ export function BugReportView({ hasSession }: { hasSession: boolean }) {
     const tabId = tabIdRef.current;
     if (!tabId) {
       snapshotStatus.value = 'error';
-      showToast('error', 'Aktif sekme bulunamadı.');
+      showToast('error', 'No active tab found.');
       return;
     }
 
@@ -158,7 +158,7 @@ export function BugReportView({ hasSession }: { hasSession: boolean }) {
       snapshotStatus.value = 'success';
     } else {
       snapshotStatus.value = 'error';
-      showToast('error', `Snapshot alınamadı: ${result.error}`);
+      showToast('error', `Snapshot failed: ${result.error}`);
     }
   }
 
@@ -202,7 +202,7 @@ export function BugReportView({ hasSession }: { hasSession: boolean }) {
     try {
       const credResult = await storageGet<JiraCredentials>(STORAGE_KEYS.JIRA_CREDENTIALS);
       if (!credResult.success || !credResult.data) {
-        showToast('error', 'Jira yapılandırması bulunamadı.');
+        showToast('error', 'Jira configuration not found.');
         jiraExportStatus.value = 'error';
         return;
       }
@@ -263,24 +263,24 @@ export function BugReportView({ hasSession }: { hasSession: boolean }) {
       if (result.success) {
         jiraExportStatus.value = 'success';
         jiraExportResult.value = { issueKey: result.data.issueKey, issueUrl: result.data.issueUrl };
-        showToast('success', `Jira ticket oluşturuldu — ${result.data.issueKey}`);
+        showToast('success', `Jira ticket created — ${result.data.issueKey}`);
         if (result.data.warning) {
           showToast('warning', result.data.warning);
         }
       } else {
         jiraExportStatus.value = 'error';
-        showToast('error', `Jira'ya bağlanılamadı. ZIP olarak indirmek ister misiniz?`);
+        showToast('error', `Could not connect to Jira. Would you like to download as ZIP?`);
       }
     } catch {
       jiraExportStatus.value = 'error';
-      showToast('error', 'Beklenmeyen bir hata oluştu.');
+      showToast('error', 'An unexpected error occurred.');
     }
   }
 
   async function handleZipExport() {
     const data = snapshotData.value;
     if (!data) {
-      showToast('error', 'Snapshot verisi mevcut değil.');
+      showToast('error', 'No snapshot data available.');
       return;
     }
 
@@ -348,17 +348,17 @@ export function BugReportView({ hasSession }: { hasSession: boolean }) {
       exportStatus.value = 'success';
       exportFileName.value = result.data.fileName;
       exportFileSize.value = result.data.fileSize;
-      showToast('success', `ZIP indirildi — ${result.data.fileName} (${result.data.fileSize})`);
+      showToast('success', `ZIP downloaded — ${result.data.fileName} (${result.data.fileSize})`);
     } else {
       exportStatus.value = 'error';
-      showToast('error', `ZIP oluşturulamadı: ${result.error}`);
+      showToast('error', `ZIP creation failed: ${result.error}`);
     }
   }
 
   async function handleClipboardCopy() {
     const data = snapshotData.value;
     if (!data) {
-      showToast('error', 'Snapshot verisi mevcut değil.');
+      showToast('error', 'No snapshot data available.');
       return;
     }
 
@@ -385,9 +385,9 @@ export function BugReportView({ hasSession }: { hasSession: boolean }) {
 
     const result = await copyToClipboard(description);
     if (result.success) {
-      showToast('success', 'Description kopyalandı');
+      showToast('success', 'Description copied');
     } else {
-      showToast('error', `Kopyalama başarısız: ${result.error}`);
+      showToast('error', `Copy failed: ${result.error}`);
     }
   }
 
@@ -424,12 +424,12 @@ export function BugReportView({ hasSession }: { hasSession: boolean }) {
         <button
           type="button"
           onClick={handleGoBack}
-          aria-label="Dashboard'a dön"
+          aria-label="Go back to dashboard"
           class="flex items-center justify-center w-8 h-8 rounded text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-colors focus-visible:outline-2 focus-visible:outline-blue-500"
         >
           <ArrowLeft size={16} />
         </button>
-        <h1 class="text-sm font-semibold text-gray-900">Bug Raporla</h1>
+        <h1 class="text-sm font-semibold text-gray-900">Report Bug</h1>
       </header>
 
       <main class="flex flex-col gap-3 p-3 flex-1">
@@ -437,43 +437,43 @@ export function BugReportView({ hasSession }: { hasSession: boolean }) {
         <div class="relative rounded-lg border border-gray-200 overflow-hidden bg-gray-100 flex items-center justify-center min-h-[100px]">
           {status === 'loading' && (
             <p class="text-xs text-gray-400" aria-live="polite">
-              Screenshot yükleniyor...
+              Loading screenshot...
             </p>
           )}
           {status === 'success' && data?.screenshot.dataUrl ? (
             <img
               src={data.screenshot.dataUrl}
-              alt="Sayfa ekran görüntüsü"
+              alt="Page screenshot"
               class="w-full object-contain max-h-[200px]"
             />
           ) : status === 'success' ? (
-            <p class="text-xs text-gray-400">Screenshot alınamadı</p>
+            <p class="text-xs text-gray-400">Screenshot not available</p>
           ) : null}
-          {status === 'error' && <p class="text-xs text-red-500">Screenshot alınamadı</p>}
+          {status === 'error' && <p class="text-xs text-red-500">Screenshot failed</p>}
           {/* Retake overlay button */}
           <button
             type="button"
             onClick={() => void triggerSnapshot()}
             disabled={status === 'loading'}
-            aria-label="Screenshot'ı yeniden çek"
+            aria-label="Retake screenshot"
             class="absolute top-2 right-2 px-2 py-1 bg-black/50 text-white text-[11px] rounded hover:bg-black/70 transition-colors focus-visible:outline-2 focus-visible:outline-blue-500 disabled:opacity-50"
           >
             <RefreshCw size={10} class="inline mr-1" />
-            Tekrar Al
+            Retake
           </button>
         </div>
 
         {/* Bug Formu */}
         <div class="flex flex-col gap-2.5">
-          {/* Beklenen Sonuç */}
+          {/* Expected Result */}
           <div class="flex flex-col gap-1">
             <label for="bug-expected" class="text-xs font-medium text-gray-700">
-              Beklenen Sonuç
+              Expected Result
             </label>
             <textarea
               id="bug-expected"
-              aria-label="Beklenen sonuç"
-              placeholder="Ne olmasını bekliyordunuz?"
+              aria-label="Expected result"
+              placeholder="What did you expect to happen?"
               value={formExpected.value}
               onInput={(e) => {
                 formExpected.value = (e.target as HTMLTextAreaElement).value;
@@ -484,15 +484,15 @@ export function BugReportView({ hasSession }: { hasSession: boolean }) {
             />
           </div>
 
-          {/* Neden Bug */}
+          {/* Why is this a Bug */}
           <div class="flex flex-col gap-1">
             <label for="bug-reason" class="text-xs font-medium text-gray-700">
-              Neden Bug?
+              Why is this a Bug?
             </label>
             <textarea
               id="bug-reason"
-              aria-label="Neden bug"
-              placeholder="Ne oldu? Sorun ne?"
+              aria-label="Why is this a bug"
+              placeholder="What happened? What's the issue?"
               value={formReason.value}
               onInput={(e) => {
                 formReason.value = (e.target as HTMLTextAreaElement).value;
@@ -538,7 +538,7 @@ export function BugReportView({ hasSession }: { hasSession: boolean }) {
           >
             <span class="flex items-center gap-1.5">
               {isStepsOpen.value ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
-              Steps to Reproduce{hasSession ? ` (otomatik)` : ''}
+              Steps to Reproduce{hasSession ? ` (auto)` : ''}
             </span>
           </button>
 
@@ -554,19 +554,21 @@ export function BugReportView({ hasSession }: { hasSession: boolean }) {
                 class="w-full rounded-md border border-gray-200 bg-gray-50 px-2.5 py-2 text-[13px] text-gray-700 resize-none focus:outline-2 focus:outline-blue-500 focus:outline-offset-[-1px] focus:border-blue-500 font-mono text-xs"
                 placeholder={
                   hasSession
-                    ? 'Adımlar otomatik oluşturuldu, düzenleyebilirsiniz…'
-                    : 'Session kaydı yok — adımlar mevcut değil.'
+                    ? 'Steps were auto-generated, you can edit them…'
+                    : 'No session recording — steps are not available.'
                 }
               />
             </div>
           )}
         </div>
 
-        {/* Toplanan Veriler */}
+        {/* Collected Data */}
         <div class="bg-gray-50 rounded-lg p-2.5 border border-gray-200">
-          <p class="text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Toplanan Veriler</p>
+          <p class="text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-1.5">
+            Collected Data
+          </p>
           <div aria-live="polite">
-            {status === 'loading' && <p class="text-xs text-gray-400">Veriler toplanıyor…</p>}
+            {status === 'loading' && <p class="text-xs text-gray-400">Collecting data…</p>}
             {status !== 'loading' && (
               <DataSummary
                 hasScreenshot={Boolean(data?.screenshot.dataUrl)}
@@ -589,11 +591,11 @@ export function BugReportView({ hasSession }: { hasSession: boolean }) {
           <div class="bg-gray-50 rounded-lg p-3 border border-gray-200">
             <div class="flex flex-col gap-3 text-center" aria-live="polite">
               <div>
-                <p class="text-sm font-medium text-gray-900">ZIP indirildi</p>
+                <p class="text-sm font-medium text-gray-900">ZIP downloaded</p>
                 <p class="text-xs text-gray-500">{exportFileName.value}</p>
                 <p class="text-xs text-gray-400">({exportFileSize.value})</p>
               </div>
-              <p class="text-sm text-gray-700">Session verilerini temizlemek ister misiniz?</p>
+              <p class="text-sm text-gray-700">Would you like to clear session data?</p>
               <div class="flex gap-2">
                 <Button
                   variant="danger"
@@ -601,10 +603,10 @@ export function BugReportView({ hasSession }: { hasSession: boolean }) {
                   class="flex-1"
                   onClick={() => void handleClearSession()}
                 >
-                  Temizle
+                  Clear
                 </Button>
                 <Button variant="ghost" size="md" class="flex-1" onClick={handleKeepSession}>
-                  Koru
+                  Keep
                 </Button>
               </div>
             </div>
@@ -629,7 +631,7 @@ export function BugReportView({ hasSession }: { hasSession: boolean }) {
                 onClick={() => void handleZipExport()}
                 aria-busy={exportStatus.value === 'loading'}
               >
-                {exportStatus.value === 'loading' ? 'Hazırlanıyor...' : 'ZIP İndir'}
+                {exportStatus.value === 'loading' ? 'Preparing...' : 'Download ZIP'}
               </Button>
               <Button
                 variant="secondary"
@@ -649,11 +651,11 @@ export function BugReportView({ hasSession }: { hasSession: boolean }) {
                   )
                 }
                 onClick={() => void handleJiraExport()}
-                title={!jiraConfigured.value ? "Ayarlardan Jira'yı kurun" : undefined}
+                title={!jiraConfigured.value ? 'Set up Jira from Settings' : undefined}
                 aria-disabled={!jiraConfigured.value ? 'true' : undefined}
                 aria-busy={jiraExportStatus.value === 'loading'}
               >
-                {jiraExportStatus.value === 'loading' ? 'Gönderiliyor...' : 'Jira Gönder'}
+                {jiraExportStatus.value === 'loading' ? 'Sending...' : 'Send to Jira'}
               </Button>
             </div>
             {jiraConfigured.value && (
@@ -667,7 +669,7 @@ export function BugReportView({ hasSession }: { hasSession: boolean }) {
                     }}
                     class="rounded border-neutral-300"
                   />
-                  Mevcut ticket'a bağla
+                  Link to existing ticket
                 </label>
                 {linkToParent.value && (
                   <Input
@@ -678,7 +680,7 @@ export function BugReportView({ hasSession }: { hasSession: boolean }) {
                       parentKeyValid.value = true;
                     }}
                     aria-label="Parent ticket key"
-                    error={!parentKeyValid.value ? 'Geçersiz format. Örnek: PROJ-123' : undefined}
+                    error={!parentKeyValid.value ? 'Invalid format. Example: PROJ-123' : undefined}
                   />
                 )}
               </div>
@@ -691,9 +693,9 @@ export function BugReportView({ hasSession }: { hasSession: boolean }) {
                   if (url) void chrome.tabs.create({ url });
                 }}
                 class="text-xs text-blue-600 hover:underline text-left truncate"
-                aria-label={`${jiraExportResult.value.issueKey} — Jira'da görüntüle`}
+                aria-label={`${jiraExportResult.value.issueKey} — View in Jira`}
               >
-                {jiraExportResult.value.issueKey} — Jira'da görüntüle →
+                {jiraExportResult.value.issueKey} — View in Jira →
               </button>
             )}
           </div>
@@ -703,7 +705,7 @@ export function BugReportView({ hasSession }: { hasSession: boolean }) {
       {/* Footer */}
       <footer class="flex items-center gap-1.5 px-4 py-2 border-t border-gray-200 shrink-0">
         <AlertCircle size={14} class="text-neutral-400 shrink-0" aria-hidden="true" />
-        <span class="text-xs text-neutral-500">Tüm veriler cihazınızda</span>
+        <span class="text-xs text-neutral-500">All data stays on your device</span>
       </footer>
     </div>
   );

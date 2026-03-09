@@ -86,39 +86,39 @@ beforeEach(() => {
 });
 
 describe('BugReportView', () => {
-  it('başlık render edilir', () => {
+  it('renders title', () => {
     render(<BugReportView hasSession={true} />);
-    expect(screen.getByText('Bug Raporla')).toBeTruthy();
+    expect(screen.getByText('Report Bug')).toBeTruthy();
   });
 
-  it('geri ok butonu render edilir', () => {
+  it('renders back button', () => {
     render(<BugReportView hasSession={true} />);
-    expect(screen.getByLabelText("Dashboard'a dön")).toBeTruthy();
+    expect(screen.getByLabelText('Go back to dashboard')).toBeTruthy();
   });
 
-  it('snapshot yüklenirken chrome API çağrılır', async () => {
+  it('calls chrome API while loading snapshot', async () => {
     render(<BugReportView hasSession={true} />);
     await waitFor(() => {
       expect(chrome.tabs.query).toHaveBeenCalled();
     });
   });
 
-  it('snapshot başarılı olduğunda görüntü gösterilir', async () => {
+  it('shows image when snapshot is successful', async () => {
     render(<BugReportView hasSession={true} />);
     await waitFor(() => {
-      expect(screen.getByAltText('Sayfa ekran görüntüsü')).toBeTruthy();
+      expect(screen.getByAltText('Page screenshot')).toBeTruthy();
     });
   });
 
-  it('form alanları render edilir', async () => {
+  it('renders form fields', async () => {
     render(<BugReportView hasSession={true} />);
     await waitFor(() => {
-      expect(screen.getByLabelText('Beklenen sonuç')).toBeTruthy();
-      expect(screen.getByLabelText('Neden bug')).toBeTruthy();
+      expect(screen.getByLabelText('Expected result')).toBeTruthy();
+      expect(screen.getByLabelText('Why is this a bug')).toBeTruthy();
     });
   });
 
-  it('priority select Medium varsayılan değer ile render edilir', async () => {
+  it('priority select renders with Medium default value', async () => {
     render(<BugReportView hasSession={true} />);
     await waitFor(() => {
       const select = screen.getByLabelText('Priority') as HTMLSelectElement;
@@ -126,7 +126,7 @@ describe('BugReportView', () => {
     });
   });
 
-  it('Steps to Reproduce varsayılan kapalı', async () => {
+  it('Steps to Reproduce is closed by default', async () => {
     render(<BugReportView hasSession={true} />);
     await waitFor(() => {
       const btn = screen.getByText(/Steps to Reproduce/);
@@ -136,7 +136,7 @@ describe('BugReportView', () => {
     });
   });
 
-  it('Steps to Reproduce açılıp kapatılabiliyor', async () => {
+  it('Steps to Reproduce can be toggled open and closed', async () => {
     render(<BugReportView hasSession={true} />);
     await waitFor(() => screen.getByText(/Steps to Reproduce/));
     const toggle = screen.getByText(/Steps to Reproduce/).closest('button')!;
@@ -146,67 +146,67 @@ describe('BugReportView', () => {
     expect(screen.queryByLabelText('Steps to reproduce')).toBeNull();
   });
 
-  it('Yeniden Çek butonu render edilir', async () => {
+  it('Retake button is rendered', async () => {
     render(<BugReportView hasSession={true} />);
-    expect(screen.getByLabelText("Screenshot'ı yeniden çek")).toBeTruthy();
+    expect(screen.getByLabelText('Retake screenshot')).toBeTruthy();
   });
 
-  it('DataSummary render edilir (snapshot sonrası)', async () => {
+  it('DataSummary is rendered (after snapshot)', async () => {
     render(<BugReportView hasSession={true} />);
     await waitFor(() => {
-      expect(screen.getByText('Toplanan Veriler')).toBeTruthy();
+      expect(screen.getByText('Collected Data')).toBeTruthy();
     });
   });
 
-  it("session'sız modda steps placeholder farklı", async () => {
+  it('steps placeholder is different in sessionless mode', async () => {
     render(<BugReportView hasSession={false} />);
     await waitFor(() => screen.getByText(/Steps to Reproduce/));
     const toggle = screen.getByText(/Steps to Reproduce/).closest('button')!;
     fireEvent.click(toggle);
     const textarea = screen.getByLabelText('Steps to reproduce') as HTMLTextAreaElement;
-    expect(textarea.placeholder).toContain('Session kaydı yok');
+    expect(textarea.placeholder).toContain('No session recording');
   });
 
-  it('Jira butonu disabled, ZIP aktif (snapshot sonrası)', async () => {
+  it('Jira button disabled, ZIP active (after snapshot)', async () => {
     render(<BugReportView hasSession={true} />);
     await waitFor(() => {
-      expect(screen.getByAltText('Sayfa ekran görüntüsü')).toBeTruthy();
+      expect(screen.getByAltText('Page screenshot')).toBeTruthy();
     });
-    const zipBtn = screen.getByText('ZIP İndir').closest('button')! as HTMLButtonElement;
-    const jiraBtn = screen.getByText('Jira Gönder').closest('button')! as HTMLButtonElement;
+    const zipBtn = screen.getByText('Download ZIP').closest('button')! as HTMLButtonElement;
+    const jiraBtn = screen.getByText('Send to Jira').closest('button')! as HTMLButtonElement;
     expect(zipBtn.disabled).toBe(false);
     expect(jiraBtn.disabled).toBe(true);
-    expect(jiraBtn.title).toBe("Ayarlardan Jira'yı kurun");
+    expect(jiraBtn.title).toBe('Set up Jira from Settings');
   });
 
-  it('ZIP İndir tıklandığında export tetiklenir ve başarı post-export UI gösterir', async () => {
+  it('ZIP Download triggers export and shows success post-export UI', async () => {
     const { exportBugReportZip } = await import('@/lib/zip-exporter');
     render(<BugReportView hasSession={true} />);
     await waitFor(() => {
-      expect(screen.getByAltText('Sayfa ekran görüntüsü')).toBeTruthy();
+      expect(screen.getByAltText('Page screenshot')).toBeTruthy();
     });
-    const zipBtn = screen.getByText('ZIP İndir').closest('button')!;
+    const zipBtn = screen.getByText('Download ZIP').closest('button')!;
     fireEvent.click(zipBtn);
     await waitFor(() => {
       expect(exportBugReportZip).toHaveBeenCalled();
     });
     await waitFor(() => {
-      expect(screen.getByText('ZIP indirildi')).toBeTruthy();
-      expect(screen.getByText('Session verilerini temizlemek ister misiniz?')).toBeTruthy();
+      expect(screen.getByText('ZIP downloaded')).toBeTruthy();
+      expect(screen.getByText('Would you like to clear session data?')).toBeTruthy();
     });
   });
 
-  it('post-export UI: Temizle butonuna tıklandığında session temizlenir ve STOP_SESSION tabId ile gönderilir', async () => {
+  it('post-export UI: Clear button clears session and sends STOP_SESSION with tabId', async () => {
     render(<BugReportView hasSession={true} />);
     await waitFor(() => {
-      expect(screen.getByAltText('Sayfa ekran görüntüsü')).toBeTruthy();
+      expect(screen.getByAltText('Page screenshot')).toBeTruthy();
     });
-    const zipBtn = screen.getByText('ZIP İndir').closest('button')!;
+    const zipBtn = screen.getByText('Download ZIP').closest('button')!;
     fireEvent.click(zipBtn);
     await waitFor(() => {
-      expect(screen.getByText('Temizle')).toBeTruthy();
+      expect(screen.getByText('Clear')).toBeTruthy();
     });
-    fireEvent.click(screen.getByText('Temizle'));
+    fireEvent.click(screen.getByText('Clear'));
     await waitFor(() => {
       expect(chrome.storage.local.get).toHaveBeenCalled();
     });
@@ -217,50 +217,50 @@ describe('BugReportView', () => {
     });
   });
 
-  it("post-export UI: Koru butonuna tıklandığında dashboard'a döner", async () => {
+  it('post-export UI: Keep button returns to dashboard', async () => {
     render(<BugReportView hasSession={true} />);
     await waitFor(() => {
-      expect(screen.getByAltText('Sayfa ekran görüntüsü')).toBeTruthy();
+      expect(screen.getByAltText('Page screenshot')).toBeTruthy();
     });
-    const zipBtn = screen.getByText('ZIP İndir').closest('button')!;
+    const zipBtn = screen.getByText('Download ZIP').closest('button')!;
     fireEvent.click(zipBtn);
     await waitFor(() => {
-      expect(screen.getByText('Koru')).toBeTruthy();
+      expect(screen.getByText('Keep')).toBeTruthy();
     });
-    fireEvent.click(screen.getByText('Koru'));
-    // Koru tıklandığında form resetlenir
+    fireEvent.click(screen.getByText('Keep'));
+    // Keep click resets the form
   });
 
-  it('Konfigürasyon alanları kaldırıldı (Design D)', async () => {
+  it('Configuration fields removed (Design D)', async () => {
     render(<BugReportView hasSession={true} />);
     await waitFor(() => {
       expect(screen.queryByLabelText('Environment')).toBeNull();
     });
   });
 
-  it('snapshot hata durumunda hata mesajı gösterilir', async () => {
+  it('shows error message on snapshot failure', async () => {
     (chrome.runtime.sendMessage as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
       success: false,
-      error: 'Screenshot alınamadı',
+      error: 'Could not take screenshot',
     });
     render(<BugReportView hasSession={true} />);
     await waitFor(() => {
-      expect(screen.getAllByText('Screenshot alınamadı').length).toBeGreaterThan(0);
+      expect(screen.getByText('Screenshot failed')).toBeTruthy();
     });
   });
 
-  it('Jira credentials yoksa buton disabled ve tooltip gösterilir', async () => {
+  it('Jira button disabled and tooltip shown when no credentials', async () => {
     (chrome.storage.local.get as ReturnType<typeof vi.fn>).mockResolvedValue({});
     render(<BugReportView hasSession={true} />);
     await waitFor(() => {
-      expect(screen.getByAltText('Sayfa ekran görüntüsü')).toBeTruthy();
+      expect(screen.getByAltText('Page screenshot')).toBeTruthy();
     });
-    const jiraBtn = screen.getByText('Jira Gönder').closest('button')! as HTMLButtonElement;
+    const jiraBtn = screen.getByText('Send to Jira').closest('button')! as HTMLButtonElement;
     expect(jiraBtn.disabled).toBe(true);
-    expect(jiraBtn.title).toBe("Ayarlardan Jira'yı kurun");
+    expect(jiraBtn.title).toBe('Set up Jira from Settings');
   });
 
-  it('Jira credentials varsa buton enabled olur', async () => {
+  it('Jira button enabled when credentials exist', async () => {
     (chrome.storage.local.get as ReturnType<typeof vi.fn>).mockResolvedValue({
       jira_credentials: {
         platform: 'cloud',
@@ -272,16 +272,16 @@ describe('BugReportView', () => {
     });
     render(<BugReportView hasSession={true} />);
     await waitFor(() => {
-      expect(screen.getByAltText('Sayfa ekran görüntüsü')).toBeTruthy();
+      expect(screen.getByAltText('Page screenshot')).toBeTruthy();
     });
     await waitFor(() => {
-      const jiraBtn = screen.getByText('Jira Gönder').closest('button')! as HTMLButtonElement;
+      const jiraBtn = screen.getByText('Send to Jira').closest('button')! as HTMLButtonElement;
       expect(jiraBtn.disabled).toBe(false);
       expect(jiraBtn.title).toBeFalsy();
     });
   });
 
-  it('Jira export başarılı olunca toast gösterilir', async () => {
+  it('shows toast on successful Jira export', async () => {
     (chrome.storage.local.get as ReturnType<typeof vi.fn>).mockResolvedValue({
       jira_credentials: {
         platform: 'cloud',
@@ -295,13 +295,13 @@ describe('BugReportView', () => {
     const { showToast } = await import('@/components/ui/Toast');
     render(<BugReportView hasSession={true} />);
     await waitFor(() => {
-      expect(screen.getByAltText('Sayfa ekran görüntüsü')).toBeTruthy();
+      expect(screen.getByAltText('Page screenshot')).toBeTruthy();
     });
     await waitFor(() => {
-      const jiraBtn = screen.getByText('Jira Gönder').closest('button')! as HTMLButtonElement;
+      const jiraBtn = screen.getByText('Send to Jira').closest('button')! as HTMLButtonElement;
       expect(jiraBtn.disabled).toBe(false);
     });
-    const jiraBtn = screen.getByText('Jira Gönder').closest('button')!;
+    const jiraBtn = screen.getByText('Send to Jira').closest('button')!;
     fireEvent.click(jiraBtn);
     await waitFor(() => {
       expect(exportToJira).toHaveBeenCalled();
@@ -311,12 +311,12 @@ describe('BugReportView', () => {
     });
   });
 
-  it('Jira export başarısız olunca fallback mesajı gösterilir', async () => {
+  it('shows fallback message on failed Jira export', async () => {
     const { exportToJira } = await import('@/lib/jira/jira-exporter');
     const { showToast } = await import('@/components/ui/Toast');
     (exportToJira as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
       success: false,
-      error: 'Bağlantı hatası',
+      error: 'Connection error',
     });
     (chrome.storage.local.get as ReturnType<typeof vi.fn>).mockResolvedValue({
       jira_credentials: {
@@ -329,13 +329,13 @@ describe('BugReportView', () => {
     });
     render(<BugReportView hasSession={true} />);
     await waitFor(() => {
-      expect(screen.getByAltText('Sayfa ekran görüntüsü')).toBeTruthy();
+      expect(screen.getByAltText('Page screenshot')).toBeTruthy();
     });
     await waitFor(() => {
-      const jiraBtn = screen.getByText('Jira Gönder').closest('button')! as HTMLButtonElement;
+      const jiraBtn = screen.getByText('Send to Jira').closest('button')! as HTMLButtonElement;
       expect(jiraBtn.disabled).toBe(false);
     });
-    const jiraBtn = screen.getByText('Jira Gönder').closest('button')!;
+    const jiraBtn = screen.getByText('Send to Jira').closest('button')!;
     fireEvent.click(jiraBtn);
     await waitFor(() => {
       expect(exportToJira).toHaveBeenCalled();
@@ -345,7 +345,7 @@ describe('BugReportView', () => {
     });
   });
 
-  it('Parent ticket input PROJ-123 formatını kabul eder', async () => {
+  it('Parent ticket input accepts PROJ-123 format', async () => {
     (chrome.storage.local.get as ReturnType<typeof vi.fn>).mockResolvedValue({
       jira_credentials: {
         platform: 'cloud',
@@ -357,13 +357,13 @@ describe('BugReportView', () => {
     });
     render(<BugReportView hasSession={true} />);
     await waitFor(() => {
-      expect(screen.getByAltText('Sayfa ekran görüntüsü')).toBeTruthy();
+      expect(screen.getByAltText('Page screenshot')).toBeTruthy();
     });
     await waitFor(() => {
-      expect(screen.getByText("Mevcut ticket'a bağla")).toBeTruthy();
+      expect(screen.getByText('Link to existing ticket')).toBeTruthy();
     });
     const checkbox = screen
-      .getByText("Mevcut ticket'a bağla")
+      .getByText('Link to existing ticket')
       .closest('label')!
       .querySelector('input')! as HTMLInputElement;
     fireEvent.click(checkbox);

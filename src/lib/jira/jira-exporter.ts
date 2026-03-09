@@ -82,14 +82,14 @@ export async function exportToJira(params: JiraExportParams): Promise<Result<Jir
   if (!credentials.platform || !credentials.url || !credentials.token || !credentials.connected) {
     return {
       success: false,
-      error: "Jira yapılandırması eksik. Ayarlar sayfasından Jira'yı kurun.",
+      error: 'Jira configuration is missing. Set up Jira from the Settings page.',
     };
   }
 
   if (!credentials.defaultProjectKey) {
     return {
       success: false,
-      error: 'Varsayılan proje seçilmemiş. Ayarlar sayfasından proje seçin.',
+      error: 'No default project selected. Select a project from the Settings page.',
     };
   }
 
@@ -142,10 +142,10 @@ export async function exportToJira(params: JiraExportParams): Promise<Result<Jir
     if (attachResult.success) {
       attachmentCount = attachResult.data.length;
       if (attachmentCount < files.length) {
-        warnings.push('Bazı dosyalar eklenemedi');
+        warnings.push('Some files could not be attached');
       }
     } else {
-      warnings.push('Dosyalar eklenemedi');
+      warnings.push('Files could not be attached');
     }
   }
 
@@ -153,7 +153,7 @@ export async function exportToJira(params: JiraExportParams): Promise<Result<Jir
   if (parentKey) {
     const linkResult = await linkIssue(credentials, issueKey, parentKey);
     if (!linkResult.success) {
-      warnings.push(`Parent ticket'a bağlanamadı`);
+      warnings.push('Could not link to parent ticket');
     }
   }
 

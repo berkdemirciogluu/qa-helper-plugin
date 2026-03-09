@@ -27,11 +27,11 @@ interface ToggleItem {
 }
 
 const toggleItems: ToggleItem[] = [
-  { key: 'har', label: 'XHR/Fetch Kaydı', description: 'Ağ isteklerini (XHR ve Fetch) kaydeder', id: 'toggle-har' },
-  { key: 'console', label: 'Console Logları', description: 'Console log, warn ve error mesajlarını kaydeder', id: 'toggle-console' },
-  { key: 'dom', label: 'DOM Snapshot', description: 'Bug raporlama anında sayfanın DOM\'unu yakalar', id: 'toggle-dom' },
-  { key: 'localStorage', label: 'localStorage', description: 'localStorage içeriğini bug raporuna dahil eder', id: 'toggle-localstorage' },
-  { key: 'sessionStorage', label: 'sessionStorage', description: 'sessionStorage içeriğini bug raporuna dahil eder', id: 'toggle-sessionstorage' },
+  { key: 'har', label: 'XHR/Fetch Recording', description: 'Records network requests (XHR and Fetch)', id: 'toggle-har' },
+  { key: 'console', label: 'Console Logs', description: 'Records console log, warn and error messages', id: 'toggle-console' },
+  { key: 'dom', label: 'DOM Snapshot', description: 'Captures the page DOM at bug report time', id: 'toggle-dom' },
+  { key: 'localStorage', label: 'localStorage', description: 'Includes localStorage contents in bug reports', id: 'toggle-localstorage' },
+  { key: 'sessionStorage', label: 'sessionStorage', description: 'Includes sessionStorage contents in bug reports', id: 'toggle-sessionstorage' },
 ];
 
 export function GeneralSettingsPage() {
@@ -44,18 +44,18 @@ export function GeneralSettingsPage() {
   if (!isLoaded.value) {
     return (
       <SectionGroup
-        title="Veri Kaynakları"
-        description="Bug raporlarına dahil edilecek veri türleri"
+        title="Data Sources"
+        description="Data types to include in bug reports"
       >
-        <p class="text-sm text-gray-400">Yükleniyor...</p>
+        <p class="text-sm text-gray-400">Loading...</p>
       </SectionGroup>
     );
   }
 
   return (
     <SectionGroup
-      title="Veri Kaynakları"
-      description="Bug raporlarına dahil edilecek veri türleri"
+      title="Data Sources"
+      description="Data types to include in bug reports"
     >
       {toggleItems.map((item) => (
         <FormRow

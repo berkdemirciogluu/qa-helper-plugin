@@ -41,15 +41,15 @@ describe('DataManagementPage', () => {
     mockSet.mockResolvedValue(undefined);
   });
 
-  it('depolama durumu bölümünü gösterir', async () => {
+  it('shows storage status section', async () => {
     render(<DataManagementPage />);
 
     await waitFor(() => {
-      expect(screen.getByText('Depolama Durumu')).toBeTruthy();
+      expect(screen.getByText('Storage Status')).toBeTruthy();
     });
   });
 
-  it('toplam kullanımı ve session sayısını gösterir', async () => {
+  it('shows total usage and session count', async () => {
     render(<DataManagementPage />);
 
     await waitFor(() => {
@@ -58,17 +58,17 @@ describe('DataManagementPage', () => {
     });
   });
 
-  it('session listesini gösterir', async () => {
+  it('shows session list', async () => {
     render(<DataManagementPage />);
 
     await waitFor(() => {
       expect(screen.getByText(/Tab #1/)).toBeTruthy();
       expect(screen.getByText(/app\.com/)).toBeTruthy();
-      expect(screen.getByText(/11 olay/)).toBeTruthy();
+      expect(screen.getByText(/11 events/)).toBeTruthy();
     });
   });
 
-  it('session yoksa bilgi mesajı gösterir', async () => {
+  it('shows info message when no sessions exist', async () => {
     mockGet.mockImplementation(() =>
       Promise.resolve({ session_config: { toggles: {} } }),
     );
@@ -77,56 +77,56 @@ describe('DataManagementPage', () => {
     render(<DataManagementPage />);
 
     await waitFor(() => {
-      expect(screen.getByText('Aktif session bulunmuyor.')).toBeTruthy();
+      expect(screen.getByText('No active sessions found.')).toBeTruthy();
     });
   });
 
-  it('Tüm Verileri Temizle butonu gösterilir', async () => {
+  it('shows Clear All Data button', async () => {
     render(<DataManagementPage />);
 
     await waitFor(() => {
-      expect(screen.getByText('Tüm Verileri Temizle')).toBeTruthy();
+      expect(screen.getByText('Clear All Data')).toBeTruthy();
     });
   });
 
-  it('buton tıklandığında onay modalı açılır', async () => {
+  it('opens confirm modal on button click', async () => {
     render(<DataManagementPage />);
 
     await waitFor(() => {
-      expect(screen.getByText('Tüm Verileri Temizle')).toBeTruthy();
+      expect(screen.getByText('Clear All Data')).toBeTruthy();
     });
 
-    fireEvent.click(screen.getByText('Tüm Verileri Temizle'));
+    fireEvent.click(screen.getByText('Clear All Data'));
 
     await waitFor(() => {
       expect(screen.getByRole('dialog')).toBeTruthy();
-      expect(screen.getByText('Bu işlem geri alınamaz')).toBeTruthy();
-      expect(screen.getByText('Temizle')).toBeTruthy();
-      expect(screen.getByText('İptal')).toBeTruthy();
+      expect(screen.getByText('This action cannot be undone')).toBeTruthy();
+      expect(screen.getByText('Clear')).toBeTruthy();
+      expect(screen.getByText('Cancel')).toBeTruthy();
     });
   });
 
-  it('İptal butonuna basınca modal kapanır', async () => {
+  it('closes modal on Cancel click', async () => {
     render(<DataManagementPage />);
 
     await waitFor(() => {
-      expect(screen.getByText('Tüm Verileri Temizle')).toBeTruthy();
+      expect(screen.getByText('Clear All Data')).toBeTruthy();
     });
 
-    fireEvent.click(screen.getByText('Tüm Verileri Temizle'));
+    fireEvent.click(screen.getByText('Clear All Data'));
 
     await waitFor(() => {
       expect(screen.getByRole('dialog')).toBeTruthy();
     });
 
-    fireEvent.click(screen.getByText('İptal'));
+    fireEvent.click(screen.getByText('Cancel'));
 
     await waitFor(() => {
       expect(screen.queryByRole('dialog')).toBeNull();
     });
   });
 
-  it('Temizle butonuna basınca veriler silinir ve toast gösterilir', async () => {
+  it('clears data and shows toast on Clear click', async () => {
     // After clear, return empty data
     let cleared = false;
     mockGet.mockImplementation(() => {
@@ -151,37 +151,37 @@ describe('DataManagementPage', () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByText('Tüm Verileri Temizle')).toBeTruthy();
+      expect(screen.getByText('Clear All Data')).toBeTruthy();
     });
 
-    fireEvent.click(screen.getByText('Tüm Verileri Temizle'));
+    fireEvent.click(screen.getByText('Clear All Data'));
 
     await waitFor(() => {
       expect(screen.getByRole('dialog')).toBeTruthy();
     });
 
-    fireEvent.click(screen.getByText('Temizle'));
+    fireEvent.click(screen.getByText('Clear'));
 
     await waitFor(() => {
       expect(screen.queryByRole('dialog')).toBeNull();
-      expect(screen.getByText('Tüm veriler temizlendi')).toBeTruthy();
+      expect(screen.getByText('All data cleared')).toBeTruthy();
     });
   });
 
-  it('tehlikeli bölge açıklaması gösterilir', async () => {
+  it('shows danger zone description', async () => {
     render(<DataManagementPage />);
 
     await waitFor(() => {
       expect(
-        screen.getByText('Tüm session kayıtlarını siler. Konfigürasyon ayarları korunur.'),
+        screen.getByText('Deletes all session records. Configuration settings are preserved.'),
       ).toBeTruthy();
     });
   });
 
-  it('yükleme sırasında Yükleniyor mesajı gösterilir', () => {
+  it('shows Loading message during load', () => {
     mockGet.mockImplementation(() => new Promise(() => {}));
     mockGetBytesInUse.mockImplementation(() => new Promise(() => {}));
     render(<DataManagementPage />);
-    expect(screen.getByText('Yükleniyor...')).toBeTruthy();
+    expect(screen.getByText('Loading...')).toBeTruthy();
   });
 });

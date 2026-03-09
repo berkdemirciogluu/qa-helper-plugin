@@ -62,7 +62,7 @@ const baseParams = {
 };
 
 describe('exportToJira', () => {
-  it('tam akış başarılı — issue + attachments', async () => {
+  it('full flow succeeds — issue + attachments', async () => {
     // createIssue
     mockFetch.mockResolvedValueOnce({
       ok: true,
@@ -84,7 +84,7 @@ describe('exportToJira', () => {
     }
   });
 
-  it('credentials eksik ise hata döner', async () => {
+  it('returns error when credentials are missing', async () => {
     const result = await exportToJira({
       ...baseParams,
       credentials: { ...cloudCredentials, token: '', connected: false },
@@ -92,11 +92,11 @@ describe('exportToJira', () => {
 
     expect(result.success).toBe(false);
     if (!result.success) {
-      expect(result.error).toContain('Jira yapılandırması eksik');
+      expect(result.error).toContain('Jira configuration is missing');
     }
   });
 
-  it('defaultProjectKey eksik ise hata döner', async () => {
+  it('returns error when defaultProjectKey is missing', async () => {
     const result = await exportToJira({
       ...baseParams,
       credentials: { ...cloudCredentials, defaultProjectKey: undefined },
@@ -104,11 +104,11 @@ describe('exportToJira', () => {
 
     expect(result.success).toBe(false);
     if (!result.success) {
-      expect(result.error).toContain('Varsayılan proje seçilmemiş');
+      expect(result.error).toContain('No default project selected');
     }
   });
 
-  it('issue oluşturma hatası → error döner', async () => {
+  it('returns error on issue creation failure', async () => {
     mockFetch.mockResolvedValueOnce({
       ok: false,
       status: 400,
@@ -119,11 +119,11 @@ describe('exportToJira', () => {
 
     expect(result.success).toBe(false);
     if (!result.success) {
-      expect(result.error).toContain('Ticket oluşturulamadı');
+      expect(result.error).toContain('Failed to create ticket');
     }
   });
 
-  it('attachment hatası → partial success (warning ile)', async () => {
+  it('attachment failure → partial success with warning', async () => {
     // createIssue başarılı
     mockFetch.mockResolvedValueOnce({
       ok: true,
@@ -137,11 +137,11 @@ describe('exportToJira', () => {
     expect(result.success).toBe(true);
     if (result.success) {
       expect(result.data.issueKey).toBe('PROJ-456');
-      expect(result.data.warning).toContain('eklenemedi');
+      expect(result.data.warning).toContain('could not be attached');
     }
   });
 
-  it('link hatası → partial success (warning ile)', async () => {
+  it('link failure → partial success with warning', async () => {
     // createIssue başarılı
     mockFetch.mockResolvedValueOnce({
       ok: true,
@@ -171,11 +171,11 @@ describe('exportToJira', () => {
 
     expect(result.success).toBe(true);
     if (result.success) {
-      expect(result.data.warning).toContain('bağlanamadı');
+      expect(result.data.warning).toContain('Could not link to parent ticket');
     }
   });
 
-  it('summary 80 karaktere kırpılır', async () => {
+  it('summary is truncated to 80 characters', async () => {
     const longExpected = 'A'.repeat(100);
     mockFetch.mockResolvedValueOnce({
       ok: true,
@@ -193,7 +193,7 @@ describe('exportToJira', () => {
     expect(body.fields.summary.length).toBeLessThanOrEqual(90); // "Bug: " + 80 + "..."
   });
 
-  it('Cloud URL doğru oluşturulur', async () => {
+  it('Cloud URL is generated correctly', async () => {
     mockFetch.mockResolvedValueOnce({
       ok: true,
       json: () => Promise.resolve({ id: '10001', key: 'PROJ-200', self: 'url' }),

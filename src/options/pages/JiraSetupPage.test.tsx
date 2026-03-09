@@ -34,37 +34,37 @@ beforeEach(() => {
 async function renderAndWaitForLoad() {
   render(<JiraSetupPage />);
   await waitFor(() => {
-    expect(screen.getByText(/Jira henüz yapılandırılmadı/)).toBeTruthy();
+    expect(screen.getByText(/Jira is not configured yet/)).toBeTruthy();
   });
 }
 
 describe('JiraSetupPage', () => {
-  it('başlık ve açıklama ile render eder', async () => {
+  it('renders with title and description', async () => {
     await renderAndWaitForLoad();
-    expect(screen.getByText('Jira Entegrasyonu')).toBeTruthy();
+    expect(screen.getByText('Jira Integration')).toBeTruthy();
   });
 
-  it('platform seçenekleri gösterilir', async () => {
+  it('shows platform options', async () => {
     await renderAndWaitForLoad();
     expect(screen.getByLabelText('Jira Cloud')).toBeTruthy();
     expect(screen.getByLabelText('Jira Server / Data Center')).toBeTruthy();
   });
 
-  it('başlangıçta hiç platform seçili değilken bilgi mesajı gösterilir', async () => {
+  it('shows info message when no platform is selected', async () => {
     await renderAndWaitForLoad();
-    expect(screen.getByText(/Jira henüz yapılandırılmadı/)).toBeTruthy();
+    expect(screen.getByText(/Jira is not configured yet/)).toBeTruthy();
   });
 
-  it('Cloud seçildiğinde OAuth bağlantı butonu gösterilir', async () => {
+  it('shows OAuth connect button when Cloud is selected', async () => {
     await renderAndWaitForLoad();
     const cloudRadio = screen.getByLabelText('Jira Cloud');
     fireEvent.click(cloudRadio);
     await waitFor(() => {
-      expect(screen.getByText("Jira Cloud'a Bağlan")).toBeTruthy();
+      expect(screen.getByText('Connect to Jira Cloud')).toBeTruthy();
     });
   });
 
-  it('Server seçildiğinde URL ve PAT alanları gösterilir', async () => {
+  it('shows URL and PAT fields when Server is selected', async () => {
     await renderAndWaitForLoad();
     const serverRadio = screen.getByLabelText('Jira Server / Data Center');
     fireEvent.click(serverRadio);
@@ -74,16 +74,16 @@ describe('JiraSetupPage', () => {
     });
   });
 
-  it('Server seçildiğinde "Bağlantıyı Test Et" butonu gösterilir', async () => {
+  it('shows Test Connection button when Server is selected', async () => {
     await renderAndWaitForLoad();
     const serverRadio = screen.getByLabelText('Jira Server / Data Center');
     fireEvent.click(serverRadio);
     await waitFor(() => {
-      expect(screen.getByText('Bağlantıyı Test Et')).toBeTruthy();
+      expect(screen.getByText('Test Connection')).toBeTruthy();
     });
   });
 
-  it('Server bağlantı testi başarılı olursa bağlantı durumu gösterilir', async () => {
+  it('shows connection status on successful Server connection test', async () => {
     await renderAndWaitForLoad();
     const serverRadio = screen.getByLabelText('Jira Server / Data Center');
     fireEvent.click(serverRadio);
@@ -108,21 +108,18 @@ describe('JiraSetupPage', () => {
     // Mock successful getProjects
     mockFetch.mockResolvedValueOnce({
       ok: true,
-      json: () =>
-        Promise.resolve([
-          { id: '1', key: 'PROJ', name: 'Test Project', avatarUrls: {} },
-        ]),
+      json: () => Promise.resolve([{ id: '1', key: 'PROJ', name: 'Test Project', avatarUrls: {} }]),
     });
 
-    const testButton = screen.getByText('Bağlantıyı Test Et');
+    const testButton = screen.getByText('Test Connection');
     fireEvent.click(testButton);
 
     await waitFor(() => {
-      expect(screen.getByText(/Bağlantı başarılı/)).toBeTruthy();
+      expect(screen.getAllByText(/Connected/).length).toBeGreaterThan(0);
     });
   });
 
-  it('bağlantı testi başarısız olursa hata gösterilir', async () => {
+  it('shows error on failed connection test', async () => {
     await renderAndWaitForLoad();
     const serverRadio = screen.getByLabelText('Jira Server / Data Center');
     fireEvent.click(serverRadio);
@@ -139,7 +136,7 @@ describe('JiraSetupPage', () => {
       status: 401,
     });
 
-    const testButton = screen.getByText('Bağlantıyı Test Et');
+    const testButton = screen.getByText('Test Connection');
     fireEvent.click(testButton);
 
     await waitFor(() => {
@@ -147,7 +144,7 @@ describe('JiraSetupPage', () => {
     });
   });
 
-  it('"Bağlantıyı Kes" butonu bağlantıyı temizler', async () => {
+  it('Disconnect button clears connection', async () => {
     // Simulate connected state by loading from storage
     (chrome.storage.local.get as ReturnType<typeof vi.fn>).mockResolvedValue({
       jira_credentials: {
@@ -167,18 +164,18 @@ describe('JiraSetupPage', () => {
 
     render(<JiraSetupPage />);
     await waitFor(() => {
-      expect(screen.getByText(/Bağlı/)).toBeTruthy();
+      expect(screen.getAllByText(/Connected/).length).toBeGreaterThan(0);
     });
 
-    const disconnectButton = screen.getByText('Bağlantıyı Kes');
+    const disconnectButton = screen.getByText('Disconnect');
     fireEvent.click(disconnectButton);
 
     await waitFor(() => {
-      expect(screen.getByText(/Jira henüz yapılandırılmadı/)).toBeTruthy();
+      expect(screen.getByText(/Jira is not configured yet/)).toBeTruthy();
     });
   });
 
-  it('bağlı durumdayken proje dropdown gösterilir', async () => {
+  it('shows project dropdown when connected', async () => {
     (chrome.storage.local.get as ReturnType<typeof vi.fn>).mockResolvedValue({
       jira_credentials: {
         platform: 'server',
@@ -193,19 +190,16 @@ describe('JiraSetupPage', () => {
     // Mock getProjects
     mockFetch.mockResolvedValueOnce({
       ok: true,
-      json: () =>
-        Promise.resolve([
-          { id: '1', key: 'PROJ', name: 'Test Project', avatarUrls: {} },
-        ]),
+      json: () => Promise.resolve([{ id: '1', key: 'PROJ', name: 'Test Project', avatarUrls: {} }]),
     });
 
     render(<JiraSetupPage />);
     await waitFor(() => {
-      expect(screen.getByText(/Varsayılan Proje/)).toBeTruthy();
+      expect(screen.getByText(/Default Project/)).toBeTruthy();
     });
   });
 
-  it('OAuth Cloud bağlantısı başarılı olursa connected state gösterilir', async () => {
+  it('OAuth Cloud connection shows connected state on success', async () => {
     await renderAndWaitForLoad();
     const cloudRadio = screen.getByLabelText('Jira Cloud');
     fireEvent.click(cloudRadio);
@@ -214,7 +208,7 @@ describe('JiraSetupPage', () => {
     const mockRedirectUrl =
       'https://ext-id.chromiumapp.org/atlassian?code=auth-code-123&state=test-state-uuid';
     (chrome.identity.launchWebAuthFlow as ReturnType<typeof vi.fn>).mockResolvedValue(
-      mockRedirectUrl,
+      mockRedirectUrl
     );
 
     // Token exchange
@@ -256,28 +250,26 @@ describe('JiraSetupPage', () => {
     mockFetch.mockResolvedValueOnce({
       ok: true,
       json: () =>
-        Promise.resolve([
-          { id: '1', key: 'CLOUD', name: 'Cloud Project', avatarUrls: {} },
-        ]),
+        Promise.resolve([{ id: '1', key: 'CLOUD', name: 'Cloud Project', avatarUrls: {} }]),
     });
 
     await waitFor(() => {
-      expect(screen.getByText("Jira Cloud'a Bağlan")).toBeTruthy();
+      expect(screen.getByText('Connect to Jira Cloud')).toBeTruthy();
     });
-    const connectButton = screen.getByText("Jira Cloud'a Bağlan");
+    const connectButton = screen.getByText('Connect to Jira Cloud');
     fireEvent.click(connectButton);
 
     await waitFor(() => {
-      expect(screen.getByText(/Bağlı/)).toBeTruthy();
+      expect(screen.getAllByText(/Connected/).length).toBeGreaterThan(0);
     });
   });
 
-  it('erişilebilirlik: radio gruplar role="radiogroup" kullanır', async () => {
+  it('accessibility: radio groups use role="radiogroup"', async () => {
     await renderAndWaitForLoad();
     expect(screen.getByRole('radiogroup')).toBeTruthy();
   });
 
-  it('bağlantı durumu aria-live="polite" ile duyurulur', async () => {
+  it('connection status is announced with aria-live="polite"', async () => {
     (chrome.storage.local.get as ReturnType<typeof vi.fn>).mockResolvedValue({
       jira_credentials: {
         platform: 'server',
@@ -296,12 +288,13 @@ describe('JiraSetupPage', () => {
 
     render(<JiraSetupPage />);
     await waitFor(() => {
-      const statusEl = screen.getByText(/Bağlı/).closest('[aria-live]');
-      expect(statusEl?.getAttribute('aria-live')).toBe('polite');
+      const statusEls = screen.getAllByText(/Connected/);
+      const statusEl = statusEls.find(el => el.closest('[aria-live]'));
+      expect(statusEl?.closest('[aria-live]')?.getAttribute('aria-live')).toBe('polite');
     });
   });
 
-  it('Cloud bağlı durumdayken site adı gösterilir', async () => {
+  it('shows site name when Cloud is connected', async () => {
     (chrome.storage.local.get as ReturnType<typeof vi.fn>).mockResolvedValue({
       jira_credentials: {
         platform: 'cloud',
@@ -318,9 +311,7 @@ describe('JiraSetupPage', () => {
     mockFetch.mockResolvedValueOnce({
       ok: true,
       json: () =>
-        Promise.resolve([
-          { id: '1', key: 'CLOUD', name: 'Cloud Project', avatarUrls: {} },
-        ]),
+        Promise.resolve([{ id: '1', key: 'CLOUD', name: 'Cloud Project', avatarUrls: {} }]),
     });
 
     render(<JiraSetupPage />);

@@ -3,11 +3,11 @@ import { render, screen, fireEvent } from '@testing-library/preact';
 import { SessionControl } from './SessionControl';
 
 describe('SessionControl', () => {
-  it('idle state: "Session Pasif" metni gösterilir', () => {
+  it('idle state: shows "Session Inactive" text', () => {
     render(
       <SessionControl status="idle" elapsedSeconds={0} onStart={() => {}} onStop={() => {}} />
     );
-    expect(screen.getByText('Session Pasif')).toBeTruthy();
+    expect(screen.getByText('Session Inactive')).toBeTruthy();
   });
 
   it('idle state: toggle switch OFF durumunda', () => {
@@ -18,11 +18,11 @@ describe('SessionControl', () => {
     expect(toggle.getAttribute('aria-checked')).toBe('false');
   });
 
-  it('recording state: "Session Aktif" metni ve süre gösterilir', () => {
+  it('recording state: shows "Session Active" text and duration', () => {
     render(
       <SessionControl status="recording" elapsedSeconds={65} onStart={() => {}} onStop={() => {}} />
     );
-    expect(screen.getByText(/Session Aktif/)).toBeTruthy();
+    expect(screen.getByText(/Session Active/)).toBeTruthy();
     expect(screen.getByText('01:05')).toBeTruthy();
   });
 
@@ -34,14 +34,14 @@ describe('SessionControl', () => {
     expect(toggle.getAttribute('aria-checked')).toBe('true');
   });
 
-  it('idle state: toggle ON yapınca onStart çağrılır', () => {
+  it('idle state: calls onStart when toggle ON', () => {
     const onStart = vi.fn();
     render(<SessionControl status="idle" elapsedSeconds={0} onStart={onStart} onStop={() => {}} />);
     fireEvent.click(screen.getByRole('switch'));
     expect(onStart).toHaveBeenCalled();
   });
 
-  it('recording state: toggle OFF yapınca onStop çağrılır', () => {
+  it('recording state: calls onStop when toggle OFF', () => {
     const onStop = vi.fn();
     render(
       <SessionControl status="recording" elapsedSeconds={10} onStart={() => {}} onStop={onStop} />
@@ -50,7 +50,7 @@ describe('SessionControl', () => {
     expect(onStop).toHaveBeenCalled();
   });
 
-  it('00:00 formatı doğru: sıfır saniye', () => {
+  it('00:00 format correct: zero seconds', () => {
     render(
       <SessionControl status="recording" elapsedSeconds={0} onStart={() => {}} onStop={() => {}} />
     );

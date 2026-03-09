@@ -76,13 +76,13 @@ const defaultConfig: ConfigFields = {
 };
 
 const defaultForm = {
-  expectedResult: 'Login başarılı olmalı',
-  reason: 'Login 500 hatası veriyor',
+  expectedResult: 'Login should succeed',
+  reason: 'Login returns 500 error',
   priority: 'high' as const,
 };
 
 describe('buildTimeline', () => {
-  it('boş veri ile geçerli timeline JSON oluşturur', () => {
+  it('creates valid timeline JSON with empty data', () => {
     const result = buildTimeline({
       snapshotData: makeSnapshotData(),
       clicks: [],
@@ -101,7 +101,7 @@ describe('buildTimeline', () => {
     expect(result.errorSummary.crashDetected).toBe(false);
   });
 
-  it('bugReport alanlarını doğru doldurur', () => {
+  it('fills bugReport fields correctly', () => {
     const result = buildTimeline({
       snapshotData: makeSnapshotData(),
       clicks: [],
@@ -113,13 +113,13 @@ describe('buildTimeline', () => {
     });
 
     expect(result.bugReport).toEqual({
-      expectedResult: 'Login başarılı olmalı',
-      actualResult: 'Login 500 hatası veriyor',
+      expectedResult: 'Login should succeed',
+      actualResult: 'Login returns 500 error',
       priority: 'high',
     });
   });
 
-  it('environment bilgisini snapshotData metadata\'dan alır', () => {
+  it('gets environment info from snapshotData metadata', () => {
     const result = buildTimeline({
       snapshotData: makeSnapshotData(),
       clicks: [],
@@ -140,7 +140,7 @@ describe('buildTimeline', () => {
     });
   });
 
-  it('context alanlarını configFields\'dan alır', () => {
+  it('gets context fields from configFields', () => {
     const result = buildTimeline({
       snapshotData: makeSnapshotData(),
       clicks: [],
@@ -159,7 +159,7 @@ describe('buildTimeline', () => {
     });
   });
 
-  it('timeline entry\'lerini timestamp sırasına göre sıralar', () => {
+  it('sorts timeline entries by timestamp', () => {
     const result = buildTimeline({
       snapshotData: makeSnapshotData(),
       clicks: [makeClick({ timestamp: 3000 })],
@@ -176,10 +176,10 @@ describe('buildTimeline', () => {
     expect(result.timeline[2].ts).toBe(3000);
   });
 
-  it('click eventlerini user channel olarak eşler', () => {
+  it('maps click events to user channel', () => {
     const result = buildTimeline({
       snapshotData: makeSnapshotData(),
-      clicks: [makeClick({ text: 'Giriş Yap', selector: 'button.login' })],
+      clicks: [makeClick({ text: 'Login', selector: 'button.login' })],
       navs: [],
       xhrs: [],
       consoleLogs: [],
@@ -191,12 +191,12 @@ describe('buildTimeline', () => {
       ts: 2000,
       ch: 'user',
       type: 'click',
-      text: 'Giriş Yap',
+      text: 'Login',
       el: 'button.login',
     });
   });
 
-  it('nav eventlerini user channel olarak eşler', () => {
+  it('maps nav events to user channel', () => {
     const result = buildTimeline({
       snapshotData: makeSnapshotData(),
       clicks: [],
@@ -215,7 +215,7 @@ describe('buildTimeline', () => {
     });
   });
 
-  it('xhr eventlerini sys channel olarak eşler', () => {
+  it('maps xhr events to sys channel', () => {
     const result = buildTimeline({
       snapshotData: makeSnapshotData(),
       clicks: [],
@@ -237,7 +237,7 @@ describe('buildTimeline', () => {
     });
   });
 
-  it('console error eventlerini sys channel olarak eşler', () => {
+  it('maps console error events to sys channel', () => {
     const result = buildTimeline({
       snapshotData: makeSnapshotData(),
       clicks: [],
@@ -257,7 +257,7 @@ describe('buildTimeline', () => {
     });
   });
 
-  it('parsedStack varsa source alanını fileName:lineNumber formatında üretir', () => {
+  it('uses fileName:lineNumber format for source when parsedStack exists', () => {
     const logWithParsedStack = makeConsoleLog({
       message: 'ReferenceError: x is not defined',
       stack: 'ReferenceError: x is not defined\n    at Object.<anonymous> (checkout.js:42:15)',
@@ -283,7 +283,7 @@ describe('buildTimeline', () => {
     });
   });
 
-  it('errorSummary consoleErrors sayısını doğru hesaplar', () => {
+  it('calculates consoleErrors count correctly', () => {
     const result = buildTimeline({
       snapshotData: makeSnapshotData(),
       clicks: [],
@@ -301,7 +301,7 @@ describe('buildTimeline', () => {
     expect(result.errorSummary.consoleErrors).toBe(2);
   });
 
-  it('errorSummary failedRequests (status >= 400) sayısını doğru hesaplar', () => {
+  it('calculates failedRequests (status >= 400) count correctly', () => {
     const result = buildTimeline({
       snapshotData: makeSnapshotData(),
       clicks: [],
@@ -320,7 +320,7 @@ describe('buildTimeline', () => {
     expect(result.errorSummary.failedRequests).toBe(2);
   });
 
-  it('attachments sabit dosya adlarını döner', () => {
+  it('returns static attachment file names', () => {
     const result = buildTimeline({
       snapshotData: makeSnapshotData(),
       clicks: [],
@@ -341,7 +341,7 @@ describe('buildTimeline', () => {
     });
   });
 
-  it('tam veri seti ile tüm timeline entry tiplerini içerir', () => {
+  it('includes all timeline entry types with full data set', () => {
     const result = buildTimeline({
       snapshotData: makeSnapshotData(),
       clicks: [makeClick({ timestamp: 2000 })],
@@ -360,7 +360,7 @@ describe('buildTimeline', () => {
     expect(types).toContain('error');
   });
 
-  it('sadece error level console logları timeline\'a eklenir', () => {
+  it('only error level console logs are added to timeline', () => {
     const result = buildTimeline({
       snapshotData: makeSnapshotData(),
       clicks: [],

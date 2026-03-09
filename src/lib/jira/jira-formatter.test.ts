@@ -24,14 +24,14 @@ const baseReportData: ReportData = {
 };
 
 describe('formatDescriptionAdf', () => {
-  it('ADF doc tipini ve version 1 döner', () => {
+  it('returns ADF doc type and version 1', () => {
     const result = formatDescriptionAdf(baseReportData);
     expect(result.type).toBe('doc');
     expect(result.version).toBe(1);
     expect(result.content.length).toBeGreaterThan(0);
   });
 
-  it('Steps to Reproduce orderedList oluşturur', () => {
+  it('creates Steps to Reproduce orderedList', () => {
     const result = formatDescriptionAdf(baseReportData);
     const heading = result.content.find(
       (n) => n.type === 'heading' && n.content?.[0]?.text === 'Steps to Reproduce'
@@ -43,7 +43,7 @@ describe('formatDescriptionAdf', () => {
     expect(list!.content).toHaveLength(3);
   });
 
-  it('Environment tablosu oluşturur', () => {
+  it('creates Environment table', () => {
     const result = formatDescriptionAdf(baseReportData);
     const table = result.content.find((n) => n.type === 'table');
     expect(table).toBeDefined();
@@ -51,38 +51,38 @@ describe('formatDescriptionAdf', () => {
     expect(table!.content).toHaveLength(2);
   });
 
-  it('Konfigürasyon tablosu oluşturur', () => {
+  it('creates Configuration table', () => {
     const result = formatDescriptionAdf(baseReportData);
     const tables = result.content.filter((n) => n.type === 'table');
-    // Environment + Konfigürasyon = 2 tablo
+    // Environment + Configuration = 2 tables
     expect(tables.length).toBeGreaterThanOrEqual(2);
   });
 
-  it('Ekli dosyalar paneli oluşturur', () => {
+  it('creates Attached Files panel', () => {
     const result = formatDescriptionAdf(baseReportData);
     const panel = result.content.find((n) => n.type === 'panel');
     expect(panel).toBeDefined();
     expect(panel!.attrs).toEqual({ panelType: 'info' });
   });
 
-  it('eksik stepsText varsa orderedList oluşturmaz', () => {
+  it('does not create orderedList with empty stepsText', () => {
     const result = formatDescriptionAdf({ ...baseReportData, stepsText: '' });
     const list = result.content.find((n) => n.type === 'orderedList');
     expect(list).toBeUndefined();
   });
 
-  it('eksik configFields varsa konfigürasyon tablosu oluşturmaz', () => {
+  it('does not create configuration table with empty configFields', () => {
     const result = formatDescriptionAdf({
       ...baseReportData,
       configFields: { environment: '', testCycle: '', agileTeam: '', project: '' },
     });
     const headings = result.content.filter(
-      (n) => n.type === 'heading' && n.content?.[0]?.text === 'Konfigürasyon'
+      (n) => n.type === 'heading' && n.content?.[0]?.text === 'Configuration'
     );
     expect(headings).toHaveLength(0);
   });
 
-  it('attachmentNames boşsa panel oluşturmaz', () => {
+  it('does not create panel with empty attachmentNames', () => {
     const result = formatDescriptionAdf({ ...baseReportData, attachmentNames: [] });
     const panel = result.content.find((n) => n.type === 'panel');
     expect(panel).toBeUndefined();
@@ -90,7 +90,7 @@ describe('formatDescriptionAdf', () => {
 });
 
 describe('formatDescriptionWiki', () => {
-  it('Steps to Reproduce numaralı liste oluşturur', () => {
+  it('creates Steps to Reproduce numbered list', () => {
     const result = formatDescriptionWiki(baseReportData);
     expect(result).toContain('h3. Steps to Reproduce');
     expect(result).toContain('# Login sayfasına git');
@@ -98,26 +98,26 @@ describe('formatDescriptionWiki', () => {
     expect(result).toContain('# Giriş butonuna tıkla');
   });
 
-  it('Environment tablosu oluşturur', () => {
+  it('creates Environment table', () => {
     const result = formatDescriptionWiki(baseReportData);
-    expect(result).toContain('||Browser||OS||Viewport||Dil||URL||');
+    expect(result).toContain('||Browser||OS||Viewport||Language||URL||');
     expect(result).toContain('|Chrome 133|Windows 11|1920x1080|tr-TR|');
   });
 
-  it('Konfigürasyon tablosu oluşturur', () => {
+  it('creates Configuration table', () => {
     const result = formatDescriptionWiki(baseReportData);
-    expect(result).toContain('h3. Konfigürasyon');
+    expect(result).toContain('h3. Configuration');
     expect(result).toContain('|Staging|');
   });
 
-  it('Ekli dosyalar paneli oluşturur', () => {
+  it('creates Attached Files panel', () => {
     const result = formatDescriptionWiki(baseReportData);
-    expect(result).toContain('{panel:title=Ekli Dosyalar|borderStyle=solid}');
+    expect(result).toContain('{panel:title=Attached Files|borderStyle=solid}');
     expect(result).toContain('screenshot.png, console-logs.json, network.har');
     expect(result).toContain('{panel}');
   });
 
-  it('XSS özel karakterleri escape eder', () => {
+  it('escapes XSS special characters', () => {
     const data: ReportData = {
       ...baseReportData,
       expected: 'Test {code} [link] |pipe| #hash *bold*',
@@ -130,14 +130,14 @@ describe('formatDescriptionWiki', () => {
     expect(result).toContain('\\*bold\\*');
   });
 
-  it('boş stepsText ile steps bölümü yok', () => {
+  it('no steps section with empty stepsText', () => {
     const result = formatDescriptionWiki({ ...baseReportData, stepsText: '' });
     expect(result).not.toContain('h3. Steps to Reproduce');
   });
 });
 
 describe('formatDescription', () => {
-  it('Cloud credentials ile ADF döner', () => {
+  it('returns ADF for Cloud credentials', () => {
     const creds: JiraCredentials = {
       platform: 'cloud',
       url: 'https://x.atlassian.net',
@@ -149,7 +149,7 @@ describe('formatDescription', () => {
     expect((result as { type: string }).type).toBe('doc');
   });
 
-  it('Server credentials ile Wiki string döner', () => {
+  it('returns Wiki string for Server credentials', () => {
     const creds: JiraCredentials = {
       platform: 'server',
       url: 'https://jira.co',

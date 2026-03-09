@@ -16,11 +16,11 @@ export const currentPage = signal<PageKey>('general');
 const isMenuOpen = signal(false);
 
 const navItems = [
-  { key: 'general' as const, label: 'Genel', icon: Settings },
-  { key: 'configuration' as const, label: 'Konfigürasyon', icon: ClipboardList },
-  { key: 'jira' as const, label: 'Jira Entegrasyonu', icon: Link2 },
-  { key: 'data-management' as const, label: 'Veri Yönetimi', icon: Database },
-  { key: 'about' as const, label: 'Hakkında', icon: Info },
+  { key: 'general' as const, label: 'General', icon: Settings },
+  { key: 'configuration' as const, label: 'Configuration', icon: ClipboardList },
+  { key: 'jira' as const, label: 'Jira Integration', icon: Link2 },
+  { key: 'data-management' as const, label: 'Data Management', icon: Database },
+  { key: 'about' as const, label: 'About', icon: Info },
 ];
 
 const pages: Record<PageKey, () => JSX.Element> = {
@@ -44,11 +44,11 @@ export function App() {
       <ToastContainer />
       {/* Mobile header */}
       <header class="md:hidden flex items-center justify-between p-4 bg-white border-b">
-        <h1 class="text-lg font-semibold text-gray-900">QA Helper Ayarları</h1>
+        <h1 class="text-lg font-semibold text-gray-900">QA Helper Settings</h1>
         <button
           type="button"
           onClick={() => { isMenuOpen.value = !isMenuOpen.value; }}
-          aria-label={isMenuOpen.value ? 'Menüyü kapat' : 'Menüyü aç'}
+          aria-label={isMenuOpen.value ? 'Close menu' : 'Open menu'}
           aria-expanded={isMenuOpen.value}
           class="p-2 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-md text-gray-600 hover:bg-gray-100 focus-visible:outline-2 focus-visible:outline-blue-500 focus-visible:outline-offset-2"
         >
@@ -69,7 +69,7 @@ export function App() {
           ].join(' ')}
         >
           <h1 class="hidden md:block text-lg font-semibold text-gray-900 p-6">
-            QA Helper Ayarları
+            QA Helper Settings
           </h1>
           <SidebarNav
             items={navItems}

@@ -29,12 +29,12 @@ describe('ConfigFields', () => {
     mockStorageSet.mockResolvedValue(undefined);
   });
 
-  it('tüm alanları render eder', () => {
+  it('renders all fields', () => {
     render(<ConfigFields value={defaultValue} onChange={() => undefined} />);
     expect(screen.getByLabelText('Environment')).toBeTruthy();
     expect(screen.getByLabelText('Test Cycle')).toBeTruthy();
     expect(screen.getByLabelText('Agile Team')).toBeTruthy();
-    expect(screen.getByLabelText('Proje')).toBeTruthy();
+    expect(screen.getByLabelText('Project')).toBeTruthy();
   });
 
   it('environment select değişiminde onChange çağrılır', async () => {
@@ -54,7 +54,7 @@ describe('ConfigFields', () => {
     expect(onChange).toHaveBeenCalledWith({ ...defaultValue, testCycle: 'Sprint 3' });
   });
 
-  it('mevcut değerleri görüntüler', () => {
+  it('displays current values', () => {
     const value: ConfigFieldsType = {
       environment: 'qa',
       testCycle: 'Sprint 1',
@@ -65,7 +65,7 @@ describe('ConfigFields', () => {
     expect((screen.getByLabelText('Environment') as HTMLSelectElement).value).toBe('qa');
     expect((screen.getByLabelText('Test Cycle') as HTMLInputElement).value).toBe('Sprint 1');
     expect((screen.getByLabelText('Agile Team') as HTMLInputElement).value).toBe('Team Alpha');
-    expect((screen.getByLabelText('Proje') as HTMLInputElement).value).toBe('CRM');
+    expect((screen.getByLabelText('Project') as HTMLInputElement).value).toBe('CRM');
   });
 
   it('değişiklikte session_config storage\'a merge pattern ile yazılır', async () => {

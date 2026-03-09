@@ -19,24 +19,24 @@ beforeEach(() => {
 });
 
 describe('EnvironmentStep', () => {
-  it('proje adı, ortam ve agile takım alanlarını render eder', () => {
+  it('renders project name, environment and agile team fields', () => {
     render(<EnvironmentStep />);
 
-    expect(screen.getByLabelText('Proje adı')).toBeTruthy();
-    expect(screen.getByLabelText('Test ortamı')).toBeTruthy();
-    expect(screen.getByLabelText('Agile takım')).toBeTruthy();
+    expect(screen.getByLabelText('Project name')).toBeTruthy();
+    expect(screen.getByLabelText('Test environment')).toBeTruthy();
+    expect(screen.getByLabelText('Agile team')).toBeTruthy();
   });
 
-  it('opsiyonel açıklama metnini gösterir', () => {
+  it('shows optional description text', () => {
     render(<EnvironmentStep />);
 
-    expect(screen.getByText(/İsteğe bağlı/)).toBeTruthy();
+    expect(screen.getByText(/Optional/)).toBeTruthy();
   });
 
-  it('proje adı girişi storage\'a yazar', async () => {
+  it('project name input writes to storage', async () => {
     render(<EnvironmentStep />);
 
-    const projectInput = screen.getByLabelText('Proje adı');
+    const projectInput = screen.getByLabelText('Project name');
     fireEvent.input(projectInput, { target: { value: 'my-project' } });
 
     await waitFor(() => {
@@ -44,10 +44,10 @@ describe('EnvironmentStep', () => {
     });
   });
 
-  it('ortam seçimi storage\'a yazar', async () => {
+  it('environment selection writes to storage', async () => {
     render(<EnvironmentStep />);
 
-    const envSelect = screen.getByLabelText('Test ortamı');
+    const envSelect = screen.getByLabelText('Test environment');
     fireEvent.change(envSelect, { target: { value: 'staging' } });
 
     await waitFor(() => {
@@ -55,7 +55,7 @@ describe('EnvironmentStep', () => {
     });
   });
 
-  it('ortam seçenekleri doğru gösterilir', () => {
+  it('environment options are shown correctly', () => {
     render(<EnvironmentStep />);
 
     expect(screen.getByText('Staging')).toBeTruthy();

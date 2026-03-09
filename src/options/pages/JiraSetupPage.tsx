@@ -37,7 +37,7 @@ export function JiraSetupPage() {
       setCredentials(result.data);
       if (result.data.connected) {
         setConnectionStatus('success');
-        setStatusMessage(`Bağlantı başarılı — ${result.data.displayName}`);
+        setStatusMessage(`Connected — ${result.data.displayName}`);
         void loadProjects(result.data);
       }
     }
@@ -105,7 +105,7 @@ export function JiraSetupPage() {
     await storageSet(STORAGE_KEYS.JIRA_CREDENTIALS, finalCreds);
     setCredentials(finalCreds);
     setConnectionStatus('success');
-    setStatusMessage(`Bağlantı başarılı — ${testResult.data.displayName}`);
+    setStatusMessage(`Connected — ${testResult.data.displayName}`);
     void loadProjects(finalCreds);
   }
 
@@ -130,7 +130,7 @@ export function JiraSetupPage() {
       });
       if (!granted) {
         setConnectionStatus('error');
-        setStatusMessage('İzin reddedildi. Jira sunucusuna bağlanmak için izin gerekli.');
+        setStatusMessage('Permission denied. Permission is required to connect to the Jira server.');
         return;
       }
     } catch {
@@ -158,7 +158,7 @@ export function JiraSetupPage() {
     await storageSet(STORAGE_KEYS.JIRA_CREDENTIALS, finalCreds);
     setCredentials(finalCreds);
     setConnectionStatus('success');
-    setStatusMessage(`Bağlantı başarılı — ${result.data.displayName}`);
+    setStatusMessage(`Connected — ${result.data.displayName}`);
     void loadProjects(finalCreds);
   }
 
@@ -179,8 +179,8 @@ export function JiraSetupPage() {
 
   if (!isLoaded) {
     return (
-      <SectionGroup title="Jira Entegrasyonu">
-        <p class="text-sm text-gray-400">Yükleniyor...</p>
+      <SectionGroup title="Jira Integration">
+        <p class="text-sm text-gray-400">Loading...</p>
       </SectionGroup>
     );
   }
@@ -190,8 +190,8 @@ export function JiraSetupPage() {
   return (
     <div class="flex flex-col gap-6">
       <SectionGroup
-        title="Jira Entegrasyonu"
-        description="Bug raporlarınızı doğrudan Jira'ya gönderin."
+        title="Jira Integration"
+        description="Send your bug reports directly to Jira."
       >
         {/* Connection status announcement */}
         <div aria-live="polite" class="sr-only">
@@ -258,7 +258,7 @@ function ConnectedView({
         : '';
 
   const projectOptions = [
-    { value: '', label: projectsLoading ? 'Yükleniyor...' : 'Proje seçin...' },
+    { value: '', label: projectsLoading ? 'Loading...' : 'Select project...' },
     ...projects.map((p) => ({ value: p.key, label: `${p.key} - ${p.name}` })),
   ];
 
@@ -267,19 +267,19 @@ function ConnectedView({
       <div aria-live="polite" class="flex items-center gap-2 text-sm">
         <CheckCircle size={18} class="text-green-600 shrink-0" />
         <span class="text-green-700 font-medium">
-          Bağlı — {credentials.displayName}{siteInfo}
+          Connected — {credentials.displayName}{siteInfo}
         </span>
       </div>
 
       <div class="flex flex-col gap-3">
-        <p class="text-sm font-medium text-gray-700">Varsayılan Proje</p>
+        <p class="text-sm font-medium text-gray-700">Default Project</p>
         <Select
           htmlFor="jira-default-project"
           options={projectOptions}
           value={credentials.defaultProjectKey ?? ''}
           onChange={onProjectChange}
           disabled={projectsLoading}
-          aria-label="Varsayılan Jira projesi"
+          aria-label="Default Jira project"
         />
       </div>
 
@@ -287,7 +287,7 @@ function ConnectedView({
       {connectionStatus === 'loading' && (
         <div class="flex items-center gap-2 text-sm text-gray-500" aria-busy="true">
           <Loader2 size={16} class="animate-spin" />
-          <span>Test ediliyor...</span>
+          <span>Testing...</span>
         </div>
       )}
       {connectionStatus === 'error' && statusMessage && (
@@ -303,18 +303,18 @@ function ConnectedView({
           size="md"
           onClick={onTestConnection}
           loading={connectionStatus === 'loading'}
-          aria-label="Bağlantıyı test et"
+          aria-label="Test connection"
         >
-          Bağlantıyı Test Et
+          Test Connection
         </Button>
         <Button
           variant="danger"
           size="md"
           onClick={onDisconnect}
           iconLeft={<Unplug size={14} />}
-          aria-label="Jira bağlantısını kes"
+          aria-label="Disconnect Jira"
         >
-          Bağlantıyı Kes
+          Disconnect
         </Button>
       </div>
     </div>
@@ -345,13 +345,13 @@ function SetupView({
   return (
     <div class="flex flex-col gap-4">
       <p class="text-sm text-gray-500">
-        Jira henüz yapılandırılmadı. Bug raporlarınızı doğrudan Jira'ya gönderin.
+        Jira is not configured yet. Send your bug reports directly to Jira.
       </p>
 
       {/* Platform selection */}
       <div>
-        <p class="text-sm font-medium text-gray-700 mb-2">Platform seçin</p>
-        <div role="radiogroup" aria-label="Jira platform seçimi" class="flex gap-4">
+        <p class="text-sm font-medium text-gray-700 mb-2">Select platform</p>
+        <div role="radiogroup" aria-label="Jira platform selection" class="flex gap-4">
           <label class="flex items-center gap-2 cursor-pointer">
             <input
               type="radio"
@@ -387,9 +387,9 @@ function SetupView({
             size="md"
             onClick={onOAuthConnect}
             loading={connectionStatus === 'loading'}
-            aria-label="Jira Cloud'a bağlan"
+            aria-label="Connect to Jira Cloud"
           >
-            Jira Cloud'a Bağlan
+            Connect to Jira Cloud
           </Button>
         </div>
       )}
@@ -408,7 +408,7 @@ function SetupView({
           />
           {credentials.url.startsWith('http://') && (
             <p class="text-xs text-amber-600">
-              HTTP bağlantısı güvenli değil — API token düz metin olarak iletilir. Mümkünse HTTPS kullanın.
+              HTTP connection is not secure — API token is sent as plain text. Use HTTPS if possible.
             </p>
           )}
           <Input
@@ -426,18 +426,18 @@ function SetupView({
             onClick={onTestConnection}
             loading={connectionStatus === 'loading'}
             disabled={!credentials.url || !credentials.token}
-            aria-label="Bağlantıyı test et"
+            aria-label="Test connection"
           >
-            Bağlantıyı Test Et
+            Test Connection
           </Button>
         </div>
       )}
 
       {/* Status messages */}
       {connectionStatus === 'loading' && (
-        <div class="flex items-center gap-2 text-sm text-gray-500" aria-busy="true" aria-label="Test ediliyor">
+        <div class="flex items-center gap-2 text-sm text-gray-500" aria-busy="true" aria-label="Testing">
           <Loader2 size={16} class="animate-spin" />
-          <span>Test ediliyor...</span>
+          <span>Testing...</span>
         </div>
       )}
       {connectionStatus === 'success' && statusMessage && (

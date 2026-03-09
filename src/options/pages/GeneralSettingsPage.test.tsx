@@ -33,26 +33,26 @@ describe('GeneralSettingsPage', () => {
     mockSet.mockImplementation(() => Promise.resolve());
   });
 
-  it('tüm toggle ları render eder', async () => {
+  it('renders all toggles', async () => {
     render(<GeneralSettingsPage />);
 
     await waitFor(() => {
-      expect(screen.getByText('XHR/Fetch Kaydı')).toBeTruthy();
-      expect(screen.getByText('Console Logları')).toBeTruthy();
+      expect(screen.getByText('XHR/Fetch Recording')).toBeTruthy();
+      expect(screen.getByText('Console Logs')).toBeTruthy();
       expect(screen.getByText('DOM Snapshot')).toBeTruthy();
       expect(screen.getByText('localStorage')).toBeTruthy();
       expect(screen.getByText('sessionStorage')).toBeTruthy();
     });
   });
 
-  it('SectionGroup başlığını gösterir', () => {
+  it('shows SectionGroup title', () => {
     render(<GeneralSettingsPage />);
 
-    expect(screen.getByText('Veri Kaynakları')).toBeTruthy();
-    expect(screen.getByText('Bug raporlarına dahil edilecek veri türleri')).toBeTruthy();
+    expect(screen.getByText('Data Sources')).toBeTruthy();
+    expect(screen.getByText('Data types to include in bug reports')).toBeTruthy();
   });
 
-  it('storage dan toggle değerlerini yükler', async () => {
+  it('loads toggle values from storage', async () => {
     mockGet.mockImplementation(() =>
       Promise.resolve({
         session_config: {
@@ -70,12 +70,12 @@ describe('GeneralSettingsPage', () => {
     render(<GeneralSettingsPage />);
 
     await waitFor(() => {
-      const harToggle = screen.getByLabelText('XHR/Fetch Kaydı');
+      const harToggle = screen.getByLabelText('XHR/Fetch Recording');
       expect(harToggle.getAttribute('aria-checked')).toBe('false');
     });
   });
 
-  it('toggle değişikliğinde mevcut config ile merge ederek kaydeder', async () => {
+  it('saves merged config on toggle change', async () => {
     mockGet.mockImplementation(() =>
       Promise.resolve({
         session_config: {
@@ -94,10 +94,10 @@ describe('GeneralSettingsPage', () => {
     render(<GeneralSettingsPage />);
 
     await waitFor(() => {
-      expect(screen.getByLabelText('XHR/Fetch Kaydı')).toBeTruthy();
+      expect(screen.getByLabelText('XHR/Fetch Recording')).toBeTruthy();
     });
 
-    const harToggle = screen.getByLabelText('XHR/Fetch Kaydı');
+    const harToggle = screen.getByLabelText('XHR/Fetch Recording');
     fireEvent.click(harToggle);
 
     await waitFor(() => {
@@ -110,16 +110,16 @@ describe('GeneralSettingsPage', () => {
     });
   });
 
-  it('storage kaydetme başarısız olursa toggle ı geri alır', async () => {
+  it('reverts toggle on storage save failure', async () => {
     mockSet.mockImplementation(() => Promise.reject(new Error('Storage full')));
 
     render(<GeneralSettingsPage />);
 
     await waitFor(() => {
-      expect(screen.getByLabelText('XHR/Fetch Kaydı')).toBeTruthy();
+      expect(screen.getByLabelText('XHR/Fetch Recording')).toBeTruthy();
     });
 
-    const harToggle = screen.getByLabelText('XHR/Fetch Kaydı');
+    const harToggle = screen.getByLabelText('XHR/Fetch Recording');
     expect(harToggle.getAttribute('aria-checked')).toBe('true');
 
     fireEvent.click(harToggle);
@@ -129,12 +129,12 @@ describe('GeneralSettingsPage', () => {
     });
   });
 
-  it('toggle açıklamalarını gösterir', async () => {
+  it('shows toggle descriptions', async () => {
     render(<GeneralSettingsPage />);
 
     await waitFor(() => {
-      expect(screen.getByText('Ağ isteklerini (XHR ve Fetch) kaydeder')).toBeTruthy();
-      expect(screen.getByText('Console log, warn ve error mesajlarını kaydeder')).toBeTruthy();
+      expect(screen.getByText('Records network requests (XHR and Fetch)')).toBeTruthy();
+      expect(screen.getByText('Records console log, warn and error messages')).toBeTruthy();
     });
   });
 });

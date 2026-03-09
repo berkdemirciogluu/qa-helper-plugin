@@ -39,14 +39,14 @@ export function SessionControl({
         <StatusDot variant={dotVariant} />
         <span
           class="text-sm font-medium text-gray-700"
-          aria-label={`Session durumu: ${isRecording ? 'Aktif' : 'Pasif'}`}
+          aria-label={`Session status: ${isRecording ? 'Active' : 'Inactive'}`}
         >
           {isRecording ? (
             <>
-              Session Aktif — <span class="tabular-nums">{formatDuration(elapsedSeconds)}</span>
+              Session Active — <span class="tabular-nums">{formatDuration(elapsedSeconds)}</span>
             </>
           ) : (
-            'Session Pasif'
+            'Session Inactive'
           )}
         </span>
       </div>
@@ -54,7 +54,7 @@ export function SessionControl({
       <Toggle
         checked={isRecording}
         onChange={handleToggle}
-        label={isRecording ? 'Session durdur' : 'Session başlat'}
+        label={isRecording ? 'Stop session' : 'Start session'}
         disabled={loading}
         color="green"
       />

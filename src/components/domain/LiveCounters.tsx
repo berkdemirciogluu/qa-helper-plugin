@@ -25,13 +25,13 @@ export function LiveCounters({ xhrRequests, consoleErrors, navEvents, clicks }: 
     <div
       role="status"
       aria-live="polite"
-      aria-label={`${xhrRequests} XHR, ${navEvents} sayfa, ${consoleErrors} hata, ${clicks} olay`}
+      aria-label={`${xhrRequests} XHR, ${navEvents} pages, ${consoleErrors} errors, ${clicks} events`}
       class="flex gap-2"
     >
       <StatChip value={xhrRequests} label="XHR" />
-      <StatChip value={navEvents} label="Sayfa" />
+      <StatChip value={navEvents} label="Page" />
       <StatChip value={consoleErrors} label="Error" isError={consoleErrors > 0} />
-      <StatChip value={clicks} label="Olay" />
+      <StatChip value={clicks} label="Event" />
     </div>
   );
 }

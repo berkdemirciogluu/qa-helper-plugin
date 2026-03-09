@@ -28,7 +28,7 @@ beforeEach(() => {
 });
 
 describe('buildAuthUrl', () => {
-  it('doğru Atlassian OAuth URL oluşturur', () => {
+  it('builds correct Atlassian OAuth URL', () => {
     const url = buildAuthUrl('test-state');
     expect(url).toContain('https://auth.atlassian.com/authorize');
     expect(url).toContain('response_type=code');
@@ -39,7 +39,7 @@ describe('buildAuthUrl', () => {
 });
 
 describe('startOAuthFlow', () => {
-  it('başarılı OAuth akışında token ve cloudId döner', async () => {
+  it('returns token and cloudId on successful OAuth flow', async () => {
     const mockRedirectUrl =
       'https://ext-id.chromiumapp.org/atlassian?code=auth-code-123&state=test-state-uuid';
     (chrome.identity.launchWebAuthFlow as ReturnType<typeof vi.fn>).mockResolvedValue(
@@ -83,7 +83,7 @@ describe('startOAuthFlow', () => {
     }
   });
 
-  it('kullanıcı OAuth iptal ederse hata döner', async () => {
+  it('returns error if user cancels OAuth', async () => {
     (chrome.identity.launchWebAuthFlow as ReturnType<typeof vi.fn>).mockRejectedValue(
       new Error('The user did not approve access.'),
     );
@@ -91,11 +91,11 @@ describe('startOAuthFlow', () => {
     const result = await startOAuthFlow();
     expect(result.success).toBe(false);
     if (!result.success) {
-      expect(result.error).toContain('iptal');
+      expect(result.error).toContain('cancelled');
     }
   });
 
-  it('token exchange başarısız olursa hata döner', async () => {
+  it('returns error if token exchange fails', async () => {
     const mockRedirectUrl =
       'https://ext-id.chromiumapp.org/atlassian?code=auth-code-123&state=test-state-uuid';
     (chrome.identity.launchWebAuthFlow as ReturnType<typeof vi.fn>).mockResolvedValue(
@@ -112,7 +112,7 @@ describe('startOAuthFlow', () => {
     expect(result.success).toBe(false);
   });
 
-  it('accessible resources boşsa hata döner', async () => {
+  it('returns error if accessible resources is empty', async () => {
     const mockRedirectUrl =
       'https://ext-id.chromiumapp.org/atlassian?code=auth-code-123&state=test-state-uuid';
     (chrome.identity.launchWebAuthFlow as ReturnType<typeof vi.fn>).mockResolvedValue(
@@ -139,7 +139,7 @@ describe('startOAuthFlow', () => {
     expect(result.success).toBe(false);
   });
 
-  it('redirect URL auth code içermiyorsa hata döner', async () => {
+  it('returns error if redirect URL has no auth code', async () => {
     const mockRedirectUrl = 'https://ext-id.chromiumapp.org/atlassian?error=access_denied&state=test-state-uuid';
     (chrome.identity.launchWebAuthFlow as ReturnType<typeof vi.fn>).mockResolvedValue(
       mockRedirectUrl,
@@ -151,7 +151,7 @@ describe('startOAuthFlow', () => {
 });
 
 describe('refreshAccessToken', () => {
-  it('başarılı refresh işlemi yeni token döner', async () => {
+  it('returns new token on successful refresh', async () => {
     mockFetch.mockResolvedValueOnce({
       ok: true,
       json: () =>
@@ -172,7 +172,7 @@ describe('refreshAccessToken', () => {
     }
   });
 
-  it('refresh başarısız olursa hata döner', async () => {
+  it('returns error if refresh fails', async () => {
     mockFetch.mockResolvedValueOnce({
       ok: false,
       status: 401,
@@ -183,7 +183,7 @@ describe('refreshAccessToken', () => {
     expect(result.success).toBe(false);
   });
 
-  it('network hatası olursa hata döner', async () => {
+  it('returns error on network failure', async () => {
     mockFetch.mockRejectedValueOnce(new Error('Network error'));
 
     const result = await refreshAccessToken('some-rt');
@@ -195,22 +195,22 @@ describe('refreshAccessToken', () => {
 });
 
 describe('validatePat', () => {
-  it('boş PAT geçersiz', () => {
+  it('empty PAT is invalid', () => {
     const result = validatePat('');
     expect(result.success).toBe(false);
   });
 
-  it('çok kısa PAT geçersiz', () => {
+  it('too short PAT is invalid', () => {
     const result = validatePat('abc');
     expect(result.success).toBe(false);
   });
 
-  it('geçerli PAT doğrulanır', () => {
+  it('valid PAT is accepted', () => {
     const result = validatePat('NjYwNTQ2MTkzMjM4OhGLgQlFthoyBg5lKSKs3cLZFqDO');
     expect(result.success).toBe(true);
   });
 
-  it('whitespace içeren PAT trimlenip doğrulanır', () => {
+  it('PAT with whitespace is trimmed and validated', () => {
     const result = validatePat('  NjYwNTQ2MTkzMjM4OhGLgQlFthoyBg5lKSKs3cLZFqDO  ');
     expect(result.success).toBe(true);
   });

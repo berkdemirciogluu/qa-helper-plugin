@@ -24,11 +24,16 @@ vi.mock('./flush-manager', () => ({
   clearFlushQueue: vi.fn(),
 }));
 
-// onMessage listener'ı yakalayacak değişken
+// index mock — tabPreviousUrls for QUERY_RECORDING_STATE
+vi.mock('./index', () => ({
+  tabPreviousUrls: new Map<number, string>(),
+}));
+
+// Captured onMessage listener
 type MessageHandler = (
   message: { action: string; payload: unknown },
   sender: chrome.runtime.MessageSender,
-  sendResponse: (r: unknown) => void,
+  sendResponse: (r: unknown) => void
 ) => boolean;
 
 let capturedListener: MessageHandler | null = null;
@@ -61,13 +66,17 @@ vi.stubGlobal('chrome', {
   },
 });
 
-async function dispatch(action: string, payload: unknown, sender?: Partial<chrome.runtime.MessageSender>): Promise<unknown> {
+async function dispatch(
+  action: string,
+  payload: unknown,
+  sender?: Partial<chrome.runtime.MessageSender>
+): Promise<unknown> {
   return new Promise((resolve) => {
     if (!capturedListener) throw new Error('No listener registered');
     capturedListener(
       { action, payload },
       (sender ?? {}) as chrome.runtime.MessageSender,
-      (response) => resolve(response),
+      (response) => resolve(response)
     );
   });
 }
@@ -80,82 +89,103 @@ beforeEach(() => {
 });
 
 describe('setupMessageHandler', () => {
-  it('onMessage listener kayıt eder', () => {
+  it('registers onMessage listener', () => {
     expect(capturedListener).not.toBeNull();
   });
 });
 
-describe('START_SESSION mesajı', () => {
-  it('startSession çağrılır ve success response döner', async () => {
+describe('START_SESSION message', () => {
+  it('calls startSession and returns success response', async () => {
     const meta: SessionMeta = {
-      tabId: 42, startTime: 1000, url: 'https://example.com', status: 'recording',
+      tabId: 42,
+      startTime: 1000,
+      url: 'https://example.com',
+      status: 'recording',
       counters: { clicks: 0, xhrRequests: 0, consoleErrors: 0, navEvents: 0 },
     };
     mockStartSession.mockResolvedValue({ success: true, data: meta });
 
-    const response = await dispatch('START_SESSION', { tabId: 42, url: 'https://example.com' }) as { success: boolean; data: SessionMeta };
+    const response = (await dispatch('START_SESSION', {
+      tabId: 42,
+      url: 'https://example.com',
+    })) as { success: boolean; data: SessionMeta };
 
     expect(mockStartSession).toHaveBeenCalledWith(42, 'https://example.com');
     expect(response.success).toBe(true);
     expect(response.data).toEqual(meta);
   });
 
-  it('startSession başarısız olursa error response döner', async () => {
+  it('returns error response on startSession failure', async () => {
     mockStartSession.mockResolvedValue({ success: false, error: 'Quota exceeded' });
 
-    const response = await dispatch('START_SESSION', { tabId: 42, url: 'https://x.com' }) as { success: boolean; error: string };
+    const response = (await dispatch('START_SESSION', { tabId: 42, url: 'https://x.com' })) as {
+      success: boolean;
+      error: string;
+    };
 
     expect(response.success).toBe(false);
     expect(response.error).toBe('Quota exceeded');
   });
 });
 
-describe('STOP_SESSION mesajı', () => {
-  it('stopSession çağrılır ve success response döner', async () => {
+describe('STOP_SESSION message', () => {
+  it('calls stopSession and returns success response', async () => {
     mockStopSession.mockResolvedValue({ success: true, data: undefined });
 
-    const response = await dispatch('STOP_SESSION', { tabId: 42 }) as { success: boolean };
+    const response = (await dispatch('STOP_SESSION', { tabId: 42 })) as { success: boolean };
 
     expect(mockStopSession).toHaveBeenCalledWith(42);
     expect(response.success).toBe(true);
   });
 });
 
-describe('GET_SESSION_STATUS mesajı', () => {
-  it('getSession çağrılır ve session data response\'ta döner', async () => {
+describe('GET_SESSION_STATUS message', () => {
+  it('calls getSession and returns session data in response', async () => {
     const meta: SessionMeta = {
-      tabId: 42, startTime: 1000, url: 'https://example.com', status: 'recording',
+      tabId: 42,
+      startTime: 1000,
+      url: 'https://example.com',
+      status: 'recording',
       counters: { clicks: 0, xhrRequests: 0, consoleErrors: 0, navEvents: 0 },
     };
     mockGetSession.mockResolvedValue({ success: true, data: meta });
 
-    const response = await dispatch('GET_SESSION_STATUS', { tabId: 42 }) as { success: boolean; data: SessionMeta };
+    const response = (await dispatch('GET_SESSION_STATUS', { tabId: 42 })) as {
+      success: boolean;
+      data: SessionMeta;
+    };
 
     expect(mockGetSession).toHaveBeenCalledWith(42);
     expect(response.success).toBe(true);
     expect(response.data).toEqual(meta);
   });
 
-  it('session yoksa null döner', async () => {
+  it('returns null when no session exists', async () => {
     mockGetSession.mockResolvedValue({ success: true, data: null });
 
-    const response = await dispatch('GET_SESSION_STATUS', { tabId: 99 }) as { success: boolean; data: null };
+    const response = (await dispatch('GET_SESSION_STATUS', { tabId: 99 })) as {
+      success: boolean;
+      data: null;
+    };
 
     expect(response.success).toBe(true);
     expect(response.data).toBeNull();
   });
 });
 
-describe('FLUSH_DATA mesajı', () => {
+describe('FLUSH_DATA message', () => {
   const recordingSession = {
     success: true,
     data: {
-      tabId: 42, startTime: 1000, url: 'https://example.com', status: 'recording',
+      tabId: 42,
+      startTime: 1000,
+      url: 'https://example.com',
+      status: 'recording',
       counters: { clicks: 0, xhrRequests: 0, consoleErrors: 0, navEvents: 0 },
     },
   };
 
-  it('enqueueFlush çağrılır ve success response döner', async () => {
+  it('calls enqueueFlush and returns success response', async () => {
     mockGetSession.mockResolvedValue(recordingSession);
     mockEnqueueFlush.mockResolvedValue(undefined);
 
@@ -165,13 +195,13 @@ describe('FLUSH_DATA mesajı', () => {
       events: [{ type: 'click', timestamp: 1, selector: 'btn', text: 'OK', x: 0, y: 0 }],
     };
 
-    const response = await dispatch('FLUSH_DATA', payload) as { success: boolean };
+    const response = (await dispatch('FLUSH_DATA', payload)) as { success: boolean };
 
     expect(mockEnqueueFlush).toHaveBeenCalledWith(42, 'click', payload.events, undefined);
     expect(response.success).toBe(true);
   });
 
-  it('xhr event → updateCounters çağrılır', async () => {
+  it('xhr event → updateCounters is called', async () => {
     mockGetSession.mockResolvedValue(recordingSession);
     mockEnqueueFlush.mockResolvedValue(undefined);
 
@@ -179,8 +209,22 @@ describe('FLUSH_DATA mesajı', () => {
       tabId: 42,
       dataType: 'xhr' as const,
       events: [
-        { type: 'xhr', timestamp: 1, method: 'GET', url: 'https://api.x.com', status: 200, duration: 50 },
-        { type: 'xhr', timestamp: 2, method: 'POST', url: 'https://api.x.com', status: 201, duration: 80 },
+        {
+          type: 'xhr',
+          timestamp: 1,
+          method: 'GET',
+          url: 'https://api.x.com',
+          status: 200,
+          duration: 50,
+        },
+        {
+          type: 'xhr',
+          timestamp: 2,
+          method: 'POST',
+          url: 'https://api.x.com',
+          status: 201,
+          duration: 80,
+        },
       ],
     };
 
@@ -189,7 +233,7 @@ describe('FLUSH_DATA mesajı', () => {
     expect(mockUpdateCounters).toHaveBeenCalledWith(42, 'xhr', 2);
   });
 
-  it('console error event → consoleError sayacı güncellenir', async () => {
+  it('console error event → consoleError counter is updated', async () => {
     mockGetSession.mockResolvedValue(recordingSession);
     mockEnqueueFlush.mockResolvedValue(undefined);
 
@@ -204,14 +248,20 @@ describe('FLUSH_DATA mesajı', () => {
 
     await dispatch('FLUSH_DATA', payload);
 
-    // Sadece error level olanlar sayılır
+    // Only error level events are counted
     expect(mockUpdateCounters).toHaveBeenCalledWith(42, 'consoleError', 1);
   });
 
-  it('session recording değilse flush atlanır', async () => {
+  it('skips flush when session is not recording', async () => {
     mockGetSession.mockResolvedValue({
       success: true,
-      data: { tabId: 42, startTime: 1000, url: 'https://x.com', status: 'stopped', counters: { clicks: 0, xhrRequests: 0, consoleErrors: 0, navEvents: 0 } },
+      data: {
+        tabId: 42,
+        startTime: 1000,
+        url: 'https://x.com',
+        status: 'stopped',
+        counters: { clicks: 0, xhrRequests: 0, consoleErrors: 0, navEvents: 0 },
+      },
     });
 
     const payload = {
@@ -220,13 +270,13 @@ describe('FLUSH_DATA mesajı', () => {
       events: [{ type: 'click', timestamp: 1, selector: 'btn', text: 'OK', x: 0, y: 0 }],
     };
 
-    const response = await dispatch('FLUSH_DATA', payload) as { success: boolean };
+    const response = (await dispatch('FLUSH_DATA', payload)) as { success: boolean };
 
     expect(response.success).toBe(true);
     expect(mockEnqueueFlush).not.toHaveBeenCalled();
   });
 
-  it('session yoksa flush atlanır', async () => {
+  it('skips flush when no session exists', async () => {
     mockGetSession.mockResolvedValue({ success: true, data: null });
 
     const payload = {
@@ -235,7 +285,7 @@ describe('FLUSH_DATA mesajı', () => {
       events: [{ type: 'click', timestamp: 1, selector: 'btn', text: 'OK', x: 0, y: 0 }],
     };
 
-    const response = await dispatch('FLUSH_DATA', payload) as { success: boolean };
+    const response = (await dispatch('FLUSH_DATA', payload)) as { success: boolean };
 
     expect(response.success).toBe(true);
     expect(mockEnqueueFlush).not.toHaveBeenCalled();
@@ -243,55 +293,64 @@ describe('FLUSH_DATA mesajı', () => {
 });
 
 describe('Payload validation', () => {
-  it('START_SESSION — tabId veya url eksikse error döner', async () => {
-    const response = await dispatch('START_SESSION', { tabId: 42 }) as { success: boolean; error: string };
+  it('START_SESSION — returns error when tabId or url is missing', async () => {
+    const response = (await dispatch('START_SESSION', { tabId: 42 })) as {
+      success: boolean;
+      error: string;
+    };
 
     expect(response.success).toBe(false);
     expect(response.error).toContain('Invalid payload');
   });
 
-  it('FLUSH_DATA — events eksikse error döner', async () => {
-    const response = await dispatch('FLUSH_DATA', { tabId: 42, dataType: 'click' }) as { success: boolean; error: string };
+  it('FLUSH_DATA — returns error when events is missing', async () => {
+    const response = (await dispatch('FLUSH_DATA', { tabId: 42, dataType: 'click' })) as {
+      success: boolean;
+      error: string;
+    };
 
     expect(response.success).toBe(false);
     expect(response.error).toContain('Invalid payload');
   });
 });
 
-describe('Bilinmeyen action', () => {
-  it('error response döner', async () => {
-    const response = await dispatch('UNKNOWN_ACTION', {}) as { success: boolean; error: string };
+describe('Unknown action', () => {
+  it('returns error response', async () => {
+    const response = (await dispatch('UNKNOWN_ACTION', {})) as { success: boolean; error: string };
 
     expect(response.success).toBe(false);
     expect(response.error).toBe('Unknown action');
   });
 });
 
-// 7.11 START_SESSION sonrası content script'e START_RECORDING gönderme
+// START_SESSION sends START_RECORDING to content script
 describe('START_SESSION → content script START_RECORDING', () => {
-  it('startSession başarılı olunca content script\'e START_RECORDING gönderilir', async () => {
+  it('sends START_RECORDING to content script on successful startSession', async () => {
     const meta: SessionMeta = {
-      tabId: 42, startTime: 1000, url: 'https://example.com', status: 'recording',
+      tabId: 42,
+      startTime: 1000,
+      url: 'https://example.com',
+      status: 'recording',
       counters: { clicks: 0, xhrRequests: 0, consoleErrors: 0, navEvents: 0 },
     };
     mockStartSession.mockResolvedValue({ success: true, data: meta });
 
     await dispatch('START_SESSION', { tabId: 42, url: 'https://example.com' });
 
-    // sendTabMessage aracılığıyla chrome.tabs.sendMessage çağrılmalı
-    // message-handler sendTabMessage'ı fire-and-forget olarak çağırır
+    // sendTabMessage calls chrome.tabs.sendMessage
+    // message-handler calls sendTabMessage as fire-and-forget
     await vi.waitFor(() => {
       expect(mockSendTabMessage).toHaveBeenCalledWith(
         42,
         expect.objectContaining({
           action: 'START_RECORDING',
           payload: { tabId: 42 },
-        }),
+        })
       );
     });
   });
 
-  it('startSession başarısız olunca content script\'e mesaj gönderilmez', async () => {
+  it('does not send message to content script when startSession fails', async () => {
     mockStartSession.mockResolvedValue({ success: false, error: 'Failed' });
 
     await dispatch('START_SESSION', { tabId: 42, url: 'https://example.com' });
@@ -300,9 +359,9 @@ describe('START_SESSION → content script START_RECORDING', () => {
   });
 });
 
-// 7.12 STOP_SESSION sonrası content script'e STOP_RECORDING gönderme
+// STOP_SESSION sends STOP_RECORDING to content script
 describe('STOP_SESSION → content script STOP_RECORDING', () => {
-  it('stopSession başarılı olunca content script\'e STOP_RECORDING gönderilir', async () => {
+  it('sends STOP_RECORDING to content script on successful stopSession', async () => {
     mockStopSession.mockResolvedValue({ success: true, data: undefined });
 
     await dispatch('STOP_SESSION', { tabId: 42 });
@@ -313,12 +372,12 @@ describe('STOP_SESSION → content script STOP_RECORDING', () => {
         expect.objectContaining({
           action: 'STOP_RECORDING',
           payload: { tabId: 42 },
-        }),
+        })
       );
     });
   });
 
-  it('stopSession başarısız olunca content script\'e mesaj gönderilmez', async () => {
+  it('does not send message to content script when stopSession fails', async () => {
     mockStopSession.mockResolvedValue({ success: false, error: 'No session' });
 
     await dispatch('STOP_SESSION', { tabId: 42 });
@@ -327,33 +386,47 @@ describe('STOP_SESSION → content script STOP_RECORDING', () => {
   });
 });
 
-// QUERY_RECORDING_STATE — content script recording state sorgusu
+// QUERY_RECORDING_STATE — content script recording state query
 describe('QUERY_RECORDING_STATE', () => {
-  it('session recording ise { recording: true, tabId } döner', async () => {
+  it('returns { recording: true, tabId } when session is recording', async () => {
     const meta: SessionMeta = {
-      tabId: 42, startTime: 1000, url: 'https://example.com', status: 'recording',
+      tabId: 42,
+      startTime: 1000,
+      url: 'https://example.com',
+      status: 'recording',
       counters: { clicks: 0, xhrRequests: 0, consoleErrors: 0, navEvents: 0 },
     };
     mockGetSession.mockResolvedValue({ success: true, data: meta });
 
-    const response = await dispatch('QUERY_RECORDING_STATE', {}, { tab: { id: 42 } as chrome.tabs.Tab }) as { success: boolean; data: { recording: boolean; tabId: number } };
+    const response = (await dispatch(
+      'QUERY_RECORDING_STATE',
+      {},
+      { tab: { id: 42 } as chrome.tabs.Tab }
+    )) as { success: boolean; data: { recording: boolean; tabId: number } };
 
     expect(response.success).toBe(true);
     expect(response.data.recording).toBe(true);
     expect(response.data.tabId).toBe(42);
   });
 
-  it('session yoksa { recording: false } döner', async () => {
+  it('returns { recording: false } when no session exists', async () => {
     mockGetSession.mockResolvedValue({ success: true, data: null });
 
-    const response = await dispatch('QUERY_RECORDING_STATE', {}, { tab: { id: 99 } as chrome.tabs.Tab }) as { success: boolean; data: { recording: boolean; tabId: number } };
+    const response = (await dispatch(
+      'QUERY_RECORDING_STATE',
+      {},
+      { tab: { id: 99 } as chrome.tabs.Tab }
+    )) as { success: boolean; data: { recording: boolean; tabId: number } };
 
     expect(response.success).toBe(true);
     expect(response.data.recording).toBe(false);
   });
 
-  it('sender.tab yoksa error döner', async () => {
-    const response = await dispatch('QUERY_RECORDING_STATE', {}, {}) as { success: boolean; error: string };
+  it('returns error when sender.tab is missing', async () => {
+    const response = (await dispatch('QUERY_RECORDING_STATE', {}, {})) as {
+      success: boolean;
+      error: string;
+    };
 
     expect(response.success).toBe(false);
     expect(response.error).toContain('No tab ID');

@@ -53,7 +53,7 @@ export function DataSummary({
   ];
 
   return (
-    <div class="grid grid-cols-2 gap-1" aria-label="Toplanan veriler">
+    <div class="grid grid-cols-2 gap-1" aria-label="Collected data">
       {items.map((item) => {
         const isUnavailable = item.sessionRequired && !hasSession;
         const iconColor = isUnavailable

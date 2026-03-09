@@ -22,7 +22,7 @@ function formatBytes(bytes: number): string {
 }
 
 function formatTime(timestamp: number): string {
-  return new Date(timestamp).toLocaleString('tr-TR', {
+  return new Date(timestamp).toLocaleString('en-US', {
     day: '2-digit',
     month: '2-digit',
     year: 'numeric',
@@ -42,8 +42,8 @@ export function DataManagementPage() {
 
   if (isLoading.value) {
     return (
-      <SectionGroup title="Depolama Durumu">
-        <p class="text-sm text-gray-400">Yükleniyor...</p>
+      <SectionGroup title="Storage Status">
+        <p class="text-sm text-gray-400">Loading...</p>
       </SectionGroup>
     );
   }
@@ -52,14 +52,14 @@ export function DataManagementPage() {
 
   return (
     <div class="flex flex-col gap-6">
-      <SectionGroup title="Depolama Durumu" description="Session kayıtları ve depolama kullanımı">
+      <SectionGroup title="Storage Status" description="Session records and storage usage">
         <div class="flex flex-col gap-3" aria-live="polite">
           <div class="flex items-center gap-2 text-sm text-gray-700">
             <HardDrive size={16} class="text-gray-400" aria-hidden="true" />
-            <span>Toplam kullanım: <strong>{usage ? formatBytes(usage.totalBytes) : '—'}</strong></span>
+            <span>Total usage: <strong>{usage ? formatBytes(usage.totalBytes) : '—'}</strong></span>
           </div>
           <div class="text-sm text-gray-700">
-            Aktif session: <strong>{usage?.sessionCount ?? 0}</strong> adet
+            Active sessions: <strong>{usage?.sessionCount ?? 0}</strong>
           </div>
 
           {usage && usage.sessions.length > 0 && (
@@ -73,7 +73,7 @@ export function DataManagementPage() {
                   {' — '}
                   <span>{s.url}</span>
                   {' ('}
-                  {formatTime(s.startTime)}, {s.eventCount} olay
+                  {formatTime(s.startTime)}, {s.eventCount} events
                   {')'}
                 </li>
               ))}
@@ -81,54 +81,54 @@ export function DataManagementPage() {
           )}
 
           {usage && usage.sessions.length === 0 && (
-            <p class="text-xs text-gray-400 mt-1">Aktif session bulunmuyor.</p>
+            <p class="text-xs text-gray-400 mt-1">No active sessions found.</p>
           )}
         </div>
       </SectionGroup>
 
-      <SectionGroup title="Tehlikeli Bölge">
+      <SectionGroup title="Danger Zone">
         <p class="text-sm text-gray-500 mb-2">
-          Tüm session kayıtlarını siler. Konfigürasyon ayarları korunur.
+          Deletes all session records. Configuration settings are preserved.
         </p>
         <Button
           variant="danger"
           size="lg"
           iconLeft={<Trash2 size={16} />}
           onClick={() => { isModalOpen.value = true; }}
-          aria-label="Tüm session verilerini temizle"
+          aria-label="Clear all session data"
         >
-          Tüm Verileri Temizle
+          Clear All Data
         </Button>
       </SectionGroup>
 
       <Modal
         isOpen={isModalOpen.value}
         onClose={() => { isModalOpen.value = false; }}
-        title="Verileri Temizle"
+        title="Clear Data"
       >
         <div class="flex items-center gap-2 text-amber-600 mb-2">
           <AlertTriangle size={20} aria-hidden="true" />
-          <span class="text-sm font-medium">Bu işlem geri alınamaz</span>
+          <span class="text-sm font-medium">This action cannot be undone</span>
         </div>
         <p class="text-sm text-gray-600">
-          Tüm session verileri (XHR kayıtları, tıklama akışları, console logları) silinecek.
+          All session data (XHR records, click flows, console logs) will be deleted.
         </p>
         <p class="text-sm text-gray-500 mt-1">
-          Konfigürasyon ayarları ve Jira bağlantısı korunur.
+          Configuration settings and Jira connection are preserved.
         </p>
         <div class="flex justify-end gap-2 mt-4">
           <Button
             variant="ghost"
             onClick={() => { isModalOpen.value = false; }}
           >
-            İptal
+            Cancel
           </Button>
           <Button
             variant="danger"
             loading={isClearing.value}
             onClick={() => void handleClearData()}
           >
-            Temizle
+            Clear
           </Button>
         </div>
       </Modal>
@@ -149,10 +149,10 @@ async function handleClearData() {
 
   const result = await storageClearSessions();
   if (result.success) {
-    showToast('success', 'Tüm veriler temizlendi');
+    showToast('success', 'All data cleared');
     await loadUsage();
   } else {
-    showToast('error', 'Temizleme başarısız oldu');
+    showToast('error', 'Clear operation failed');
   }
 
   isClearing.value = false;

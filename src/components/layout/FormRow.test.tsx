@@ -3,7 +3,7 @@ import { render, screen } from '@testing-library/preact';
 import { FormRow } from './FormRow';
 
 describe('FormRow', () => {
-  it('label ve children render eder', () => {
+  it('renders label and children', () => {
     render(
       <FormRow label="Test Label">
         <input type="text" data-testid="test-input" />
@@ -14,7 +14,7 @@ describe('FormRow', () => {
     expect(screen.getByTestId('test-input')).toBeTruthy();
   });
 
-  it('htmlFor ile label-control bağlantısı kurar', () => {
+  it('connects label and control via htmlFor', () => {
     render(
       <FormRow label="Email" htmlFor="email-input">
         <input id="email-input" type="email" />
@@ -25,28 +25,28 @@ describe('FormRow', () => {
     expect(label.getAttribute('for')).toBe('email-input');
   });
 
-  it('description gösterir', () => {
+  it('shows description', () => {
     render(
-      <FormRow label="Ayar" description="Bu ayar önemli">
+      <FormRow label="Setting" description="This setting is important">
         <input type="text" />
       </FormRow>
     );
 
-    expect(screen.getByText('Bu ayar önemli')).toBeTruthy();
+    expect(screen.getByText('This setting is important')).toBeTruthy();
   });
 
-  it('description olmadan da çalışır', () => {
+  it('works without description', () => {
     render(
-      <FormRow label="Basit Ayar">
+      <FormRow label="Simple Setting">
         <input type="text" data-testid="simple-input" />
       </FormRow>
     );
 
-    expect(screen.getByText('Basit Ayar')).toBeTruthy();
+    expect(screen.getByText('Simple Setting')).toBeTruthy();
     expect(screen.getByTestId('simple-input')).toBeTruthy();
   });
 
-  it('responsive layout class ları içerir', () => {
+  it('has responsive layout classes', () => {
     const { container } = render(
       <FormRow label="Responsive">
         <input type="text" />
