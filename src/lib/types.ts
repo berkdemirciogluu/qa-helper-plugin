@@ -180,6 +180,8 @@ export interface JiraCredentials {
   // Ortak
   displayName?: string; // Bağlantı testi sonrası kullanıcı adı
   defaultProjectKey?: string; // Varsayılan proje key'i
+  defaultIssueTypeId?: string; // Seçili issue type ID (ör. "10001")
+  defaultIssueTypeName?: string; // Seçili issue type adı (ör. "Bug")
   connected?: boolean; // Bağlantı durumu
 }
 

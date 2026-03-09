@@ -14,6 +14,7 @@ export const STORAGE_KEYS = {
   SESSION_CONFIG: 'session_config',
   SESSION_SNAPSHOT: 'session_snapshot',
   JIRA_CREDENTIALS: 'jira_credentials',
+  JIRA_FIELD_CONFIG: 'jira_field_config',
   ONBOARDING_COMPLETED: 'onboarding_completed',
 } as const;
 

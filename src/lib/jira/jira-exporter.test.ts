@@ -15,7 +15,7 @@ vi.stubGlobal('chrome', {
 const mockFetch = vi.fn();
 vi.stubGlobal('fetch', mockFetch);
 
-const { exportToJira } = await import('./jira-exporter');
+const { exportToJira, serializeDynamicField } = await import('./jira-exporter');
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -221,5 +221,166 @@ describe('exportToJira', () => {
     if (result.success) {
       expect(result.data.issueUrl).toBe('https://mysite.atlassian.net/browse/PROJ-200');
     }
+  });
+});
+
+describe('serializeDynamicField', () => {
+  const makeField = (schemaType: string, schemaItems?: string) => ({
+    fieldId: 'customfield_test',
+    name: 'Test',
+    required: false,
+    alwaysFill: true,
+    defaultValue: '',
+    schemaType,
+    schemaItems,
+  });
+
+  it('serializes string type as plain string', () => {
+    const result = serializeDynamicField(makeField('string'), 'hello');
+    expect(result).toBe('hello');
+  });
+
+  it('serializes option type as { value }', () => {
+    const result = serializeDynamicField(makeField('option'), '10001');
+    expect(result).toEqual({ value: '10001' });
+  });
+
+  it('serializes number type as number', () => {
+    const result = serializeDynamicField(makeField('number'), '42');
+    expect(result).toBe(42);
+  });
+
+  it('serializes array/option as [{ value }]', () => {
+    const result = serializeDynamicField(makeField('array', 'option'), '10001,10002');
+    expect(result).toEqual([{ value: '10001' }, { value: '10002' }]);
+  });
+
+  it('serializes array/string as string array', () => {
+    const result = serializeDynamicField(makeField('array', 'string'), 'frontend,backend');
+    expect(result).toEqual(['frontend', 'backend']);
+  });
+
+  it('returns undefined for empty value', () => {
+    const result = serializeDynamicField(makeField('string'), '');
+    expect(result).toBeUndefined();
+  });
+});
+
+describe('exportToJira — dynamic fields', () => {
+  function mockSuccessfulIssueCreate(issueKey = 'PROJ-123') {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: () => Promise.resolve({ id: '10001', key: issueKey, self: 'https://jira/10001' }),
+    });
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: () =>
+        Promise.resolve([{ id: '1', filename: 'f', size: 10, mimeType: 'x', content: 'url' }]),
+    });
+  }
+
+  it('adds dynamic fields to issue payload', async () => {
+    mockSuccessfulIssueCreate();
+
+    await exportToJira({
+      ...baseParams,
+      dynamicFields: [
+        {
+          fieldId: 'customfield_10050',
+          name: 'Environment',
+          required: false,
+          alwaysFill: true,
+          defaultValue: 'Production',
+          schemaType: 'string',
+        },
+      ],
+      dynamicFieldValues: { customfield_10050: 'Staging' },
+    });
+
+    const createCall = mockFetch.mock.calls[0];
+    const body = JSON.parse(createCall[1].body as string);
+    expect(body.fields.customfield_10050).toBe('Staging');
+  });
+
+  it('uses defaultValue when dynamicFieldValues does not have the field', async () => {
+    mockSuccessfulIssueCreate();
+
+    await exportToJira({
+      ...baseParams,
+      dynamicFields: [
+        {
+          fieldId: 'customfield_10050',
+          name: 'Environment',
+          required: false,
+          alwaysFill: true,
+          defaultValue: 'DefaultEnv',
+          schemaType: 'string',
+        },
+      ],
+      dynamicFieldValues: {},
+    });
+
+    const createCall = mockFetch.mock.calls[0];
+    const body = JSON.parse(createCall[1].body as string);
+    expect(body.fields.customfield_10050).toBe('DefaultEnv');
+  });
+
+  it('skips dynamic fields when dynamicFields is empty', async () => {
+    mockSuccessfulIssueCreate();
+
+    await exportToJira({ ...baseParams, dynamicFields: [], dynamicFieldValues: {} });
+
+    const createCall = mockFetch.mock.calls[0];
+    const body = JSON.parse(createCall[1].body as string);
+    // Only standard fields
+    expect(Object.keys(body.fields)).toEqual(
+      expect.arrayContaining(['project', 'summary', 'description', 'issuetype', 'priority']),
+    );
+  });
+
+  it('uses defaultIssueTypeName from credentials', async () => {
+    mockSuccessfulIssueCreate();
+
+    await exportToJira({
+      ...baseParams,
+      credentials: { ...cloudCredentials, defaultIssueTypeName: 'Story' },
+    });
+
+    const createCall = mockFetch.mock.calls[0];
+    const body = JSON.parse(createCall[1].body as string);
+    expect(body.fields.issuetype.name).toBe('Story');
+  });
+
+  it('falls back to Bug when defaultIssueTypeName is not set', async () => {
+    mockSuccessfulIssueCreate();
+
+    await exportToJira({ ...baseParams });
+
+    const createCall = mockFetch.mock.calls[0];
+    const body = JSON.parse(createCall[1].body as string);
+    expect(body.fields.issuetype.name).toBe('Bug');
+  });
+
+  it('handles option type dynamic field', async () => {
+    mockSuccessfulIssueCreate();
+
+    await exportToJira({
+      ...baseParams,
+      dynamicFields: [
+        {
+          fieldId: 'customfield_10060',
+          name: 'Priority Level',
+          required: true,
+          alwaysFill: true,
+          defaultValue: '',
+          schemaType: 'option',
+        },
+      ],
+      dynamicFieldValues: { customfield_10060: '10100' },
+    });
+
+    const createCall = mockFetch.mock.calls[0];
+    const body = JSON.parse(createCall[1].body as string);
+    expect(body.fields.customfield_10060).toEqual({ value: '10100' });
   });
 });

@@ -7,7 +7,6 @@ import {
   ChevronRight,
   AlertCircle,
   Download,
-  Copy,
   Send,
   Loader2,
 } from 'lucide-preact';
@@ -25,7 +24,9 @@ import { buildDescription } from '@/lib/description-builder';
 import { exportBugReportZip } from '@/lib/zip-exporter';
 import { copyToClipboard } from '@/lib/clipboard';
 import { exportToJira } from '@/lib/jira/jira-exporter';
+import { loadFieldConfig } from '@/lib/jira/jira-field-discovery';
 import { Input } from '@/components/ui/Input';
+import { Select } from '@/components/ui/Select';
 
 import { currentView, slideDirection } from '@/popup/view-state';
 import type {
@@ -38,6 +39,7 @@ import type {
   SessionConfig,
   JiraCredentials,
 } from '@/lib/types';
+import type { JiraConfiguredField } from '@/lib/jira/jira-types';
 
 type SnapshotStatus = 'loading' | 'success' | 'error';
 type ExportStatus = 'idle' | 'loading' | 'success' | 'error';
@@ -67,6 +69,8 @@ const jiraExportResult = signal<{ issueKey: string; issueUrl: string } | null>(n
 const parentTicketKey = signal('');
 const parentKeyValid = signal(true);
 const linkToParent = signal(false);
+const jiraConfiguredFields = signal<JiraConfiguredField[]>([]);
+const dynamicFieldValues = signal<Record<string, string>>({});
 
 /** Test helper — module-level signal'ları sıfırlar */
 export function _resetSignalsForTest() {
@@ -89,6 +93,8 @@ export function _resetSignalsForTest() {
   parentTicketKey.value = '';
   parentKeyValid.value = true;
   linkToParent.value = false;
+  jiraConfiguredFields.value = [];
+  dynamicFieldValues.value = {};
 }
 
 export function BugReportView({ hasSession }: { hasSession: boolean }) {
@@ -103,11 +109,22 @@ export function BugReportView({ hasSession }: { hasSession: boolean }) {
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
     tabIdRef.current = tab?.id ?? null;
 
-    // Jira credentials kontrolü
+    // Jira credentials kontrolü + dinamik alan konfigürasyonu yükle
     const jiraCreds = await storageGet<JiraCredentials>(STORAGE_KEYS.JIRA_CREDENTIALS);
     if (jiraCreds.success && jiraCreds.data) {
       const c = jiraCreds.data;
       jiraConfigured.value = !!(c.platform && c.url && c.token && c.connected);
+
+      if (jiraConfigured.value && c.defaultProjectKey && c.defaultIssueTypeId) {
+        const fields = await loadFieldConfig(c.defaultProjectKey, c.defaultIssueTypeId);
+        const displayFields = fields.filter((f) => f.required || f.alwaysFill);
+        jiraConfiguredFields.value = displayFields;
+        const defaults: Record<string, string> = {};
+        for (const f of displayFields) {
+          defaults[f.fieldId] = f.defaultValue;
+        }
+        dynamicFieldValues.value = defaults;
+      }
     }
 
     // Config alanlarını storage'dan yükle
@@ -258,6 +275,8 @@ export function BugReportView({ hasSession }: { hasSession: boolean }) {
         xhrs,
         timelineJson,
         parentKey,
+        dynamicFields: jiraConfiguredFields.value,
+        dynamicFieldValues: dynamicFieldValues.value,
       });
 
       if (result.success) {
@@ -613,6 +632,66 @@ export function BugReportView({ hasSession }: { hasSession: boolean }) {
           </div>
         ) : (
           <div class="flex flex-col gap-2">
+            {/* Dinamik Jira alanları */}
+            {jiraConfiguredFields.value.length > 0 && (
+              <div class="flex flex-col gap-2">
+                <p class="text-xs font-medium text-neutral-500 uppercase tracking-wide">
+                  Jira Fields
+                </p>
+                {jiraConfiguredFields.value.map((field) => {
+                  const value = dynamicFieldValues.value[field.fieldId] ?? '';
+                  const isEmpty = field.required && !value;
+                  return (
+                    <div key={field.fieldId} class="flex flex-col gap-1">
+                      <label class="text-xs text-neutral-600">
+                        {field.name}
+                        {field.required && <span class="text-red-500 ml-1">*</span>}
+                      </label>
+                      {field.allowedValues && field.allowedValues.length > 0 ? (
+                        <Select
+                          htmlFor={`dynamic-${field.fieldId}`}
+                          options={[
+                            { value: '', label: 'Select...' },
+                            ...field.allowedValues
+                              .filter((v) => !v.disabled)
+                              .map((v) => ({ value: v.id, label: v.value ?? v.name ?? v.id })),
+                          ]}
+                          value={value}
+                          onChange={(v) => {
+                            dynamicFieldValues.value = {
+                              ...dynamicFieldValues.value,
+                              [field.fieldId]: v,
+                            };
+                          }}
+                          class={isEmpty ? 'border-red-400' : ''}
+                          aria-required={field.required}
+                        />
+                      ) : (
+                        <Input
+                          htmlFor={`dynamic-${field.fieldId}`}
+                          value={value}
+                          onChange={(v) => {
+                            dynamicFieldValues.value = {
+                              ...dynamicFieldValues.value,
+                              [field.fieldId]: v,
+                            };
+                          }}
+                          class={isEmpty ? 'border-red-400' : ''}
+                          aria-required={field.required}
+                          aria-invalid={isEmpty}
+                        />
+                      )}
+                      {isEmpty && (
+                        <p class="text-xs text-red-500" role="alert">
+                          {field.name} is required
+                        </p>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
             {/* Yan yana ZIP + Jira */}
             <div class="flex gap-2">
               <Button
@@ -640,7 +719,10 @@ export function BugReportView({ hasSession }: { hasSession: boolean }) {
                 disabled={
                   !jiraConfigured.value ||
                   snapshotStatus.value !== 'success' ||
-                  jiraExportStatus.value === 'loading'
+                  jiraExportStatus.value === 'loading' ||
+                  jiraConfiguredFields.value
+                    .filter((f) => f.required)
+                    .some((f) => !dynamicFieldValues.value[f.fieldId])
                 }
                 loading={jiraExportStatus.value === 'loading'}
                 iconLeft={

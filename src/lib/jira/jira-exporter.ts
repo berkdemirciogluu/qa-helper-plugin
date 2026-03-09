@@ -4,6 +4,7 @@ import { createIssue, addAttachments, linkIssue } from './jira-client';
 import { formatDescription } from './jira-formatter';
 import type { ReportData } from './jira-formatter';
 import { buildAttachmentFiles, getAttachmentFileNames } from './jira-file-builder';
+import type { JiraConfiguredField } from './jira-types';
 
 export interface JiraExportParams {
   credentials: JiraCredentials;
@@ -23,6 +24,32 @@ export interface JiraExportParams {
   xhrs?: XhrEvent[];
   timelineJson?: TimelineJSON;
   parentKey?: string;
+  dynamicFields?: JiraConfiguredField[];
+  dynamicFieldValues?: Record<string, string>;
+}
+
+/** Dinamik alan tip serializasyonu */
+export function serializeDynamicField(field: JiraConfiguredField, value: string): unknown {
+  if (!value) return undefined;
+  const { schemaType, schemaItems } = field;
+
+  if (schemaType === 'number') {
+    const num = parseFloat(value);
+    return isNaN(num) ? undefined : num;
+  }
+  if (schemaType === 'date' || schemaType === 'datetime') return value;
+  if (schemaType === 'array') {
+    const items = value
+      .split(',')
+      .map((s) => s.trim())
+      .filter(Boolean);
+    if (schemaItems === 'option') return items.map((v) => ({ value: v }));
+    if (schemaItems === 'user') return items.map((v) => ({ accountId: v }));
+    return items;
+  }
+  if (schemaType === 'option') return { value };
+  if (schemaType === 'user') return { accountId: value };
+  return value;
 }
 
 export interface JiraExportResult {
@@ -76,6 +103,8 @@ export async function exportToJira(params: JiraExportParams): Promise<Result<Jir
     xhrs,
     timelineJson,
     parentKey,
+    dynamicFields,
+    dynamicFieldValues,
   } = params;
 
   // 1. Credentials kontrolü
@@ -116,14 +145,28 @@ export async function exportToJira(params: JiraExportParams): Promise<Result<Jir
 
   // 4. Issue oluştur
   const summary = buildSummary(expected, reason);
+
+  // Dinamik alanları serialize et
+  const dynamicFieldsPayload: Record<string, unknown> = {};
+  if (dynamicFields && dynamicFieldValues) {
+    for (const field of dynamicFields) {
+      const value = dynamicFieldValues[field.fieldId] ?? field.defaultValue;
+      const serialized = serializeDynamicField(field, value);
+      if (serialized !== undefined) {
+        dynamicFieldsPayload[field.fieldId] = serialized;
+      }
+    }
+  }
+
   const issueResult = await createIssue(credentials, {
     fields: {
       project: { key: credentials.defaultProjectKey },
       summary,
       description,
-      issuetype: { name: 'Bug' },
+      issuetype: { name: credentials.defaultIssueTypeName ?? 'Bug' },
       priority: { name: mapPriority(priority) },
-    },
+      ...dynamicFieldsPayload,
+    } as Parameters<typeof createIssue>[1]['fields'],
   });
 
   if (!issueResult.success) {

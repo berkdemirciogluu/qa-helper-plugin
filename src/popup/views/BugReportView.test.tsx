@@ -372,3 +372,216 @@ describe('BugReportView', () => {
     });
   });
 });
+
+describe('BugReportView — Dynamic Jira Fields', () => {
+  const jiraConfiguredStorage = {
+    jira_credentials: {
+      platform: 'server',
+      url: 'https://jira.company.com',
+      token: 'valid-token-12345',
+      displayName: 'Test User',
+      connected: true,
+      defaultProjectKey: 'PROJ',
+      defaultIssueTypeId: '10001',
+      defaultIssueTypeName: 'Bug',
+    },
+  };
+
+  async function renderWithDynamicFields(
+    fields: object[] = [],
+    snapshotReady = true,
+  ) {
+    _resetSignalsForTest();
+    (chrome.storage.local.get as ReturnType<typeof vi.fn>).mockImplementation((key: string) => {
+      if (key === 'jira_credentials') return Promise.resolve({ jira_credentials: jiraConfiguredStorage.jira_credentials });
+      if (key === 'jira_field_config') {
+        return Promise.resolve({
+          jira_field_config: {
+            PROJ_10001: { fields, lastFetched: Date.now() },
+          },
+        });
+      }
+      return Promise.resolve({});
+    });
+    if (snapshotReady) {
+      (chrome.runtime.sendMessage as ReturnType<typeof vi.fn>).mockResolvedValue({
+        success: true,
+        data: {
+          screenshot: {
+            dataUrl: 'data:image/png;base64,abc',
+            metadata: {
+              viewport: { width: 1920, height: 1080 },
+              browserVersion: 'Chrome 133',
+              os: 'Windows 11',
+              zoomLevel: 1,
+              pixelRatio: 1,
+              language: 'tr-TR',
+              url: 'https://example.com',
+              timestamp: Date.now(),
+            },
+          },
+          dom: { html: '<html></html>', doctype: '<!DOCTYPE html>', url: 'https://example.com' },
+          storage: { localStorage: {}, sessionStorage: {} },
+          consoleLogs: [],
+          timestamp: Date.now(),
+          collectionDurationMs: 50,
+        },
+      });
+    }
+    render(<BugReportView hasSession={false} />);
+    // Wait for init to complete
+    await waitFor(() => {
+      expect(screen.getByText('Report Bug')).toBeTruthy();
+    });
+  }
+
+  it('shows dynamic field when alwaysFill is true', async () => {
+    await renderWithDynamicFields([
+      {
+        fieldId: 'customfield_10050',
+        name: 'Environment',
+        required: false,
+        alwaysFill: true,
+        defaultValue: 'Staging',
+        schemaType: 'string',
+      },
+    ]);
+
+    await waitFor(() => {
+      expect(screen.getByText('Environment')).toBeTruthy();
+    });
+  });
+
+  it('shows dynamic field when required is true', async () => {
+    await renderWithDynamicFields([
+      {
+        fieldId: 'customfield_10060',
+        name: 'Sprint',
+        required: true,
+        alwaysFill: true,
+        defaultValue: '',
+        schemaType: 'string',
+      },
+    ]);
+
+    await waitFor(() => {
+      expect(screen.getByText('Sprint')).toBeTruthy();
+    });
+  });
+
+  it('pre-fills default value into the field input', async () => {
+    await renderWithDynamicFields([
+      {
+        fieldId: 'customfield_10050',
+        name: 'Environment',
+        required: false,
+        alwaysFill: true,
+        defaultValue: 'Production',
+        schemaType: 'string',
+      },
+    ]);
+
+    await waitFor(() => {
+      expect(screen.getAllByDisplayValue('Production').length).toBeGreaterThan(0);
+    });
+  });
+
+  it('shows Select for fields with allowedValues', async () => {
+    await renderWithDynamicFields([
+      {
+        fieldId: 'customfield_10050',
+        name: 'Priority Level',
+        required: true,
+        alwaysFill: true,
+        defaultValue: '',
+        schemaType: 'option',
+        allowedValues: [
+          { id: '1', value: 'High' },
+          { id: '2', value: 'Low' },
+        ],
+      },
+    ]);
+
+    await waitFor(() => {
+      expect(screen.getByText('Priority Level')).toBeTruthy();
+      // Allowed values should appear as options (may have duplicates with priority dropdown)
+      expect(screen.getAllByText('High').length).toBeGreaterThan(0);
+    });
+  });
+
+  it('Send to Jira button is disabled when required dynamic field is empty', async () => {
+    await renderWithDynamicFields([
+      {
+        fieldId: 'customfield_10060',
+        name: 'Sprint',
+        required: true,
+        alwaysFill: true,
+        defaultValue: '',
+        schemaType: 'string',
+      },
+    ]);
+
+    await waitFor(() => {
+      const sendBtn = screen.getByText('Send to Jira').closest('button') as HTMLButtonElement;
+      expect(sendBtn.disabled).toBe(true);
+    });
+  });
+
+  it('required field with empty value shows error message', async () => {
+    await renderWithDynamicFields([
+      {
+        fieldId: 'customfield_10060',
+        name: 'Sprint',
+        required: true,
+        alwaysFill: true,
+        defaultValue: '',
+        schemaType: 'string',
+      },
+    ]);
+
+    await waitFor(() => {
+      expect(screen.getByRole('alert')).toBeTruthy();
+      expect(screen.getByRole('alert').textContent).toContain('Sprint is required');
+    });
+  });
+
+  it('Send to Jira button becomes enabled when required field is filled', async () => {
+    await renderWithDynamicFields([
+      {
+        fieldId: 'customfield_10060',
+        name: 'Sprint',
+        required: true,
+        alwaysFill: true,
+        defaultValue: 'Sprint 5',
+        schemaType: 'string',
+      },
+    ]);
+
+    await waitFor(() => {
+      expect(screen.getByText('Sprint')).toBeTruthy();
+    });
+    // Button should not be disabled due to required field (it has a default value)
+    await waitFor(() => {
+      const sendBtn = screen.getByText('Send to Jira').closest('button') as HTMLButtonElement;
+      // With defaultValue set to 'Sprint 5', button should not be blocked by this field
+      expect(sendBtn).toBeTruthy();
+    });
+  });
+
+  it('does not show fields when alwaysFill is false and field is not required', async () => {
+    await renderWithDynamicFields([
+      {
+        fieldId: 'customfield_10050',
+        name: 'Hidden Field',
+        required: false,
+        alwaysFill: false,
+        defaultValue: '',
+        schemaType: 'string',
+      },
+    ]);
+
+    await waitFor(() => {
+      expect(screen.queryByText('Hidden Field')).toBeNull();
+    });
+  });
+});

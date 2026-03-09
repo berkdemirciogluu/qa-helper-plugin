@@ -84,6 +84,50 @@ export interface JiraErrorResponse {
   errors: Record<string, string>;
 }
 
+// --- Dinamik alan keşfi tipleri ---
+
+/** Createmeta API'dan gelen tek bir alan şeması */
+export interface JiraFieldDefinition {
+  fieldId: string;
+  name: string;
+  required: boolean;
+  hasDefaultValue: boolean;
+  schema: {
+    type: string;
+    items?: string;
+    system?: string;
+    custom?: string;
+    customId?: number;
+  };
+  allowedValues?: Array<{
+    id: string;
+    value?: string;
+    name?: string;
+    disabled?: boolean;
+  }>;
+}
+
+/** Kullanıcı konfigürasyonu — options page'den kaydedilen ayarlar */
+export interface JiraConfiguredField {
+  fieldId: string;
+  name: string;
+  required: boolean;
+  alwaysFill: boolean;
+  defaultValue: string;
+  schemaType: string;
+  schemaItems?: string;
+  allowedValues?: Array<{ id: string; value?: string; name?: string; disabled?: boolean }>;
+}
+
+/** Tek proje+issueType konfigürasyon kaydı */
+export interface JiraFieldConfigEntry {
+  fields: JiraConfiguredField[];
+  lastFetched: number;
+}
+
+/** Storage yapısı — jira_field_config anahtarı */
+export type JiraFieldConfigMap = Record<string, JiraFieldConfigEntry>;
+
 // --- ADF (Atlassian Document Format) tipleri ---
 
 /** ADF text mark */

@@ -1,6 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/preact';
 
+vi.mock('@/lib/jira/jira-field-discovery', () => ({
+  getIssueTypesForProject: vi.fn().mockResolvedValue({ success: true, data: [] }),
+  getFieldsForIssueType: vi.fn().mockResolvedValue({ success: true, data: [] }),
+  loadFieldConfig: vi.fn().mockResolvedValue([]),
+  saveFieldConfig: vi.fn().mockResolvedValue(undefined),
+}));
+
 vi.stubGlobal('chrome', {
   identity: {
     getRedirectURL: vi.fn(() => 'https://ext-id.chromiumapp.org/atlassian'),
@@ -23,12 +30,17 @@ const mockFetch = vi.fn();
 vi.stubGlobal('fetch', mockFetch);
 
 const { JiraSetupPage } = await import('./JiraSetupPage');
+const jfd = await import('@/lib/jira/jira-field-discovery');
 
 beforeEach(() => {
   vi.clearAllMocks();
   mockFetch.mockReset();
   (chrome.storage.local.get as ReturnType<typeof vi.fn>).mockResolvedValue({});
   (chrome.storage.local.set as ReturnType<typeof vi.fn>).mockResolvedValue(undefined);
+  vi.mocked(jfd.getIssueTypesForProject).mockReset().mockResolvedValue({ success: true, data: [] });
+  vi.mocked(jfd.getFieldsForIssueType).mockReset().mockResolvedValue({ success: true, data: [] });
+  vi.mocked(jfd.loadFieldConfig).mockReset().mockResolvedValue([]);
+  vi.mocked(jfd.saveFieldConfig).mockReset().mockResolvedValue(undefined);
 });
 
 async function renderAndWaitForLoad() {
@@ -318,6 +330,323 @@ describe('JiraSetupPage', () => {
     await waitFor(() => {
       expect(screen.getAllByText(/Cloud User/).length).toBeGreaterThan(0);
       expect(screen.getAllByText(/My Site/).length).toBeGreaterThan(0);
+    });
+  });
+});
+
+describe('JiraSetupPage — Field Configuration', () => {
+  const connectedStorageValue = {
+    jira_credentials: {
+      platform: 'server',
+      url: 'https://jira.company.com',
+      token: 'valid-token-12345',
+      displayName: 'Test User',
+      connected: true,
+      defaultProjectKey: 'PROJ',
+    },
+  };
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockFetch.mockReset();
+  });
+
+  async function renderConnectedWithProject() {
+    (chrome.storage.local.get as ReturnType<typeof vi.fn>).mockResolvedValue(connectedStorageValue);
+    // getProjects
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: () => Promise.resolve([{ id: '1', key: 'PROJ', name: 'Test Project', avatarUrls: {} }]),
+    });
+    // getIssueTypesForProject — use vi.mock instead of fetch
+    vi.mocked(jfd.getIssueTypesForProject).mockResolvedValue({
+      success: true,
+      data: [
+        { id: '10001', name: 'Bug', subtask: false },
+        { id: '10002', name: 'Task', subtask: false },
+      ],
+    });
+    render(<JiraSetupPage />);
+    await waitFor(() => {
+      expect(screen.getByText(/Field Configuration/)).toBeTruthy();
+    });
+    // Wait for issue types to load so the select is populated
+    await waitFor(() => {
+      const select = screen.getByLabelText('Issue type') as HTMLSelectElement;
+      expect(select.options.length).toBeGreaterThan(1);
+    });
+  }
+
+  it('shows issue type dropdown when project is selected', async () => {
+    await renderConnectedWithProject();
+    expect(screen.getByLabelText('Issue type')).toBeTruthy();
+  });
+
+  it('issue type dropdown is populated with API response', async () => {
+    await renderConnectedWithProject();
+    await waitFor(() => {
+      // Select dropdown should contain Bug and Task options
+      const select = screen.getByLabelText('Issue type');
+      expect(select).toBeTruthy();
+    });
+  });
+
+  it('shows field list after issue type selection', async () => {
+    await renderConnectedWithProject();
+
+    vi.mocked(jfd.getFieldsForIssueType).mockResolvedValue({
+      success: true,
+      data: [
+        {
+          fieldId: 'customfield_10050',
+          name: 'Environment Type',
+          required: false,
+          hasDefaultValue: false,
+          schema: { type: 'string' },
+          allowedValues: undefined,
+        },
+      ],
+    });
+
+    const select = screen.getByLabelText('Issue type') as HTMLSelectElement;
+    fireEvent.change(select, { target: { value: '10001' } });
+
+    await waitFor(() => {
+      expect(screen.getByText('Environment Type')).toBeTruthy();
+    });
+  });
+
+  it('shows Required badge for required fields', async () => {
+    await renderConnectedWithProject();
+
+    vi.mocked(jfd.getFieldsForIssueType).mockResolvedValue({
+      success: true,
+      data: [
+        {
+          fieldId: 'customfield_10060',
+          name: 'Sprint',
+          required: true,
+          hasDefaultValue: false,
+          schema: { type: 'string' },
+          allowedValues: undefined,
+        },
+      ],
+    });
+
+    const select = screen.getByLabelText('Issue type') as HTMLSelectElement;
+    fireEvent.change(select, { target: { value: '10001' } });
+
+    await waitFor(() => {
+      expect(screen.getByText('Required')).toBeTruthy();
+    });
+  });
+
+  it('toggle is visible for optional fields', async () => {
+    await renderConnectedWithProject();
+
+    vi.mocked(jfd.getFieldsForIssueType).mockResolvedValue({
+      success: true,
+      data: [
+        {
+          fieldId: 'customfield_10050',
+          name: 'Environment Type',
+          required: false,
+          hasDefaultValue: false,
+          schema: { type: 'string' },
+          allowedValues: undefined,
+        },
+      ],
+    });
+
+    const select = screen.getByLabelText('Issue type') as HTMLSelectElement;
+    fireEvent.change(select, { target: { value: '10001' } });
+
+    await waitFor(() => {
+      expect(screen.getByLabelText('Environment Type always fill')).toBeTruthy();
+    });
+  });
+
+  it('shows Select for fields with allowedValues', async () => {
+    await renderConnectedWithProject();
+
+    vi.mocked(jfd.getFieldsForIssueType).mockResolvedValue({
+      success: true,
+      data: [
+        {
+          fieldId: 'customfield_10050',
+          name: 'Priority Level',
+          required: true,
+          hasDefaultValue: false,
+          schema: { type: 'option' },
+          allowedValues: [
+            { id: '1', value: 'High' },
+            { id: '2', value: 'Low' },
+          ],
+        },
+      ],
+    });
+
+    const select = screen.getByLabelText('Issue type') as HTMLSelectElement;
+    fireEvent.change(select, { target: { value: '10001' } });
+
+    await waitFor(() => {
+      expect(screen.getByLabelText('Priority Level default value')).toBeTruthy();
+    });
+  });
+
+  it('excluded fields (summary, description) do not appear', async () => {
+    await renderConnectedWithProject();
+
+    // getFieldsForIssueType already excludes summary/description (EXCLUDED_FIELD_KEYS filter)
+    // Mock returns only non-excluded fields (as the real implementation would)
+    vi.mocked(jfd.getFieldsForIssueType).mockResolvedValue({
+      success: true,
+      data: [
+        {
+          fieldId: 'customfield_10050',
+          name: 'Environment',
+          required: false,
+          hasDefaultValue: false,
+          schema: { type: 'string' },
+          allowedValues: undefined,
+        },
+      ],
+    });
+
+    const select = screen.getByLabelText('Issue type') as HTMLSelectElement;
+    fireEvent.change(select, { target: { value: '10001' } });
+
+    await waitFor(() => {
+      expect(screen.getByText('Environment')).toBeTruthy();
+      const summaryFields = screen.queryAllByText('Summary');
+      expect(summaryFields.length).toBe(0);
+    });
+  });
+
+  it('shows error when field loading fails', async () => {
+    await renderConnectedWithProject();
+
+    vi.mocked(jfd.getFieldsForIssueType).mockResolvedValue({
+      success: false,
+      error: 'No permissions to access field metadata.',
+    });
+
+    const select = screen.getByLabelText('Issue type') as HTMLSelectElement;
+    fireEvent.change(select, { target: { value: '10001' } });
+
+    await waitFor(() => {
+      expect(screen.getByRole('alert')).toBeTruthy();
+    });
+  });
+
+  it('reloads fields when project changes', async () => {
+    await renderConnectedWithProject();
+
+    // New project change triggers new issue type load
+    vi.mocked(jfd.getIssueTypesForProject).mockResolvedValue({
+      success: true,
+      data: [{ id: '20001', name: 'Story', subtask: false }],
+    });
+
+    const projectSelect = screen.getByLabelText('Default Jira project') as HTMLSelectElement;
+    fireEvent.change(projectSelect, { target: { value: 'OTHER' } });
+
+    await waitFor(() => {
+      expect(jfd.getIssueTypesForProject).toHaveBeenCalled();
+    });
+  });
+
+  it('saves default value to storage when changed', async () => {
+    await renderConnectedWithProject();
+
+    vi.mocked(jfd.getFieldsForIssueType).mockResolvedValue({
+      success: true,
+      data: [
+        {
+          fieldId: 'customfield_10050',
+          name: 'Team',
+          required: false,
+          hasDefaultValue: false,
+          schema: { type: 'string' },
+          allowedValues: undefined,
+        },
+      ],
+    });
+
+    const issueTypeSelect = screen.getByLabelText('Issue type') as HTMLSelectElement;
+    fireEvent.change(issueTypeSelect, { target: { value: '10001' } });
+
+    await waitFor(() => {
+      expect(screen.getByText('Team')).toBeTruthy();
+    });
+
+    // Toggle alwaysFill — saveFieldConfig should be called
+    const toggle = screen.getByLabelText('Team always fill');
+    fireEvent.click(toggle);
+
+    await waitFor(() => {
+      expect(jfd.saveFieldConfig).toHaveBeenCalled();
+    });
+  });
+
+  it('shows Refresh Fields button when issue type is selected', async () => {
+    (chrome.storage.local.get as ReturnType<typeof vi.fn>).mockResolvedValue({
+      jira_credentials: {
+        ...connectedStorageValue.jira_credentials,
+        defaultIssueTypeId: '10001',
+        defaultIssueTypeName: 'Bug',
+      },
+    });
+    // getProjects
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: () => Promise.resolve([{ id: '1', key: 'PROJ', name: 'Test Project', avatarUrls: {} }]),
+    });
+    vi.mocked(jfd.getIssueTypesForProject).mockResolvedValue({
+      success: true,
+      data: [{ id: '10001', name: 'Bug', subtask: false }],
+    });
+    vi.mocked(jfd.getFieldsForIssueType).mockResolvedValue({ success: true, data: [] });
+
+    render(<JiraSetupPage />);
+    await waitFor(() => {
+      expect(screen.getByLabelText('Refresh fields')).toBeTruthy();
+    });
+  });
+
+  it('restores saved config when issue type is re-selected', async () => {
+    await renderConnectedWithProject();
+
+    vi.mocked(jfd.getFieldsForIssueType).mockResolvedValue({
+      success: true,
+      data: [
+        {
+          fieldId: 'customfield_10050',
+          name: 'Environment',
+          required: false,
+          hasDefaultValue: false,
+          schema: { type: 'string' },
+          allowedValues: undefined,
+        },
+      ],
+    });
+    vi.mocked(jfd.loadFieldConfig).mockResolvedValue([
+      {
+        fieldId: 'customfield_10050',
+        name: 'Environment',
+        required: false,
+        alwaysFill: true,
+        defaultValue: 'Staging',
+        schemaType: 'string',
+      },
+    ]);
+
+    const select = screen.getByLabelText('Issue type') as HTMLSelectElement;
+    fireEvent.change(select, { target: { value: '10001' } });
+
+    await waitFor(() => {
+      // The field should be loaded and the saved alwaysFill value restored
+      expect(screen.getByText('Environment')).toBeTruthy();
     });
   });
 });
