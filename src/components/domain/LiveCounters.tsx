@@ -14,9 +14,7 @@ interface StatChipProps {
 function StatChip({ value, label, isError = false }: StatChipProps) {
   return (
     <div class="flex-1 py-2 px-1 bg-gray-50 rounded-md border border-gray-100 text-center">
-      <div class={`text-base font-bold ${isError ? 'text-red-500' : 'text-gray-900'}`}>
-        {value}
-      </div>
+      <div class={`text-base font-bold ${isError ? 'text-red-500' : 'text-gray-900'}`}>{value}</div>
       <div class="text-[10px] text-gray-500 mt-0.5">{label}</div>
     </div>
   );

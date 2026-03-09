@@ -11,7 +11,14 @@ import { MESSAGE_ACTIONS, STORAGE_KEYS } from '@/lib/constants';
 import { storageGet } from '@/lib/storage';
 import { showToast } from '@/components/ui/Toast';
 import { onboardingPulse } from '../view-state';
-import type { SessionMeta, SessionConfig, ConfigFields, StartSessionPayload, StopSessionPayload, GetSessionStatusPayload } from '@/lib/types';
+import type {
+  SessionMeta,
+  SessionConfig,
+  ConfigFields,
+  StartSessionPayload,
+  StopSessionPayload,
+  GetSessionStatusPayload,
+} from '@/lib/types';
 
 const DEFAULT_TOGGLES: SessionConfig['toggles'] = {
   har: true,
@@ -53,7 +60,9 @@ export function DashboardView({ onOpenBugReport }: DashboardViewProps) {
   // Onboarding pulse — 5 saniye sonra otomatik kapanır
   useEffect(() => {
     if (!onboardingPulse.value) return;
-    const timer = setTimeout(() => { onboardingPulse.value = false; }, 5000);
+    const timer = setTimeout(() => {
+      onboardingPulse.value = false;
+    }, 5000);
     return () => clearTimeout(timer);
   }, [onboardingPulse.value]);
 
@@ -64,7 +73,7 @@ export function DashboardView({ onOpenBugReport }: DashboardViewProps) {
       stopPolling();
       stopDurationTimer();
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   async function init() {
@@ -224,7 +233,12 @@ export function DashboardView({ onOpenBugReport }: DashboardViewProps) {
       {/* Header */}
       <header class="flex items-center justify-between px-3 py-3 border-b border-gray-200">
         <div class="flex items-center gap-2">
-          <div class="w-6 h-6 bg-blue-500 rounded-md flex items-center justify-center text-white text-xs font-bold" aria-hidden="true">Q</div>
+          <div
+            class="w-6 h-6 bg-blue-500 rounded-md flex items-center justify-center text-white text-xs font-bold"
+            aria-hidden="true"
+          >
+            Q
+          </div>
           <h1 class="text-sm font-semibold text-gray-900">QA Helper</h1>
         </div>
         <button

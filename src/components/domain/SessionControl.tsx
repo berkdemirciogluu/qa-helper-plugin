@@ -43,8 +43,7 @@ export function SessionControl({
         >
           {isRecording ? (
             <>
-              Session Aktif —{' '}
-              <span class="tabular-nums">{formatDuration(elapsedSeconds)}</span>
+              Session Aktif — <span class="tabular-nums">{formatDuration(elapsedSeconds)}</span>
             </>
           ) : (
             'Session Pasif'

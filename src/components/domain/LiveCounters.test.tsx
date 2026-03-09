@@ -21,7 +21,7 @@ describe('LiveCounters', () => {
 
   it('hata varsa kırmızı renk uygulanır', () => {
     const { container } = render(
-      <LiveCounters xhrRequests={5} consoleErrors={3} navEvents={1} clicks={10} />,
+      <LiveCounters xhrRequests={5} consoleErrors={3} navEvents={1} clicks={10} />
     );
     const errorNum = container.querySelector('.text-red-500');
     expect(errorNum).toBeTruthy();
@@ -30,7 +30,7 @@ describe('LiveCounters', () => {
 
   it('hata yokken kırmızı renk uygulanmaz', () => {
     const { container } = render(
-      <LiveCounters xhrRequests={0} consoleErrors={0} navEvents={0} clicks={0} />,
+      <LiveCounters xhrRequests={0} consoleErrors={0} navEvents={0} clicks={0} />
     );
     const errorNum = container.querySelector('.text-red-500');
     expect(errorNum).toBeNull();

@@ -16,7 +16,14 @@ const checkedColorClasses: Record<ToggleColor, string> = {
   green: 'bg-green-500',
 };
 
-export function Toggle({ checked, onChange, label, disabled = false, id, color = 'blue' }: ToggleProps) {
+export function Toggle({
+  checked,
+  onChange,
+  label,
+  disabled = false,
+  id,
+  color = 'blue',
+}: ToggleProps) {
   const handleClick = () => {
     if (!disabled) onChange(!checked);
   };
@@ -43,8 +50,7 @@ export function Toggle({ checked, onChange, label, disabled = false, id, color =
         'focus-visible:outline-2 focus-visible:outline-blue-500 focus-visible:outline-offset-2',
         checked ? checkedColorClasses[color] : 'bg-gray-300',
         disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer',
-      ]
-        .join(' ')}
+      ].join(' ')}
     >
       <span
         class={[
