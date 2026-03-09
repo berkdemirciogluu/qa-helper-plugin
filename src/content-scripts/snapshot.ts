@@ -5,7 +5,7 @@ chrome.runtime.onMessage.addListener(
   (
     message: { action: string; payload?: unknown },
     _sender: chrome.runtime.MessageSender,
-    sendResponse: (response: { success: boolean; data?: unknown; error?: string }) => void,
+    sendResponse: (response: { success: boolean; data?: unknown; error?: string }) => void
   ) => {
     if (message.action === 'TAKE_SNAPSHOT') {
       collectSnapshot()
@@ -16,7 +16,7 @@ chrome.runtime.onMessage.addListener(
         });
       return true; // async response
     }
-  },
+  }
 );
 
 async function collectSnapshot(): Promise<{
@@ -109,5 +109,3 @@ function dumpStorageObject(storage: Storage): Record<string, string> {
     return {};
   }
 }
-
-

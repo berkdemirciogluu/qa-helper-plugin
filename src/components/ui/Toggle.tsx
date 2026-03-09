@@ -1,14 +1,22 @@
 import type { JSX } from 'preact';
 
+type ToggleColor = 'blue' | 'green';
+
 interface ToggleProps {
   checked: boolean;
   onChange: (checked: boolean) => void;
   label: string;
   disabled?: boolean;
   id?: string;
+  color?: ToggleColor;
 }
 
-export function Toggle({ checked, onChange, label, disabled = false, id }: ToggleProps) {
+const checkedColorClasses: Record<ToggleColor, string> = {
+  blue: 'bg-blue-600',
+  green: 'bg-green-500',
+};
+
+export function Toggle({ checked, onChange, label, disabled = false, id, color = 'blue' }: ToggleProps) {
   const handleClick = () => {
     if (!disabled) onChange(!checked);
   };
@@ -33,7 +41,7 @@ export function Toggle({ checked, onChange, label, disabled = false, id }: Toggl
       class={[
         'relative inline-flex w-9 h-5 rounded-full p-[2px] transition-colors duration-150',
         'focus-visible:outline-2 focus-visible:outline-blue-500 focus-visible:outline-offset-2',
-        checked ? 'bg-blue-600' : 'bg-gray-300',
+        checked ? checkedColorClasses[color] : 'bg-gray-300',
         disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer',
       ]
         .join(' ')}

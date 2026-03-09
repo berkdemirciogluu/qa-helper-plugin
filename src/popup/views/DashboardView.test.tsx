@@ -54,38 +54,41 @@ beforeEach(() => {
 });
 
 describe('DashboardView', () => {
-  it('başlangıçta "Session Başlat" butonu gösterilir (idle)', async () => {
+  it('başlangıçta toggle switch OFF durumunda (idle)', async () => {
     render(<DashboardView />);
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: 'Session başlat' })).toBeTruthy();
+      const toggle = screen.getByRole('switch');
+      expect(toggle.getAttribute('aria-checked')).toBe('false');
     });
   });
 
-  it('başlangıçta "Pasif" metni gösterilir', async () => {
+  it('başlangıçta "Session Pasif" metni gösterilir', async () => {
     render(<DashboardView />);
     await waitFor(() => {
-      expect(screen.getByText('Pasif')).toBeTruthy();
+      expect(screen.getByText('Session Pasif')).toBeTruthy();
     });
   });
 
-  it('sayaçlar sıfır gösterilir', async () => {
+  it('sayaçlar stat chip olarak gösterilir', async () => {
     render(<DashboardView />);
     await waitFor(() => {
-      expect(screen.getByText('0 XHR')).toBeTruthy();
+      expect(screen.getByText('XHR')).toBeTruthy();
+      expect(screen.getByText('Sayfa')).toBeTruthy();
+      expect(screen.getByText('Olay')).toBeTruthy();
     });
   });
 
-  it('recording state: "Aktif" metni ve "Durdur" butonu gösterilir', async () => {
+  it('recording state: toggle switch ON ve "Session Aktif" gösterilir', async () => {
     mockSendMessage.mockResolvedValue({ success: true, data: mockRecordingMeta });
     render(<DashboardView />);
     await waitFor(() => {
-      expect(screen.getByText('Aktif')).toBeTruthy();
-      expect(screen.getByRole('button', { name: 'Session durdur' })).toBeTruthy();
+      expect(screen.getByText(/Session Aktif/)).toBeTruthy();
+      const toggle = screen.getByRole('switch');
+      expect(toggle.getAttribute('aria-checked')).toBe('true');
     });
   });
 
-  it('"Session Başlat" basınca START_SESSION mesajı gönderilir', async () => {
-    // İlk çekimde idle, başlatma sonrası recording
+  it('toggle ON yapınca START_SESSION mesajı gönderilir', async () => {
     mockSendMessage
       .mockResolvedValueOnce({ success: true, data: mockIdleMeta })
       .mockResolvedValueOnce({ success: true, data: mockRecordingMeta });
@@ -93,11 +96,12 @@ describe('DashboardView', () => {
     render(<DashboardView />);
 
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: 'Session başlat' })).toBeTruthy();
+      const toggle = screen.getByRole('switch');
+      expect(toggle.getAttribute('aria-checked')).toBe('false');
     });
 
     await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: 'Session başlat' }));
+      fireEvent.click(screen.getByRole('switch'));
     });
 
     await waitFor(() => {
@@ -111,23 +115,6 @@ describe('DashboardView', () => {
     render(<DashboardView />);
     await waitFor(() => {
       expect(screen.getByText('Tüm veriler cihazınızda')).toBeTruthy();
-    });
-  });
-
-  it('Veri Kaynakları bölümü tıklanınca toggle\'lar gösterilir', async () => {
-    render(<DashboardView />);
-
-    await waitFor(() => {
-      expect(screen.getByText('Veri Kaynakları')).toBeTruthy();
-    });
-
-    await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: 'Veri kaynakları bölümünü aç/kapat' }));
-    });
-
-    await waitFor(() => {
-      expect(screen.getByText('HAR (XHR/Fetch)')).toBeTruthy();
-      expect(screen.getByText('Console')).toBeTruthy();
     });
   });
 

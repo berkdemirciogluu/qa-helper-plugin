@@ -347,7 +347,11 @@ if (isContextValid && checkContext()) {
       payload: {},
     })
     .then(
-      (response: { success: boolean; data?: { recording: boolean; tabId: number; previousUrl?: string } } | undefined) => {
+      (
+        response:
+          | { success: boolean; data?: { recording: boolean; tabId: number; previousUrl?: string } }
+          | undefined
+      ) => {
         if (response?.success && response.data?.recording && response.data.tabId) {
           const prevUrl = response.data.previousUrl ?? '';
           const currentUrl = location.href;

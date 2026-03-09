@@ -1,19 +1,17 @@
 import { signal } from '@preact/signals';
 import { useEffect, useRef } from 'preact/hooks';
-import { Lock, Settings, Bug, ChevronDown, ChevronRight } from 'lucide-preact';
+import { Lock, Settings, Bug } from 'lucide-preact';
 
 import { SessionControl } from '@/components/domain/SessionControl';
 import { LiveCounters } from '@/components/domain/LiveCounters';
-import { Toggle } from '@/components/ui/Toggle';
 import { Button } from '@/components/ui/Button';
-import { Card } from '@/components/ui/Card';
 
 import { sendMessage } from '@/lib/messaging';
 import { MESSAGE_ACTIONS, STORAGE_KEYS } from '@/lib/constants';
-import { storageGet, storageSet } from '@/lib/storage';
+import { storageGet } from '@/lib/storage';
 import { showToast } from '@/components/ui/Toast';
 import { onboardingPulse } from '../view-state';
-import type { SessionMeta, SessionConfig, StartSessionPayload, StopSessionPayload, GetSessionStatusPayload } from '@/lib/types';
+import type { SessionMeta, SessionConfig, ConfigFields, StartSessionPayload, StopSessionPayload, GetSessionStatusPayload } from '@/lib/types';
 
 const DEFAULT_TOGGLES: SessionConfig['toggles'] = {
   har: true,
@@ -35,7 +33,12 @@ const counters = signal<SessionMeta['counters']>({
 });
 const toggles = signal<SessionConfig['toggles']>({ ...DEFAULT_TOGGLES });
 const isActionLoading = signal(false);
-const isTogglesOpen = signal(false);
+const configFields = signal<ConfigFields>({
+  environment: '',
+  testCycle: '',
+  agileTeam: '',
+  project: '',
+});
 
 interface DashboardViewProps {
   onOpenBugReport: () => void;
@@ -70,10 +73,13 @@ export function DashboardView({ onOpenBugReport }: DashboardViewProps) {
     tabIdRef.current = tab?.id ?? null;
     tabUrlRef.current = tab?.url ?? '';
 
-    // 2. Load toggle config from storage
+    // 2. Load toggle config and config fields from storage
     const configResult = await storageGet<SessionConfig>(STORAGE_KEYS.SESSION_CONFIG);
     if (configResult.success && configResult.data?.toggles) {
       toggles.value = configResult.data.toggles;
+    }
+    if (configResult.success && configResult.data?.configFields) {
+      configFields.value = configResult.data.configFields;
     }
 
     // 3. Query session status
@@ -204,117 +210,84 @@ export function DashboardView({ onOpenBugReport }: DashboardViewProps) {
     }
   }
 
-  async function handleToggleChange(
-    key: keyof SessionConfig['toggles'],
-    value: boolean,
-  ) {
-    const updated = { ...toggles.value, [key]: value };
-    toggles.value = updated;
-
-    const currentConfig = await storageGet<SessionConfig>(STORAGE_KEYS.SESSION_CONFIG);
-    const config: SessionConfig = currentConfig.success && currentConfig.data
-      ? { ...currentConfig.data, toggles: updated }
-      : { toggles: updated };
-
-    await storageSet(STORAGE_KEYS.SESSION_CONFIG, config);
-  }
-
   function handleOpenSettings() {
     chrome.runtime.openOptionsPage();
   }
 
-  const t = toggles.value;
   const c = counters.value;
   const status = sessionStatus.value;
+  const cfg = configFields.value;
+  const hasConfig = cfg.environment || cfg.project || cfg.testCycle;
 
   return (
     <div class="flex flex-col h-full overflow-x-hidden overflow-y-auto">
       {/* Header */}
-      <header class="flex items-center justify-between px-4 py-3 border-b border-gray-200">
-        <h1 class="text-sm font-semibold text-gray-900">QA Helper</h1>
+      <header class="flex items-center justify-between px-3 py-3 border-b border-gray-200">
+        <div class="flex items-center gap-2">
+          <div class="w-6 h-6 bg-blue-500 rounded-md flex items-center justify-center text-white text-xs font-bold" aria-hidden="true">Q</div>
+          <h1 class="text-sm font-semibold text-gray-900">QA Helper</h1>
+        </div>
         <button
           type="button"
           onClick={handleOpenSettings}
           aria-label="Ayarlar sayfasını aç"
-          class="flex items-center gap-1 text-xs text-gray-500 hover:text-gray-700 transition-colors focus-visible:outline-2 focus-visible:outline-blue-500 focus-visible:outline-offset-2 rounded"
+          class="w-7 h-7 rounded-md bg-gray-100 flex items-center justify-center text-gray-500 hover:text-gray-700 transition-colors focus-visible:outline-2 focus-visible:outline-blue-500 focus-visible:outline-offset-2"
         >
           <Settings size={14} />
-          Ayarlar
         </button>
       </header>
 
       {/* Main content */}
       <main class="flex flex-col gap-3 p-4 flex-1">
-        {/* Session Control Card */}
-        <Card>
+        {/* Session Control */}
+        <div class="bg-gray-50 rounded-lg p-3">
           <SessionControl
             status={status}
             elapsedSeconds={elapsedSeconds.value}
             onStart={() => void handleStartSession()}
             onStop={() => void handleStopSession()}
             loading={isActionLoading.value}
-            startPulse={onboardingPulse.value}
           />
-        </Card>
+        </div>
 
-        {/* Live Counters */}
-        <Card>
-          <LiveCounters
-            xhrRequests={c.xhrRequests}
-            consoleErrors={c.consoleErrors}
-            navEvents={c.navEvents}
-          />
-        </Card>
+        {/* Live Counters — Stat Chips */}
+        <LiveCounters
+          xhrRequests={c.xhrRequests}
+          consoleErrors={c.consoleErrors}
+          navEvents={c.navEvents}
+          clicks={c.clicks}
+        />
 
-        {/* Data Sources Toggle Section */}
-        <Card>
-          <button
-            type="button"
-            onClick={() => { isTogglesOpen.value = !isTogglesOpen.value; }}
-            aria-expanded={isTogglesOpen.value}
-            aria-label="Veri kaynakları bölümünü aç/kapat"
-            class="flex items-center gap-1.5 text-sm font-medium text-gray-700 w-full text-left focus-visible:outline-2 focus-visible:outline-blue-500 focus-visible:outline-offset-2 rounded"
-          >
-            {isTogglesOpen.value ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
-            Veri Kaynakları
-          </button>
-
-          {isTogglesOpen.value && (
-            <div class="flex flex-col gap-2 mt-1">
-              {(
-                [
-                  ['har', 'HAR (XHR/Fetch)'],
-                  ['console', 'Console'],
-                  ['dom', 'DOM'],
-                  ['localStorage', 'localStorage'],
-                  ['sessionStorage', 'sessionStorage'],
-                ] as [keyof SessionConfig['toggles'], string][]
-              ).map(([key, label]) => (
-                <div key={key} class="flex items-center justify-between gap-2">
-                  <label
-                    for={`toggle-${key}`}
-                    class="text-sm text-gray-600 cursor-pointer select-none"
-                  >
-                    {label}
-                  </label>
-                  <Toggle
-                    id={`toggle-${key}`}
-                    checked={t[key]}
-                    onChange={(val) => void handleToggleChange(key, val)}
-                    label={`${label} kaydını ${t[key] ? 'kapat' : 'aç'}`}
-                  />
-                </div>
-              ))}
-            </div>
-          )}
-        </Card>
+        {/* Config Section */}
+        {hasConfig && (
+          <div class="bg-gray-50 rounded-lg px-3 py-2 text-xs">
+            {cfg.environment && (
+              <div class="flex justify-between py-1 text-gray-500">
+                <span>Environment</span>
+                <span class="text-gray-700 font-medium capitalize">{cfg.environment}</span>
+              </div>
+            )}
+            {cfg.project && (
+              <div class="flex justify-between py-1 text-gray-500">
+                <span>Proje</span>
+                <span class="text-gray-700 font-medium">{cfg.project}</span>
+              </div>
+            )}
+            {cfg.testCycle && (
+              <div class="flex justify-between py-1 text-gray-500">
+                <span>Sprint</span>
+                <span class="text-gray-700 font-medium">{cfg.testCycle}</span>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Bug Report Button */}
         <Button
           variant="primary"
-          size="md"
+          size="lg"
           onClick={onOpenBugReport}
-          iconLeft={<Bug size={14} />}
+          iconLeft={<Bug size={16} />}
           aria-label="Bug raporla"
           class="w-full"
         >

@@ -3,7 +3,7 @@ import { render, screen, fireEvent } from '@testing-library/preact';
 import { SessionControl } from './SessionControl';
 
 describe('SessionControl', () => {
-  it('idle state: "Pasif" metni ve "Session Başlat" butonu gösterilir', () => {
+  it('idle state: "Session Pasif" metni gösterilir', () => {
     render(
       <SessionControl
         status="idle"
@@ -12,11 +12,10 @@ describe('SessionControl', () => {
         onStop={() => {}}
       />,
     );
-    expect(screen.getByText('Pasif')).toBeTruthy();
-    expect(screen.getByRole('button', { name: 'Session başlat' })).toBeTruthy();
+    expect(screen.getByText('Session Pasif')).toBeTruthy();
   });
 
-  it('idle state: "Durdur" butonu gösterilmez', () => {
+  it('idle state: toggle switch OFF durumunda', () => {
     render(
       <SessionControl
         status="idle"
@@ -25,10 +24,11 @@ describe('SessionControl', () => {
         onStop={() => {}}
       />,
     );
-    expect(screen.queryByRole('button', { name: 'Session durdur' })).toBeNull();
+    const toggle = screen.getByRole('switch');
+    expect(toggle.getAttribute('aria-checked')).toBe('false');
   });
 
-  it('recording state: "Aktif" metni ve "Durdur" butonu gösterilir', () => {
+  it('recording state: "Session Aktif" metni ve süre gösterilir', () => {
     render(
       <SessionControl
         status="recording"
@@ -37,23 +37,24 @@ describe('SessionControl', () => {
         onStop={() => {}}
       />,
     );
-    expect(screen.getByText('Aktif')).toBeTruthy();
-    expect(screen.getByRole('button', { name: 'Session durdur' })).toBeTruthy();
-  });
-
-  it('recording state: süre MM:SS formatında gösterilir', () => {
-    render(
-      <SessionControl
-        status="recording"
-        elapsedSeconds={65}
-        onStart={() => {}}
-        onStop={() => {}}
-      />,
-    );
+    expect(screen.getByText(/Session Aktif/)).toBeTruthy();
     expect(screen.getByText('01:05')).toBeTruthy();
   });
 
-  it('idle state: "Session Başlat" butonuna basınca onStart çağrılır', () => {
+  it('recording state: toggle switch ON durumunda', () => {
+    render(
+      <SessionControl
+        status="recording"
+        elapsedSeconds={10}
+        onStart={() => {}}
+        onStop={() => {}}
+      />,
+    );
+    const toggle = screen.getByRole('switch');
+    expect(toggle.getAttribute('aria-checked')).toBe('true');
+  });
+
+  it('idle state: toggle ON yapınca onStart çağrılır', () => {
     const onStart = vi.fn();
     render(
       <SessionControl
@@ -63,11 +64,11 @@ describe('SessionControl', () => {
         onStop={() => {}}
       />,
     );
-    fireEvent.click(screen.getByRole('button', { name: 'Session başlat' }));
+    fireEvent.click(screen.getByRole('switch'));
     expect(onStart).toHaveBeenCalled();
   });
 
-  it('recording state: "Durdur" butonuna basınca onStop çağrılır', () => {
+  it('recording state: toggle OFF yapınca onStop çağrılır', () => {
     const onStop = vi.fn();
     render(
       <SessionControl
@@ -77,7 +78,7 @@ describe('SessionControl', () => {
         onStop={onStop}
       />,
     );
-    fireEvent.click(screen.getByRole('button', { name: 'Session durdur' }));
+    fireEvent.click(screen.getByRole('switch'));
     expect(onStop).toHaveBeenCalled();
   });
 

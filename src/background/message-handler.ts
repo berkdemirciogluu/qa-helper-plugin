@@ -30,7 +30,7 @@ export function setupMessageHandler(): void {
   onMessage<KnownPayload>(
     async (
       message: Message<KnownPayload>,
-      sender: chrome.runtime.MessageSender,
+      sender: chrome.runtime.MessageSender
     ): Promise<MessageResponse<unknown>> => {
       const { action, payload } = message;
 
@@ -88,7 +88,10 @@ export function setupMessageHandler(): void {
 
           case MESSAGE_ACTIONS.FLUSH_DATA: {
             if (!isValidPayload(payload, 'tabId', 'dataType', 'events')) {
-              return { success: false, error: 'Invalid payload: tabId, dataType and events required' };
+              return {
+                success: false,
+                error: 'Invalid payload: tabId, dataType and events required',
+              };
             }
             const p = payload as FlushDataPayload;
 
@@ -105,14 +108,15 @@ export function setupMessageHandler(): void {
             const consoleErrorCount =
               p.dataType === 'console'
                 ? p.events.filter(
-                    (e) => e.type === 'console' && (e as { level: string }).level === 'error',
+                    (e) => e.type === 'console' && (e as { level: string }).level === 'error'
                   ).length
                 : 0;
             const navCount = p.dataType === 'nav' ? p.events.length : 0;
 
             if (xhrCount > 0) await updateCounters(p.tabId, 'xhr', xhrCount);
             if (clickCount > 0) await updateCounters(p.tabId, 'click', clickCount);
-            if (consoleErrorCount > 0) await updateCounters(p.tabId, 'consoleError', consoleErrorCount);
+            if (consoleErrorCount > 0)
+              await updateCounters(p.tabId, 'consoleError', consoleErrorCount);
             if (navCount > 0) await updateCounters(p.tabId, 'nav', navCount);
 
             return { success: true };
@@ -151,6 +155,6 @@ export function setupMessageHandler(): void {
         console.error(`[MessageHandler] Error handling action "${action}":`, error);
         return { success: false, error };
       }
-    },
+    }
   );
 }

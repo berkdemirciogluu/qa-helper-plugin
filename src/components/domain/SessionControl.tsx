@@ -1,6 +1,6 @@
 import type { SessionStatus } from '@/lib/types';
 import { StatusDot } from '@/components/ui/StatusDot';
-import { Button } from '@/components/ui/Button';
+import { Toggle } from '@/components/ui/Toggle';
 
 interface SessionControlProps {
   status: SessionStatus;
@@ -23,54 +23,42 @@ export function SessionControl({
   onStart,
   onStop,
   loading = false,
-  startPulse = false,
 }: SessionControlProps) {
   const isRecording = status === 'recording';
   const dotVariant = isRecording ? 'active' : 'inactive';
-  const statusLabel = isRecording ? 'Aktif' : 'Pasif';
+
+  function handleToggle(checked: boolean) {
+    if (loading) return;
+    if (checked) onStart();
+    else onStop();
+  }
 
   return (
     <div class="flex items-center justify-between gap-2">
-      <div class="flex items-center gap-2">
+      <div class="flex items-center gap-2.5">
         <StatusDot variant={dotVariant} />
         <span
           class="text-sm font-medium text-gray-700"
-          aria-label={`Session durumu: ${statusLabel}`}
+          aria-label={`Session durumu: ${isRecording ? 'Aktif' : 'Pasif'}`}
         >
-          {statusLabel}
+          {isRecording ? (
+            <>
+              Session Aktif —{' '}
+              <span class="tabular-nums">{formatDuration(elapsedSeconds)}</span>
+            </>
+          ) : (
+            'Session Pasif'
+          )}
         </span>
-        {isRecording && (
-          <span
-            class="text-sm text-gray-500 tabular-nums"
-            aria-label={`Geçen süre: ${formatDuration(elapsedSeconds)}`}
-          >
-            {formatDuration(elapsedSeconds)}
-          </span>
-        )}
       </div>
 
-      {isRecording ? (
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={onStop}
-          loading={loading}
-          aria-label="Session durdur"
-        >
-          Durdur
-        </Button>
-      ) : (
-        <Button
-          variant="primary"
-          size="sm"
-          onClick={onStart}
-          loading={loading}
-          aria-label="Session başlat"
-          class={startPulse ? 'animate-pulse' : ''}
-        >
-          Session Başlat
-        </Button>
-      )}
+      <Toggle
+        checked={isRecording}
+        onChange={handleToggle}
+        label={isRecording ? 'Session durdur' : 'Session başlat'}
+        disabled={loading}
+        color="green"
+      />
     </div>
   );
 }

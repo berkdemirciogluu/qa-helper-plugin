@@ -75,7 +75,9 @@
           if (!rt || rt === 'text' || rt === '' || rt === 'json') {
             resBody = rt === 'json' ? JSON.stringify(xhr.response) : xhr.responseText;
           }
-        } catch (_e) { /* blob/arraybuffer/document — atla */ }
+        } catch (_e) {
+          /* blob/arraybuffer/document — atla */
+        }
         window.postMessage(
           {
             type: QA_XHR,
