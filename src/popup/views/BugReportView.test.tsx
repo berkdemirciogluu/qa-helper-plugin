@@ -118,14 +118,6 @@ describe('BugReportView', () => {
     });
   });
 
-  it('priority select renders with Medium default value', async () => {
-    render(<BugReportView hasSession={true} />);
-    await waitFor(() => {
-      const select = screen.getByLabelText('Priority') as HTMLSelectElement;
-      expect(select.value).toBe('medium');
-    });
-  });
-
   it('Steps to Reproduce is closed by default', async () => {
     render(<BugReportView hasSession={true} />);
     await waitFor(() => {

@@ -342,7 +342,7 @@ export function BugReportView({ hasSession }: { hasSession: boolean }) {
     });
 
     const description = buildDescription({
-      form,
+      form: { expectedResult: form.expectedResult, reason: form.reason },
       stepsText: stepsText.value,
       environment,
     });
@@ -386,7 +386,6 @@ export function BugReportView({ hasSession }: { hasSession: boolean }) {
       form: {
         expectedResult: formExpected.value,
         reason: formReason.value,
-        priority: formPriority.value,
       },
       stepsText: stepsText.value,
       environment,
@@ -512,26 +511,28 @@ export function BugReportView({ hasSession }: { hasSession: boolean }) {
             />
           </div>
 
-          {/* Priority */}
-          <div class="flex flex-col gap-1">
-            <label for="bug-priority" class="text-xs font-medium text-gray-700">
-              Priority
-            </label>
-            <select
-              id="bug-priority"
-              value={formPriority.value}
-              onChange={(e) => {
-                formPriority.value = (e.target as HTMLSelectElement)
-                  .value as typeof formPriority.value;
-              }}
-              class="w-full rounded-md border border-gray-200 bg-gray-50 px-2.5 py-2 text-[13px] text-gray-700 focus:outline-2 focus:outline-blue-500 focus:outline-offset-[-1px] focus:border-blue-500"
-            >
-              <option value="critical">Critical</option>
-              <option value="high">High</option>
-              <option value="medium">Medium</option>
-              <option value="low">Low</option>
-            </select>
-          </div>
+          {/* Priority — only shown when Jira is configured */}
+          {jiraConfigured.value && (
+            <div class="flex flex-col gap-1">
+              <label for="bug-priority" class="text-xs font-medium text-gray-700">
+                Priority
+              </label>
+              <select
+                id="bug-priority"
+                value={formPriority.value}
+                onChange={(e) => {
+                  formPriority.value = (e.target as HTMLSelectElement)
+                    .value as typeof formPriority.value;
+                }}
+                class="w-full rounded-md border border-gray-200 bg-gray-50 px-2.5 py-2 text-[13px] text-gray-700 focus:outline-2 focus:outline-blue-500 focus:outline-offset-[-1px] focus:border-blue-500"
+              >
+                <option value="critical">Critical</option>
+                <option value="high">High</option>
+                <option value="medium">Medium</option>
+                <option value="low">Low</option>
+              </select>
+            </div>
+          )}
         </div>
 
         {/* Steps to Reproduce — collapsible */}

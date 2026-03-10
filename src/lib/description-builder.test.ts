@@ -4,7 +4,6 @@ import { buildDescription } from './description-builder';
 const defaultForm = {
   expectedResult: 'Clicking the login button should redirect to the homepage',
   reason: 'Clicking the login button returns a 500 error',
-  priority: 'high' as const,
 };
 
 const defaultEnvironment = {
@@ -29,23 +28,22 @@ describe('buildDescription', () => {
     expect(result).toContain('Clicking the login button should redirect to the homepage');
     expect(result).toContain('**Why Bug:**');
     expect(result).toContain('Clicking the login button returns a 500 error');
-    expect(result).toContain('**Priority:** High');
     expect(result).toContain('**Steps to Reproduce:**');
     expect(result).toContain('1. Navigated to page');
     expect(result).toContain('**Environment:**');
     expect(result).toContain('Chrome 133');
+    expect(result).not.toContain('**Priority:**');
     expect(result).not.toContain('**Configuration:**');
   });
 
   it('works with empty form data', () => {
     const result = buildDescription({
-      form: { expectedResult: '', reason: '', priority: 'medium' },
+      form: { expectedResult: '', reason: '' },
       stepsText: '',
       environment: defaultEnvironment,
     });
 
     expect(result).toContain('## Bug Report');
-    expect(result).toContain('**Priority:** Medium');
   });
 
   it('formats and includes environment info correctly', () => {
@@ -61,16 +59,6 @@ describe('buildDescription', () => {
     expect(result).toContain('- Pixel Ratio: 1');
     expect(result).toContain('- Language: tr-TR');
     expect(result).toContain('- URL: https://app.com/login');
-  });
-
-  it('capitalizes priority value', () => {
-    const result = buildDescription({
-      form: { expectedResult: '', reason: '', priority: 'critical' },
-      stepsText: '',
-      environment: defaultEnvironment,
-    });
-
-    expect(result).toContain('**Priority:** Critical');
   });
 
   it('footer contains date and project name', () => {

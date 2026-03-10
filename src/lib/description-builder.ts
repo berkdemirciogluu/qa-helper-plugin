@@ -2,7 +2,6 @@ interface BuildDescriptionInput {
   form: {
     expectedResult: string;
     reason: string;
-    priority: string;
   };
   stepsText: string;
   environment: {
@@ -13,11 +12,6 @@ interface BuildDescriptionInput {
     language: string;
     url: string;
   };
-}
-
-function capitalize(str: string): string {
-  if (!str) return str;
-  return str.charAt(0).toUpperCase() + str.slice(1);
 }
 
 export function buildDescription(input: BuildDescriptionInput): string {
@@ -32,8 +26,6 @@ export function buildDescription(input: BuildDescriptionInput): string {
     '',
     '**Why Bug:**',
     form.reason,
-    '',
-    `**Priority:** ${capitalize(form.priority)}`,
     '',
     '---',
     '',
