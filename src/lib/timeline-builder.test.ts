@@ -159,6 +159,24 @@ describe('buildTimeline', () => {
     });
   });
 
+  it('defaults context to empty strings when configFields omitted', () => {
+    const result = buildTimeline({
+      snapshotData: makeSnapshotData(),
+      clicks: [],
+      navs: [],
+      xhrs: [],
+      consoleLogs: [],
+      form: defaultForm,
+    });
+
+    expect(result.context).toEqual({
+      environment: '',
+      project: '',
+      agileTeam: '',
+      testCycle: '',
+    });
+  });
+
   it('sorts timeline entries by timestamp', () => {
     const result = buildTimeline({
       snapshotData: makeSnapshotData(),

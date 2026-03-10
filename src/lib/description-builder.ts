@@ -1,5 +1,3 @@
-import type { ConfigFields } from './types';
-
 interface BuildDescriptionInput {
   form: {
     expectedResult: string;
@@ -15,7 +13,6 @@ interface BuildDescriptionInput {
     language: string;
     url: string;
   };
-  configFields: ConfigFields;
 }
 
 function capitalize(str: string): string {
@@ -24,7 +21,7 @@ function capitalize(str: string): string {
 }
 
 export function buildDescription(input: BuildDescriptionInput): string {
-  const { form, stepsText, environment, configFields } = input;
+  const { form, stepsText, environment } = input;
   const date = new Date().toISOString().slice(0, 10);
 
   const lines: string[] = [
@@ -52,12 +49,6 @@ export function buildDescription(input: BuildDescriptionInput): string {
     `- Pixel Ratio: ${environment.pixelRatio}`,
     `- Language: ${environment.language}`,
     `- URL: ${environment.url}`,
-    '',
-    '**Configuration:**',
-    `- Environment: ${configFields.environment}`,
-    `- Project: ${configFields.project}`,
-    `- Agile Team: ${configFields.agileTeam}`,
-    `- Test Cycle: ${configFields.testCycle}`,
     '',
     '---',
     `Report: qa-helper-plugin | ${date}`,

@@ -1,18 +1,10 @@
 import { describe, it, expect } from 'vitest';
 import { buildDescription } from './description-builder';
-import type { ConfigFields } from './types';
 
 const defaultForm = {
   expectedResult: 'Clicking the login button should redirect to the homepage',
   reason: 'Clicking the login button returns a 500 error',
   priority: 'high' as const,
-};
-
-const defaultConfig: ConfigFields = {
-  environment: 'staging',
-  project: 'e-commerce',
-  agileTeam: 'Team Alpha',
-  testCycle: 'Sprint 1',
 };
 
 const defaultEnvironment = {
@@ -30,7 +22,6 @@ describe('buildDescription', () => {
       form: defaultForm,
       stepsText: '1. Navigated to page\n2. Clicked button',
       environment: defaultEnvironment,
-      configFields: defaultConfig,
     });
 
     expect(result).toContain('## Bug Report');
@@ -43,8 +34,7 @@ describe('buildDescription', () => {
     expect(result).toContain('1. Navigated to page');
     expect(result).toContain('**Environment:**');
     expect(result).toContain('Chrome 133');
-    expect(result).toContain('**Configuration:**');
-    expect(result).toContain('staging');
+    expect(result).not.toContain('**Configuration:**');
   });
 
   it('works with empty form data', () => {
@@ -52,7 +42,6 @@ describe('buildDescription', () => {
       form: { expectedResult: '', reason: '', priority: 'medium' },
       stepsText: '',
       environment: defaultEnvironment,
-      configFields: defaultConfig,
     });
 
     expect(result).toContain('## Bug Report');
@@ -64,7 +53,6 @@ describe('buildDescription', () => {
       form: defaultForm,
       stepsText: '',
       environment: defaultEnvironment,
-      configFields: defaultConfig,
     });
 
     expect(result).toContain('- Browser: Chrome 133');
@@ -75,26 +63,11 @@ describe('buildDescription', () => {
     expect(result).toContain('- URL: https://app.com/login');
   });
 
-  it('formats and includes configuration fields correctly', () => {
-    const result = buildDescription({
-      form: defaultForm,
-      stepsText: '',
-      environment: defaultEnvironment,
-      configFields: defaultConfig,
-    });
-
-    expect(result).toContain('- Environment: staging');
-    expect(result).toContain('- Project: e-commerce');
-    expect(result).toContain('- Agile Team: Team Alpha');
-    expect(result).toContain('- Test Cycle: Sprint 1');
-  });
-
   it('capitalizes priority value', () => {
     const result = buildDescription({
       form: { expectedResult: '', reason: '', priority: 'critical' },
       stepsText: '',
       environment: defaultEnvironment,
-      configFields: defaultConfig,
     });
 
     expect(result).toContain('**Priority:** Critical');
@@ -105,7 +78,6 @@ describe('buildDescription', () => {
       form: defaultForm,
       stepsText: '',
       environment: defaultEnvironment,
-      configFields: defaultConfig,
     });
 
     expect(result).toContain('Report: qa-helper-plugin');

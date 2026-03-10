@@ -36,7 +36,6 @@ import type {
   NavEvent,
   XhrEvent,
   ConfigFields as ConfigFieldsType,
-  SessionConfig,
   JiraCredentials,
 } from '@/lib/types';
 import type { JiraConfiguredField } from '@/lib/jira/jira-types';
@@ -125,12 +124,6 @@ export function BugReportView({ hasSession }: { hasSession: boolean }) {
         }
         dynamicFieldValues.value = defaults;
       }
-    }
-
-    // Config alanlarını storage'dan yükle
-    const configResult = await storageGet<SessionConfig>(STORAGE_KEYS.SESSION_CONFIG);
-    if (configResult.success && configResult.data?.configFields) {
-      configFields.value = configResult.data.configFields;
     }
 
     // Session varsa tıklama ve XHR verilerini oku
@@ -346,14 +339,12 @@ export function BugReportView({ hasSession }: { hasSession: boolean }) {
       xhrs,
       consoleLogs: data.consoleLogs,
       form,
-      configFields: configFields.value,
     });
 
     const description = buildDescription({
       form,
       stepsText: stepsText.value,
       environment,
-      configFields: configFields.value,
     });
 
     const result = await exportBugReportZip({
@@ -399,7 +390,6 @@ export function BugReportView({ hasSession }: { hasSession: boolean }) {
       },
       stepsText: stepsText.value,
       environment,
-      configFields: configFields.value,
     });
 
     const result = await copyToClipboard(description);

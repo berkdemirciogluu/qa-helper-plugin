@@ -10,7 +10,6 @@ import { sendMessage } from '@/lib/messaging';
 import { MESSAGE_ACTIONS, STORAGE_KEYS } from '@/lib/constants';
 import { storageGet } from '@/lib/storage';
 import { showToast } from '@/components/ui/Toast';
-import { onboardingPulse } from '../view-state';
 import type {
   SessionMeta,
   SessionConfig,
@@ -56,15 +55,6 @@ export function DashboardView({ onOpenBugReport }: DashboardViewProps) {
   const tabUrlRef = useRef<string>('');
   const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const durationRef = useRef<ReturnType<typeof setInterval> | null>(null);
-
-  // Onboarding pulse — 5 saniye sonra otomatik kapanır
-  useEffect(() => {
-    if (!onboardingPulse.value) return;
-    const timer = setTimeout(() => {
-      onboardingPulse.value = false;
-    }, 5000);
-    return () => clearTimeout(timer);
-  }, [onboardingPulse.value]);
 
   // Initialize: load tab info, session status, and config toggles
   useEffect(() => {
@@ -178,9 +168,6 @@ export function DashboardView({ onOpenBugReport }: DashboardViewProps) {
       showToast('error', 'No active tab found.');
       return;
     }
-
-    // Onboarding pulse göründüyse kullanıcı aksiyon aldı — kapat
-    onboardingPulse.value = false;
 
     isActionLoading.value = true;
     const result = await sendMessage<StartSessionPayload, SessionMeta>({

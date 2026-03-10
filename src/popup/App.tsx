@@ -1,36 +1,18 @@
-import { useState, useEffect } from 'preact/hooks';
+import { useState } from 'preact/hooks';
 import { AlertCircle } from 'lucide-preact';
 import { DashboardView } from './views/DashboardView';
 import { BugReportView } from './views/BugReportView';
-import { OnboardingView } from './views/OnboardingView';
 import { ToastContainer } from '@/components/ui/Toast';
 import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
 import { sendMessage } from '@/lib/messaging';
-import { MESSAGE_ACTIONS, STORAGE_KEYS } from '@/lib/constants';
-import { storageGet } from '@/lib/storage';
+import { MESSAGE_ACTIONS } from '@/lib/constants';
 import { currentView, slideDirection } from './view-state';
 import type { GetSessionStatusPayload, SessionMeta } from '@/lib/types';
 
 export function App() {
   const [showSessionWarning, setShowSessionWarning] = useState(false);
   const [hasSession, setHasSession] = useState(false);
-
-  useEffect(() => {
-    void checkOnboarding();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  async function checkOnboarding() {
-    try {
-      const result = await storageGet<boolean>(STORAGE_KEYS.ONBOARDING_COMPLETED);
-      if (!result.success || result.data !== true) {
-        currentView.value = 'onboarding';
-      }
-    } catch {
-      currentView.value = 'onboarding';
-    }
-  }
 
   async function handleOpenBugReport() {
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
@@ -99,11 +81,6 @@ export function App() {
         </div>
       </Modal>
 
-      {view === 'onboarding' && (
-        <div class="flex flex-col h-full fade-enter">
-          <OnboardingView />
-        </div>
-      )}
       {view === 'dashboard' && (
         <div class={`flex flex-col h-full ${animClass}`}>
           <DashboardView onOpenBugReport={() => void handleOpenBugReport()} />

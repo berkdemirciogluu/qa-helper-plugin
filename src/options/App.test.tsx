@@ -32,7 +32,7 @@ describe('Options App', () => {
     render(<App />);
 
     expect(screen.getByText('General')).toBeTruthy();
-    expect(screen.getByText('Configuration')).toBeTruthy();
+    expect(screen.getByText('Jira Integration')).toBeTruthy();
     expect(screen.getByText('Data Management')).toBeTruthy();
     expect(screen.getByText('About')).toBeTruthy();
   });
@@ -56,18 +56,6 @@ describe('Options App', () => {
 
     await waitFor(() => {
       expect(screen.getByText('Version: 0.1.0')).toBeTruthy();
-    });
-  });
-
-  it('can navigate to Configuration page from sidebar', async () => {
-    render(<App />);
-
-    const configButtons = screen.getAllByText('Configuration');
-    const navButton = configButtons.find((el) => el.closest('nav button'));
-    fireEvent.click(navButton || configButtons[0]);
-
-    await waitFor(() => {
-      expect(screen.getByText('Configuration Fields')).toBeTruthy();
     });
   });
 

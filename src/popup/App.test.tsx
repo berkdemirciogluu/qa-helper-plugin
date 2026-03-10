@@ -22,8 +22,7 @@ vi.stubGlobal('chrome', {
   },
   storage: {
     local: {
-      // Varsayılan: onboarding tamamlanmış — DashboardView gösterilir
-      get: vi.fn().mockResolvedValue({ onboarding_completed: true }),
+      get: vi.fn().mockResolvedValue({}),
       set: vi.fn().mockResolvedValue(undefined),
     },
   },
@@ -34,13 +33,8 @@ const viewState = await import('./view-state');
 
 beforeEach(() => {
   vi.clearAllMocks();
-  // Her test öncesi view-state sıfırla
   viewState.currentView.value = 'dashboard';
-  viewState.onboardingPulse.value = false;
-  // Varsayılan storage mock'u geri yükle
-  (chrome.storage.local.get as ReturnType<typeof vi.fn>).mockResolvedValue({
-    onboarding_completed: true,
-  });
+  (chrome.storage.local.get as ReturnType<typeof vi.fn>).mockResolvedValue({});
   (chrome.storage.local.set as ReturnType<typeof vi.fn>).mockResolvedValue(undefined);
 });
 
@@ -48,7 +42,6 @@ describe('App', () => {
   it('renders DashboardView by default', async () => {
     render(<App />);
     await waitFor(() => {
-      // DashboardView içinde "QA Helper" başlığı var
       expect(screen.getByRole('heading', { name: 'QA Helper' })).toBeTruthy();
     });
   });
@@ -63,22 +56,5 @@ describe('App', () => {
     render(<App />);
     const root = document.querySelector('.max-h-\\[600px\\]');
     expect(root).toBeTruthy();
-  });
-
-  it('shows OnboardingView when onboarding_completed is false', async () => {
-    (chrome.storage.local.get as ReturnType<typeof vi.fn>).mockResolvedValue({});
-    render(<App />);
-
-    await waitFor(() => {
-      expect(screen.getByText('Environment Info')).toBeTruthy();
-    });
-  });
-
-  it('shows DashboardView when onboarding_completed is true', async () => {
-    render(<App />);
-
-    await waitFor(() => {
-      expect(screen.getByRole('heading', { name: 'QA Helper' })).toBeTruthy();
-    });
   });
 });

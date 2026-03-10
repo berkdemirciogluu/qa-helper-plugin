@@ -91,7 +91,7 @@ interface BuildTimelineInput {
     reason: string;
     priority: string;
   };
-  configFields: ConfigFields;
+  configFields?: ConfigFields;
 }
 
 export function buildTimeline(input: BuildTimelineInput): TimelineJSON {
@@ -142,10 +142,10 @@ export function buildTimeline(input: BuildTimelineInput): TimelineJSON {
       url: meta.url,
     },
     context: {
-      environment: configFields.environment,
-      project: configFields.project,
-      agileTeam: configFields.agileTeam,
-      testCycle: configFields.testCycle,
+      environment: configFields?.environment ?? '',
+      project: configFields?.project ?? '',
+      agileTeam: configFields?.agileTeam ?? '',
+      testCycle: configFields?.testCycle ?? '',
     },
     timeline,
     errorSummary: {
