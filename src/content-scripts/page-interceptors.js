@@ -162,28 +162,32 @@
 
   ['log', 'warn', 'error', 'info'].forEach(function (level) {
     console[level] = function () {
-      var args = Array.prototype.slice.call(arguments);
-      var msg = args
-        .map(function (a) {
-          try {
-            return typeof a === 'object' ? JSON.stringify(a) : String(a);
-          } catch (e) {
-            return String(a);
-          }
-        })
-        .join(' ');
-      var stack = level === 'error' ? new Error().stack || '' : undefined;
-      window.postMessage(
-        {
-          type: QA_CONSOLE,
-          level: level,
-          message: msg,
-          stack: stack,
-          timestamp: Date.now(),
-        },
-        '*'
-      );
-      _origConsole[level].apply(console, args);
+      _origConsole[level].apply(console, arguments);
+      try {
+        var args = Array.prototype.slice.call(arguments);
+        var msg = args
+          .map(function (a) {
+            try {
+              return typeof a === 'object' ? JSON.stringify(a) : String(a);
+            } catch (e) {
+              return String(a);
+            }
+          })
+          .join(' ');
+        var stack = level === 'error' ? new Error().stack || '' : undefined;
+        window.postMessage(
+          {
+            type: QA_CONSOLE,
+            level: level,
+            message: msg,
+            stack: stack,
+            timestamp: Date.now(),
+          },
+          '*'
+        );
+      } catch (_e) {
+        /* silently ignore interception errors */
+      }
     };
   });
 

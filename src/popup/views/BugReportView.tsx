@@ -281,7 +281,8 @@ export function BugReportView({ hasSession }: { hasSession: boolean }) {
         }
       } else {
         jiraExportStatus.value = 'error';
-        showToast('error', `Could not connect to Jira. Would you like to download as ZIP?`);
+        console.error('[JiraExport] exportToJira failed:', result.error);
+        showToast('error', result.error || 'Could not connect to Jira. Would you like to download as ZIP?');
       }
     } catch {
       jiraExportStatus.value = 'error';

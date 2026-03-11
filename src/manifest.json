@@ -1,5 +1,6 @@
 {
   "manifest_version": 3,
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAu9hKZWPaoeLG4+oqixoyo3MFE9v4Yyqi9h8Qmfa1PuhuaG1XYQTQruTDP558HrnDHz5UfQrhBAn+eTTR552gAZzh1HlUyWI1TpH7t3ixLc93HhF8GURQuB21efrkqrw/qJmrcyH8cSO9QDc6kr80jhAsh0BDwDvgv0nLBJVOFDd5IwBbIbg0QNc3XyVOs05RuKTUJ+pHTYrGfv01fLB/rbsqmDmtqeXDCuZiAZ5AaNOso0cJiTKJ7FzC8S95dWB7AmVSeb62QjrZtsel9mbiM1IQJKYchq6e63nMiOcV/f1Kza4GJlg97rhr03PFDlKP44CJBK+tGXOfAvcVgcNWaQIDAQAB",
   "name": "QA Helper",
   "version": "0.1.0",
   "description": "QA session recording, bug reporting, ZIP export and Jira integration tool",

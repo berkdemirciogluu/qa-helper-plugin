@@ -31,7 +31,10 @@ export interface JiraExportParams {
 /** Dinamik alan tip serializasyonu */
 export function serializeDynamicField(field: JiraConfiguredField, value: string): unknown {
   if (!value) return undefined;
-  const { schemaType, schemaItems } = field;
+  const { schemaType, schemaItems, allowedValues } = field;
+
+  // allowedValues varsa dropdown'dan id gelir → { id } formatı kullan
+  const hasAllowed = allowedValues && allowedValues.length > 0;
 
   if (schemaType === 'number') {
     const num = parseFloat(value);
@@ -43,12 +46,14 @@ export function serializeDynamicField(field: JiraConfiguredField, value: string)
       .split(',')
       .map((s) => s.trim())
       .filter(Boolean);
-    if (schemaItems === 'option') return items.map((v) => ({ value: v }));
+    if (schemaItems === 'option') return items.map((v) => ({ id: v }));
     if (schemaItems === 'user') return items.map((v) => ({ accountId: v }));
     return items;
   }
-  if (schemaType === 'option') return { value };
+  if (schemaType === 'option') return { id: value };
   if (schemaType === 'user') return { accountId: value };
+  // team, sprint, priority vb. — id bazlı alanlar
+  if (hasAllowed) return { id: value };
   return value;
 }
 

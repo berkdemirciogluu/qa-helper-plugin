@@ -26,16 +26,8 @@ export interface RefreshResult {
 /** Atlassian OAuth 2.0 authorization URL oluşturur */
 export function buildAuthUrl(state: string): string {
   const redirectUri = chrome.identity.getRedirectURL('atlassian');
-  const params = new URLSearchParams({
-    audience: 'api.atlassian.com',
-    client_id: JIRA_OAUTH_CLIENT_ID,
-    scope: JIRA_OAUTH_SCOPES,
-    redirect_uri: redirectUri,
-    state,
-    response_type: 'code',
-    prompt: 'consent',
-  });
-  return `${JIRA_AUTH_URL}?${params.toString()}`;
+  const e = encodeURIComponent;
+  return `${JIRA_AUTH_URL}?audience=${e('api.atlassian.com')}&client_id=${e(JIRA_OAUTH_CLIENT_ID)}&scope=${e(JIRA_OAUTH_SCOPES)}&redirect_uri=${e(redirectUri)}&state=${e(state)}&response_type=code&prompt=consent`;
 }
 
 /** Chrome extension OAuth 2.0 (3LO) akışını başlatır */
@@ -43,6 +35,8 @@ export async function startOAuthFlow(): Promise<Result<OAuthFlowResult>> {
   try {
     const state = crypto.randomUUID();
     const authUrl = buildAuthUrl(state);
+    console.log('[JiraAuth] redirect_uri:', chrome.identity.getRedirectURL('atlassian'));
+    console.log('[JiraAuth] auth URL:', authUrl);
 
     let redirectUrl: string | undefined;
     try {

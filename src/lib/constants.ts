@@ -39,7 +39,7 @@ export const STATIC_ASSET_EXTENSIONS = [
   '.woff', '.woff2', '.ttf', '.eot', '.ico', '.map', '.webp', '.avif',
 ] as const;
 
-/** Jira OAuth 2.0 sabitleri */
+/** Jira OAuth 2.0 (3LO) */
 export const JIRA_OAUTH_CLIENT_ID = import.meta.env.VITE_JIRA_OAUTH_CLIENT_ID ?? '';
 export const JIRA_OAUTH_CLIENT_SECRET = import.meta.env.VITE_JIRA_OAUTH_CLIENT_SECRET ?? '';
 
@@ -51,7 +51,7 @@ export const JIRA_ACCESSIBLE_RESOURCES_URL = 'https://api.atlassian.com/oauth/to
 export const JIRA_CLOUD_API_BASE = 'https://api.atlassian.com/ex/jira';
 
 /** OAuth 2.0 scope'ları */
-export const JIRA_OAUTH_SCOPES = 'read:jira-work write:jira-work read:jira-user offline_access';
+export const JIRA_OAUTH_SCOPES = 'read:jira-work write:jira-work read:jira-user';
 
 /** Mesaj action isimleri */
 export const MESSAGE_ACTIONS = {

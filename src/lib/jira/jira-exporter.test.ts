@@ -240,9 +240,9 @@ describe('serializeDynamicField', () => {
     expect(result).toBe('hello');
   });
 
-  it('serializes option type as { value }', () => {
+  it('serializes option type as { id }', () => {
     const result = serializeDynamicField(makeField('option'), '10001');
-    expect(result).toEqual({ value: '10001' });
+    expect(result).toEqual({ id: '10001' });
   });
 
   it('serializes number type as number', () => {
@@ -250,9 +250,18 @@ describe('serializeDynamicField', () => {
     expect(result).toBe(42);
   });
 
-  it('serializes array/option as [{ value }]', () => {
+  it('serializes array/option as [{ id }]', () => {
     const result = serializeDynamicField(makeField('array', 'option'), '10001,10002');
-    expect(result).toEqual([{ value: '10001' }, { value: '10002' }]);
+    expect(result).toEqual([{ id: '10001' }, { id: '10002' }]);
+  });
+
+  it('serializes field with allowedValues as { id }', () => {
+    const field = {
+      ...makeField('team'),
+      allowedValues: [{ id: 'team-123', name: 'Team Thor' }],
+    };
+    const result = serializeDynamicField(field, 'team-123');
+    expect(result).toEqual({ id: 'team-123' });
   });
 
   it('serializes array/string as string array', () => {
@@ -381,6 +390,6 @@ describe('exportToJira — dynamic fields', () => {
 
     const createCall = mockFetch.mock.calls[0];
     const body = JSON.parse(createCall[1].body as string);
-    expect(body.fields.customfield_10060).toEqual({ value: '10100' });
+    expect(body.fields.customfield_10060).toEqual({ id: '10100' });
   });
 });
