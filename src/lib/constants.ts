@@ -51,7 +51,7 @@ export const JIRA_ACCESSIBLE_RESOURCES_URL = 'https://api.atlassian.com/oauth/to
 export const JIRA_CLOUD_API_BASE = 'https://api.atlassian.com/ex/jira';
 
 /** OAuth 2.0 scope'ları */
-export const JIRA_OAUTH_SCOPES = 'read:jira-work write:jira-work read:jira-user';
+export const JIRA_OAUTH_SCOPES = 'read:me read:jira-work write:jira-work read:jira-user offline_access';
 
 /** Mesaj action isimleri */
 export const MESSAGE_ACTIONS = {
