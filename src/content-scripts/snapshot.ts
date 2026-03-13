@@ -85,8 +85,8 @@ function collectInlineCSS(): string {
 }
 
 function dumpStorage(): {
-  localStorage: Record<string, string>;
-  sessionStorage: Record<string, string>;
+  localStorage: Record<string, unknown>;
+  sessionStorage: Record<string, unknown>;
 } {
   return {
     localStorage: dumpStorageObject(window.localStorage),
@@ -94,13 +94,18 @@ function dumpStorage(): {
   };
 }
 
-function dumpStorageObject(storage: Storage): Record<string, string> {
+function dumpStorageObject(storage: Storage): Record<string, unknown> {
   try {
-    const result: Record<string, string> = {};
+    const result: Record<string, unknown> = {};
     for (let i = 0; i < storage.length; i++) {
       const key = storage.key(i);
       if (key !== null) {
-        result[key] = storage.getItem(key) ?? '';
+        const raw = storage.getItem(key) ?? '';
+        try {
+          result[key] = JSON.parse(raw);
+        } catch {
+          result[key] = raw;
+        }
       }
     }
     return result;

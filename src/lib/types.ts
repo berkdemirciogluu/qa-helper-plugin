@@ -204,8 +204,8 @@ export interface DomSnapshot {
 }
 
 export interface StorageDump {
-  localStorage: Record<string, string>;
-  sessionStorage: Record<string, string>;
+  localStorage: Record<string, unknown>;
+  sessionStorage: Record<string, unknown>;
 }
 
 export interface ConsoleLogEntry {
