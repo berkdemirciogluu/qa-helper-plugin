@@ -616,8 +616,15 @@ function SetupView({
       {/* Platform selection */}
       <div>
         <p class="text-sm font-medium text-gray-700 mb-2">Select platform</p>
-        <div role="radiogroup" aria-label="Jira platform selection" class="flex gap-4">
-          <label class="flex items-center gap-2 cursor-pointer">
+        <div role="radiogroup" aria-label="Jira platform selection" class="grid grid-cols-2 gap-3 max-w-md">
+          <label
+            class={[
+              'flex items-center gap-2 cursor-pointer rounded-lg border px-4 py-3 transition-colors',
+              credentials.platform === 'cloud'
+                ? 'border-blue-400 bg-blue-50 text-blue-700'
+                : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300',
+            ].join(' ')}
+          >
             <input
               type="radio"
               name="jira-platform"
@@ -627,9 +634,16 @@ function SetupView({
               aria-label="Jira Cloud"
               class="w-4 h-4 text-blue-600"
             />
-            <span class="text-sm text-gray-700">Jira Cloud</span>
+            <span class="text-sm font-medium">Jira Cloud</span>
           </label>
-          <label class="flex items-center gap-2 cursor-pointer">
+          <label
+            class={[
+              'flex items-center gap-2 cursor-pointer rounded-lg border px-4 py-3 transition-colors',
+              credentials.platform === 'server'
+                ? 'border-blue-400 bg-blue-50 text-blue-700'
+                : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300',
+            ].join(' ')}
+          >
             <input
               type="radio"
               name="jira-platform"
@@ -639,14 +653,14 @@ function SetupView({
               aria-label="Jira Server / Data Center"
               class="w-4 h-4 text-blue-600"
             />
-            <span class="text-sm text-gray-700">Jira Server / Data Center</span>
+            <span class="text-sm font-medium">Server / DC</span>
           </label>
         </div>
       </div>
 
       {/* Cloud: OAuth button */}
       {credentials.platform === 'cloud' && (
-        <div class="flex flex-col gap-3">
+        <div>
           <Button
             variant="primary"
             size="md"
@@ -661,7 +675,7 @@ function SetupView({
 
       {/* Server/DC: URL + PAT form */}
       {credentials.platform === 'server' && (
-        <div class="flex flex-col gap-3">
+        <div class="flex flex-col gap-3 max-w-md">
           <Input
             label="Jira URL"
             htmlFor="jira-url"

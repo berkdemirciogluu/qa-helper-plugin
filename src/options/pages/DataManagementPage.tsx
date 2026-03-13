@@ -53,52 +53,56 @@ export function DataManagementPage() {
   return (
     <div class="flex flex-col gap-6">
       <SectionGroup title="Storage Status" description="Session records and storage usage">
-        <div class="flex flex-col gap-3" aria-live="polite">
-          <div class="flex items-center gap-2 text-sm text-gray-700">
-            <HardDrive size={16} class="text-gray-400" aria-hidden="true" />
-            <span>Total usage: <strong>{usage ? formatBytes(usage.totalBytes) : '—'}</strong></span>
-          </div>
-          <div class="text-sm text-gray-700">
-            Active sessions: <strong>{usage?.sessionCount ?? 0}</strong>
-          </div>
+        <div class="bg-white rounded-lg border border-gray-200 p-4" aria-live="polite">
+          <div class="flex flex-col gap-2">
+            <div class="flex items-center gap-2 text-sm text-gray-700">
+              <HardDrive size={16} class="text-gray-400" aria-hidden="true" />
+              <span>Total usage: <strong>{usage ? formatBytes(usage.totalBytes) : '—'}</strong></span>
+            </div>
+            <div class="text-sm text-gray-700">
+              Active sessions: <strong>{usage?.sessionCount ?? 0}</strong>
+            </div>
 
-          {usage && usage.sessions.length > 0 && (
-            <ul class="mt-2 flex flex-col gap-1">
-              {usage.sessions.map((s) => (
-                <li
-                  key={s.tabId}
-                  class="text-xs text-gray-600 bg-gray-50 rounded px-3 py-2"
-                >
-                  <span class="font-medium">Tab #{s.tabId}</span>
-                  {' — '}
-                  <span>{s.url}</span>
-                  {' ('}
-                  {formatTime(s.startTime)}, {s.eventCount} events
-                  {')'}
-                </li>
-              ))}
-            </ul>
-          )}
+            {usage && usage.sessions.length > 0 && (
+              <ul class="mt-2 flex flex-col gap-1">
+                {usage.sessions.map((s) => (
+                  <li
+                    key={s.tabId}
+                    class="text-xs text-gray-600 bg-gray-50 rounded px-3 py-2"
+                  >
+                    <span class="font-medium">Tab #{s.tabId}</span>
+                    {' — '}
+                    <span>{s.url}</span>
+                    {' ('}
+                    {formatTime(s.startTime)}, {s.eventCount} events
+                    {')'}
+                  </li>
+                ))}
+              </ul>
+            )}
 
-          {usage && usage.sessions.length === 0 && (
-            <p class="text-xs text-gray-400 mt-1">No active sessions found.</p>
-          )}
+            {usage && usage.sessions.length === 0 && (
+              <p class="text-xs text-gray-400 mt-1">No active sessions found.</p>
+            )}
+          </div>
         </div>
       </SectionGroup>
 
       <SectionGroup title="Danger Zone">
-        <p class="text-sm text-gray-500 mb-2">
-          Deletes all session records. Configuration settings are preserved.
-        </p>
-        <Button
-          variant="danger"
-          size="lg"
-          iconLeft={<Trash2 size={16} />}
-          onClick={() => { isModalOpen.value = true; }}
-          aria-label="Clear all session data"
-        >
-          Clear All Data
-        </Button>
+        <div class="bg-white rounded-lg border border-red-200 p-4">
+          <p class="text-sm text-gray-500 mb-3">
+            Deletes all session records. Configuration settings are preserved.
+          </p>
+          <Button
+            variant="danger"
+            size="sm"
+            iconLeft={<Trash2 size={14} />}
+            onClick={() => { isModalOpen.value = true; }}
+            aria-label="Clear all session data"
+          >
+            Clear All Data
+          </Button>
+        </div>
       </SectionGroup>
 
       <Modal
