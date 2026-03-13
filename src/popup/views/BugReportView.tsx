@@ -575,8 +575,8 @@ export function BugReportView({ hasSession }: { hasSession: boolean }) {
 
         {/* Collected Data */}
         <div class="bg-gray-50 rounded-lg p-2.5 border border-gray-200">
-          <p class="text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-1.5">
-            Collected Data
+          <p class="text-[11px] font-semibold text-gray-500 tracking-wider mb-1.5">
+            COLLECTED DATA
           </p>
           <div aria-live="polite">
             {status === 'loading' && <p class="text-xs text-gray-400">Collecting data…</p>}
@@ -627,8 +627,8 @@ export function BugReportView({ hasSession }: { hasSession: boolean }) {
             {/* Dinamik Jira alanları */}
             {jiraConfiguredFields.value.length > 0 && (
               <div class="flex flex-col gap-2">
-                <p class="text-xs font-medium text-neutral-500 uppercase tracking-wide">
-                  Jira Fields
+                <p class="text-xs font-medium text-neutral-500 tracking-wide">
+                  JIRA FIELDS
                 </p>
                 {jiraConfiguredFields.value.map((field) => {
                   const value = dynamicFieldValues.value[field.fieldId] ?? '';
