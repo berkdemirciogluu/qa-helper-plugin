@@ -685,7 +685,7 @@ function SetupView({
             htmlFor="jira-url"
             value={credentials.url}
             onChange={onUrlChange}
-            placeholder="https://jira.sirketiniz.com"
+            placeholder="https://jira.yourcompany.com"
             type="url"
             aria-label="Jira URL"
           />

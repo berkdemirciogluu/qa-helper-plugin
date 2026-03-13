@@ -63,20 +63,20 @@ export function App() {
       <ToastContainer />
 
       {/* Session'sız uyarı modalı — DashboardView seviyesinde */}
-      <Modal isOpen={showSessionWarning} onClose={handleWarningCancel} title="Session Kaydı Yok">
+      <Modal isOpen={showSessionWarning} onClose={handleWarningCancel} title="No Active Session">
         <div class="flex items-start gap-3">
           <AlertCircle size={20} class="text-amber-500 shrink-0 mt-0.5" aria-hidden="true" />
           <p class="text-sm text-gray-700">
-            Session kaydı yok, sadece anlık snapshot alınacak. Tıklama akışı ve XHR geçmişi dahil
-            edilemez.
+            No active session found. Only an instant snapshot will be taken. Click flow and XHR
+            history cannot be included.
           </p>
         </div>
         <div class="flex justify-end gap-2">
           <Button variant="ghost" size="sm" onClick={handleWarningCancel}>
-            İptal
+            Cancel
           </Button>
           <Button variant="primary" size="sm" onClick={handleWarningContinue}>
-            Devam Et
+            Continue
           </Button>
         </div>
       </Modal>
