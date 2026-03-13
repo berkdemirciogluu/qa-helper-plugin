@@ -76,7 +76,7 @@ export function App() {
         </aside>
 
         {/* Content area */}
-        <main class="flex-1 p-6 xl:max-w-[800px] xl:mx-auto">
+        <main class="flex-1 p-6 md:px-8">
           <PageComponent />
         </main>
       </div>

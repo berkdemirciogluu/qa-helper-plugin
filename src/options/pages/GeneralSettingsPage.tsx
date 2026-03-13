@@ -2,7 +2,6 @@ import { signal } from '@preact/signals';
 import { useEffect } from 'preact/hooks';
 
 import { SectionGroup } from '@/components/layout/SectionGroup';
-import { FormRow } from '@/components/layout/FormRow';
 import { Toggle } from '@/components/ui/Toggle';
 import { storageGet, storageSet } from '@/lib/storage';
 import { STORAGE_KEYS } from '@/lib/constants';
@@ -57,21 +56,30 @@ export function GeneralSettingsPage() {
       title="Data Sources"
       description="Data types to include in bug reports"
     >
-      {toggleItems.map((item) => (
-        <FormRow
-          key={item.key}
-          label={item.label}
-          htmlFor={item.id}
-          description={item.description}
-        >
-          <Toggle
-            id={item.id}
-            checked={toggles.value[item.key]}
-            onChange={(checked) => handleToggleChange(item.key, checked)}
-            label={item.label}
-          />
-        </FormRow>
-      ))}
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        {toggleItems.map((item) => (
+          <div
+            key={item.key}
+            class="flex items-center justify-between gap-3 bg-white rounded-lg border border-gray-200 px-4 py-3 hover:border-blue-200 transition-colors"
+          >
+            <div class="min-w-0">
+              <label
+                htmlFor={item.id}
+                class="text-sm font-medium text-gray-800 cursor-pointer"
+              >
+                {item.label}
+              </label>
+              <p class="text-xs text-gray-400 mt-0.5">{item.description}</p>
+            </div>
+            <Toggle
+              id={item.id}
+              checked={toggles.value[item.key]}
+              onChange={(checked) => handleToggleChange(item.key, checked)}
+              label={item.label}
+            />
+          </div>
+        ))}
+      </div>
     </SectionGroup>
   );
 }
