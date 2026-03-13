@@ -411,14 +411,14 @@ function ConnectedView({
 
   return (
     <div class="flex flex-col gap-4">
-      <div aria-live="polite" class="flex items-center gap-2 text-sm">
+      <div aria-live="polite" class="flex items-center gap-2 text-sm bg-green-50 border border-green-200 rounded-lg px-4 py-2.5">
         <CheckCircle size={18} class="text-green-600 shrink-0" />
         <span class="text-green-700 font-medium">
           Connected — {credentials.displayName}{siteInfo}
         </span>
       </div>
 
-      <div class="flex flex-col gap-3">
+      <div class="flex flex-col gap-2 max-w-md">
         <p class="text-sm font-medium text-gray-700">Default Project</p>
         <Select
           htmlFor="jira-default-project"
@@ -426,6 +426,7 @@ function ConnectedView({
           value={credentials.defaultProjectKey ?? ''}
           onChange={onProjectChange}
           disabled={projectsLoading}
+          searchable
           aria-label="Default Jira project"
         />
       </div>
@@ -435,7 +436,7 @@ function ConnectedView({
         <div class="flex flex-col gap-3 border-t border-gray-100 pt-4">
           <p class="text-sm font-medium text-gray-700">Field Configuration</p>
 
-          <div class="flex items-center gap-2">
+          <div class="flex items-center gap-2 max-w-md">
             <div class="flex-1">
               <Select
                 htmlFor="jira-issue-type"
@@ -443,6 +444,7 @@ function ConnectedView({
                 value={credentials.defaultIssueTypeId ?? ''}
                 onChange={onIssueTypeChange}
                 disabled={issueTypesLoading}
+                searchable
                 aria-label="Issue type"
               />
             </div>
@@ -482,18 +484,18 @@ function ConnectedView({
           )}
 
           {!fieldsLoading && !fieldsError && configuredFields.length > 0 && (
-            <div class="flex flex-col gap-2 rounded-md border border-gray-200 p-3">
+            <div class="flex flex-col rounded-lg border border-gray-200 bg-white divide-y divide-gray-100 max-w-xl">
               {configuredFields.map((field) => {
                 const showInput = field.required || field.alwaysFill;
                 return (
-                  <div key={field.fieldId} class="flex flex-col gap-1.5">
+                  <div key={field.fieldId} class="flex flex-col gap-1.5 px-4 py-3">
                     <div class="flex items-center justify-between gap-2">
                       <div class="flex items-center gap-2 min-w-0">
                         <span class="text-sm text-gray-700 truncate">{field.name}</span>
                         <span class="text-[10px] text-gray-400 shrink-0">[{field.schemaType}]</span>
                         {field.required && (
                           <span
-                            class="text-[10px] font-medium text-red-600 bg-red-50 px-1 rounded shrink-0"
+                            class="text-[10px] font-medium text-red-600 bg-red-50 px-1.5 py-0.5 rounded shrink-0"
                             aria-label="Required field"
                           >
                             Required
@@ -516,33 +518,35 @@ function ConnectedView({
                       )}
                     </div>
                     {showInput && (
-                      field.allowedValues && field.allowedValues.length > 0 ? (
-                        <Select
-                          htmlFor={`field-${field.fieldId}`}
-                          options={[
-                            { value: '', label: 'Select default...' },
-                            ...field.allowedValues
-                              .filter((v) => !v.disabled)
-                              .map((v) => ({ value: v.id, label: v.value ?? v.name ?? v.id })),
-                          ]}
-                          value={field.defaultValue}
-                          onChange={(v) => void onFieldDefaultValue(field.fieldId, v)}
-                          aria-label={`${field.name} default value`}
-                        />
-                      ) : (
-                        <Input
-                          htmlFor={`field-${field.fieldId}`}
-                          value={field.defaultValue}
-                          onChange={(v) => void onFieldDefaultValue(field.fieldId, v)}
-                          placeholder="Default value..."
-                          aria-label={`${field.name} default value`}
-                        />
-                      )
+                      <div class="max-w-sm">
+                        {field.allowedValues && field.allowedValues.length > 0 ? (
+                          <Select
+                            htmlFor={`field-${field.fieldId}`}
+                            options={[
+                              { value: '', label: 'Select default...' },
+                              ...field.allowedValues
+                                .filter((v) => !v.disabled)
+                                .map((v) => ({ value: v.id, label: v.value ?? v.name ?? v.id })),
+                            ]}
+                            value={field.defaultValue}
+                            onChange={(v) => void onFieldDefaultValue(field.fieldId, v)}
+                            aria-label={`${field.name} default value`}
+                          />
+                        ) : (
+                          <Input
+                            htmlFor={`field-${field.fieldId}`}
+                            value={field.defaultValue}
+                            onChange={(v) => void onFieldDefaultValue(field.fieldId, v)}
+                            placeholder="Default value..."
+                            aria-label={`${field.name} default value`}
+                          />
+                        )}
+                      </div>
                     )}
                   </div>
                 );
               })}
-              <p class="text-xs text-gray-400 mt-1">(Changes are saved automatically)</p>
+              <p class="text-xs text-gray-400 px-4 py-2">(Changes are saved automatically)</p>
             </div>
           )}
         </div>
